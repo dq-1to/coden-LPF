@@ -6,6 +6,8 @@ import { AuthProvider } from './contexts/AuthContext'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
 import { StepPage } from './pages/StepPage'
+import { ConfigErrorView } from './components/ConfigErrorView'
+import { supabaseConfigError } from './lib/supabaseClient'
 import './styles/globals.css'
 
 const router = createBrowserRouter([
@@ -36,10 +38,23 @@ const router = createBrowserRouter([
   { path: '*', element: <Navigate to="/" replace /> },
 ])
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
-  </React.StrictMode>,
-)
+const rootElement = document.getElementById('root')!
+const root = ReactDOM.createRoot(rootElement)
+
+if (supabaseConfigError) {
+  root.render(
+    <React.StrictMode>
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <ConfigErrorView message={supabaseConfigError} />
+      </div>
+    </React.StrictMode>,
+  )
+} else {
+  root.render(
+    <React.StrictMode>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </React.StrictMode>,
+  )
+}
