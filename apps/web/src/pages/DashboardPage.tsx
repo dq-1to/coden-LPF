@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ConfigErrorView } from '../components/ConfigErrorView'
+import { IMPLEMENTED_STEP_COUNT } from '../content/courseData'
 import { useAuth } from '../contexts/AuthContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { DashboardSidebar } from '../features/dashboard/components/DashboardSidebar'
@@ -8,8 +9,6 @@ import { LearningOverviewCard } from '../features/dashboard/components/LearningO
 import { WelcomeBanner } from '../features/dashboard/components/WelcomeBanner'
 import { supabase, supabaseConfigError } from '../lib/supabaseClient'
 import { getCompletedStepCount } from '../services/progressService'
-
-const TOTAL_STEPS = 4
 
 export function DashboardPage() {
   const { user, signOut } = useAuth()
@@ -94,7 +93,7 @@ export function DashboardPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <section className="space-y-6 lg:col-span-8">
             <WelcomeBanner displayName={greetingName} />
-            <LearningOverviewCard completedCount={completedCount} totalSteps={TOTAL_STEPS} />
+            <LearningOverviewCard completedCount={Math.min(completedCount, IMPLEMENTED_STEP_COUNT)} />
             <Link className="inline-flex text-sm font-semibold text-primary-dark underline" to="/step/usestate-basic">
               学習画面へ移動（/step/usestate-basic）
             </Link>
