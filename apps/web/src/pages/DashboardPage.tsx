@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { useAuth } from '../contexts/AuthContext'
+import { AppHeader } from '../features/dashboard/components/AppHeader'
+import { DashboardSidebar } from '../features/dashboard/components/DashboardSidebar'
+import { LearningOverviewCard } from '../features/dashboard/components/LearningOverviewCard'
+import { WelcomeBanner } from '../features/dashboard/components/WelcomeBanner'
 import { supabase, supabaseConfigError } from '../lib/supabaseClient'
 import { getCompletedStepCount } from '../services/progressService'
 
@@ -80,40 +84,27 @@ export function DashboardPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-6 px-6 py-16">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold">ダッシュボード</h1>
-          <p className="text-slate-600">こんにちは、{greetingName}さん</p>
+    <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
+      <AppHeader displayName={greetingName} onSignOut={() => void handleSignOut()} />
+
+      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {supabaseConfigError ? <ConfigErrorView message={supabaseConfigError} /> : null}
+        {error ? <p className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p> : null}
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <section className="space-y-6 lg:col-span-8">
+            <WelcomeBanner displayName={greetingName} />
+            <LearningOverviewCard completedCount={completedCount} totalSteps={TOTAL_STEPS} />
+            <Link className="inline-flex text-sm font-semibold text-primary-dark underline" to="/step/usestate-basic">
+              学習画面へ移動（/step/usestate-basic）
+            </Link>
+          </section>
+
+          <section className="lg:col-span-4">
+            <DashboardSidebar />
+          </section>
         </div>
-        <button
-          className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          type="button"
-          onClick={handleSignOut}
-        >
-          ログアウト
-        </button>
-      </header>
-
-      {supabaseConfigError ? <ConfigErrorView message={supabaseConfigError} /> : null}
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
-
-      <section className="grid gap-4 md:grid-cols-2">
-        <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">学習中コース</p>
-          <p className="mt-2 text-xl font-semibold">React基礎</p>
-        </article>
-        <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">完了ステップ</p>
-          <p className="mt-2 text-xl font-semibold">
-            {completedCount} / {TOTAL_STEPS}
-          </p>
-        </article>
-      </section>
-
-      <Link className="text-sm font-medium text-blue-700 underline" to="/step/usestate-basic">
-        学習画面へ（/step/usestate-basic）
-      </Link>
-    </main>
+      </main>
+    </div>
   )
 }
