@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import Prism from 'prismjs'
@@ -14,6 +14,8 @@ interface ReadModeProps {
 }
 
 export function ReadMode({ markdown, onComplete }: ReadModeProps) {
+  const [copyMessage, setCopyMessage] = useState<string | null>(null)
+
   useEffect(() => {
     Prism.highlightAll()
   }, [markdown])
@@ -49,7 +51,17 @@ export function ReadMode({ markdown, onComplete }: ReadModeProps) {
               }
 
               async function handleCopy() {
-                await navigator.clipboard.writeText(codeText)
+                if (!navigator.clipboard) {
+                  setCopyMessage('この環境ではコピー機能を利用できません。')
+                  return
+                }
+
+                try {
+                  await navigator.clipboard.writeText(codeText)
+                  setCopyMessage('コードをコピーしました。')
+                } catch {
+                  setCopyMessage('コードのコピーに失敗しました。')
+                }
               }
 
               return (
@@ -77,6 +89,7 @@ export function ReadMode({ markdown, onComplete }: ReadModeProps) {
           {markdown}
         </ReactMarkdown>
       </article>
+      {copyMessage ? <p className="text-sm text-slate-600">{copyMessage}</p> : null}
     </section>
   )
 }
