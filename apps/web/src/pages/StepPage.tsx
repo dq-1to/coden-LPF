@@ -104,7 +104,11 @@ export function StepPage() {
   )
 
   async function handleSignOut() {
-    await signOut()
+    const errorMessage = await signOut()
+    if (errorMessage) {
+      setSyncMessage(errorMessage)
+      return
+    }
     navigate('/login', { replace: true })
   }
 
