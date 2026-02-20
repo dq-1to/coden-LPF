@@ -17,13 +17,15 @@ with upsert_users as (
     raw_app_meta_data,
     raw_user_meta_data,
     is_super_admin,
+    instance_id,
+    aud,
     role
   )
   values
   (
     gen_random_uuid(),
     'test01@coden.dev',
-    crypt('TestPass123!', gen_salt('bf')),
+    crypt('TestPass123!', gen_salt('bf', 10)),
     now(),
     '',
     '',
@@ -35,12 +37,14 @@ with upsert_users as (
     '{"provider":"email","providers":["email"]}',
     '{}',
     false,
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
     'authenticated'
   ),
   (
     gen_random_uuid(),
     'test02@coden.dev',
-    crypt('TestPass123!', gen_salt('bf')),
+    crypt('TestPass123!', gen_salt('bf', 10)),
     now(),
     '',
     '',
@@ -52,6 +56,8 @@ with upsert_users as (
     '{"provider":"email","providers":["email"]}',
     '{}',
     false,
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
     'authenticated'
   )
   on conflict (email) do update set
