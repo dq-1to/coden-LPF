@@ -28,20 +28,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, nextSession) => {
+    } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
       if (!isMounted) {
         return
       }
 
-      if (event === 'SIGNED_OUT' || !nextSession?.user) {
+      try {
+        if (event === 'SIGNED_OUT' || !nextSession?.user) {
+          setSession(null)
+          setUser(null)
+        } else {
+          setSession(nextSession)
+          setUser(nextSession.user)
+        }
+      } catch {
+        if (!isMounted) {
+          return
+        }
+
         setSession(null)
         setUser(null)
-      } else {
-        setSession(nextSession)
-        setUser(nextSession.user)
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
       }
-
-      setIsLoading(false)
     })
 
     supabase.auth
