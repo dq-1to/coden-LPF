@@ -1,0 +1,13 @@
+{
+  "name": "coden-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm --workspace @coden/web run dev",
+    "build": "npm --workspace @coden/web run build",
+    "typecheck": "npm --workspace @coden/web run typecheck"
+  }
+}
