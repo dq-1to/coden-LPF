@@ -1,18 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Nunito:wght@600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
-  color: #0f172a;
-  background: radial-gradient(circle at top left, #e0f2fe 0%, #f8fafc 45%, #ffffff 100%);
+  --primary-mint: #2cc295;
+  --primary-dark: #1e9e78;
+  --secondary-bg: #f0fdf9;
+  --text-dark: #1f2937;
+  --text-light: #6b7280;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--text-dark);
+  background-color: #f9fafb;
 }
 
 * {
   box-sizing: border-box;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  }
 }
