@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { LearningSidebar } from '../components/LearningSidebar'
 import { fundamentalsSteps, getFundamentalsStep, type LearningMode } from '../content/fundamentals/steps'
@@ -25,12 +25,32 @@ export function StepPage() {
   const [activeMode, setActiveMode] = useState<LearningMode>('read')
   const [modeStatus, setModeStatus] = useState<ModeStatus>(INITIAL_MODE_STATUS)
   const [syncMessage, setSyncMessage] = useState<string | null>(null)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const completedOnceRef = useRef(false)
 
   const step = getFundamentalsStep(stepId)
+
+  const orderedSteps = useMemo(() => [...fundamentalsSteps].sort((a, b) => a.order - b.order), [])
+  const nextStep = useMemo(() => {
+    if (!step) {
+      return undefined
+    }
+
+    const currentIndex = orderedSteps.findIndex((item) => item.id === step.id)
+    if (currentIndex < 0) {
+      return undefined
+    }
+
+    return orderedSteps[currentIndex + 1]
+  }, [orderedSteps, step])
+
+  const isStepCompleted = modeStatus.read && modeStatus.practice && modeStatus.test && modeStatus.challenge
 
   useEffect(() => {
     setActiveMode('read')
     setSyncMessage(null)
+    setToastMessage(null)
+    completedOnceRef.current = false
   }, [stepId])
 
   useEffect(() => {
@@ -73,6 +93,35 @@ export function StepPage() {
     }
   }, [step, user?.id])
 
+  useEffect(() => {
+    if (!step || !isStepCompleted || completedOnceRef.current) {
+      return
+    }
+
+    completedOnceRef.current = true
+
+    if (nextStep) {
+      setToastMessage(`「${step.title}」を完了しました。次のステップへ進めます。`)
+      return
+    }
+
+    setToastMessage('全ステップを完了しました。おめでとうございます！')
+  }, [isStepCompleted, nextStep, step])
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setToastMessage(null)
+    }, 3500)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [toastMessage])
+
   const modeButtons: { id: LearningMode; label: string }[] = useMemo(
     () => [
       { id: 'read', label: 'Read' },
@@ -110,6 +159,15 @@ export function StepPage() {
       return
     }
     navigate('/login', { replace: true })
+  }
+
+  function handleNextStep() {
+    if (!nextStep) {
+      navigate('/', { replace: false })
+      return
+    }
+
+    navigate(`/step/${nextStep.id}`)
   }
 
   if (!step) {
@@ -179,6 +237,23 @@ export function StepPage() {
           {activeMode === 'challenge' ? (
             <ChallengeMode task={step.challengeTask} onComplete={() => void handleModeComplete('challenge')} />
           ) : null}
+
+          {modeStatus.challenge ? (
+            <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              <p className="text-sm font-medium text-emerald-800">
+                {nextStep
+                  ? `チャレンジ完了。次は「${nextStep.title}」へ進めます。`
+                  : 'チャレンジ完了。現在の学習フローはすべて完了しています。'}
+              </p>
+              <button
+                className="mt-3 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                type="button"
+                onClick={handleNextStep}
+              >
+                {nextStep ? '次のステップへ進む' : 'ダッシュボードへ戻る'}
+              </button>
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -187,6 +262,13 @@ export function StepPage() {
           ダッシュボードへ戻る
         </Link>
       </div>
+
+      {toastMessage ? (
+        <div className="fixed bottom-5 right-5 z-50 max-w-sm rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm text-emerald-900 shadow-xl">
+          <p className="font-semibold">学習達成</p>
+          <p className="mt-1">{toastMessage}</p>
+        </div>
+      ) : null}
     </main>
   )
 }
