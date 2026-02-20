@@ -1,0 +1,17 @@
+﻿Rules/
+RuleOps/
+AGENTS.md
+CLAUDE.md
+.claude/
+docs/roadmaps/
+docs/appreviews/
+docs/memo/
+.env.local
+node_modules/
+dist/
+build/
+coverage/
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
