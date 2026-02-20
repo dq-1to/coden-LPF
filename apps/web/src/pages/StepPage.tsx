@@ -1,24 +1,107 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { LearningSidebar } from '../components/LearningSidebar'
 import { fundamentalsSteps, getFundamentalsStep, type LearningMode } from '../content/fundamentals/steps'
 import { useAuth } from '../contexts/AuthContext'
+import { ChallengeMode } from '../features/learning/ChallengeMode'
+import { PracticeMode } from '../features/learning/PracticeMode'
+import { ReadMode } from '../features/learning/ReadMode'
+import { TestMode } from '../features/learning/TestMode'
+import { getStepProgress, updateModeCompletion } from '../services/progressService'
+
+type ModeStatus = Record<LearningMode, boolean>
+
+const INITIAL_MODE_STATUS: ModeStatus = {
+  read: false,
+  practice: false,
+  test: false,
+  challenge: false,
+}
 
 export function StepPage() {
   const { stepId = '' } = useParams()
-  const { signOut } = useAuth()
+  const { signOut, user } = useAuth()
   const navigate = useNavigate()
   const [activeMode, setActiveMode] = useState<LearningMode>('read')
-  const [practiceDraft, setPracticeDraft] = useState('')
-  const [showHint, setShowHint] = useState(false)
+  const [modeStatus, setModeStatus] = useState<ModeStatus>(INITIAL_MODE_STATUS)
+  const [syncMessage, setSyncMessage] = useState<string | null>(null)
 
   const step = getFundamentalsStep(stepId)
 
   useEffect(() => {
     setActiveMode('read')
-    setPracticeDraft('')
-    setShowHint(false)
+    setSyncMessage(null)
   }, [stepId])
+
+  useEffect(() => {
+    const userId = user?.id ?? ''
+    if (!step || userId.length === 0) {
+      setModeStatus(INITIAL_MODE_STATUS)
+      return
+    }
+
+    const currentStepId = step.id
+    let isMounted = true
+
+    async function loadStepProgress() {
+      try {
+        const progress = await getStepProgress(userId, currentStepId)
+        if (!isMounted) {
+          return
+        }
+
+        setModeStatus({
+          read: progress?.read_done ?? false,
+          practice: progress?.practice_done ?? false,
+          test: progress?.test_done ?? false,
+          challenge: progress?.challenge_done ?? false,
+        })
+      } catch (error) {
+        if (!isMounted) {
+          return
+        }
+
+        const message = error instanceof Error ? error.message : '進捗の取得に失敗しました。'
+        setSyncMessage(message)
+      }
+    }
+
+    void loadStepProgress()
+
+    return () => {
+      isMounted = false
+    }
+  }, [step, user?.id])
+
+  const modeButtons: { id: LearningMode; label: string }[] = useMemo(
+    () => [
+      { id: 'read', label: 'Read' },
+      { id: 'practice', label: 'Practice' },
+      { id: 'test', label: 'Test' },
+      { id: 'challenge', label: 'Challenge' },
+    ],
+    [],
+  )
+
+  const handleModeComplete = useCallback(
+    async (mode: LearningMode) => {
+      if (!step || !user?.id || modeStatus[mode]) {
+        return
+      }
+
+      setModeStatus((prev) => ({ ...prev, [mode]: true }))
+      setSyncMessage(null)
+
+      try {
+        await updateModeCompletion(user.id, step.id, mode)
+      } catch (error) {
+        setModeStatus((prev) => ({ ...prev, [mode]: false }))
+        const message = error instanceof Error ? error.message : '進捗保存に失敗しました。'
+        setSyncMessage(message)
+      }
+    },
+    [modeStatus, step, user?.id],
+  )
 
   async function handleSignOut() {
     await signOut()
@@ -36,15 +119,6 @@ export function StepPage() {
       </main>
     )
   }
-
-  const modeButtons: { id: LearningMode; label: string }[] = [
-    { id: 'read', label: 'Read' },
-    { id: 'practice', label: 'Practice' },
-    { id: 'test', label: 'Test' },
-    { id: 'challenge', label: 'Challenge' },
-  ]
-
-  const currentPractice = step.practiceQuestions[0]
 
   return (
     <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-6 py-10">
@@ -71,7 +145,6 @@ export function StepPage() {
           <div className="mt-4 flex flex-wrap gap-2 border-b border-slate-200 pb-4">
             {modeButtons.map((mode) => {
               const isActive = activeMode === mode.id
-
               return (
                 <button
                   key={mode.id}
@@ -82,59 +155,25 @@ export function StepPage() {
                   onClick={() => setActiveMode(mode.id)}
                 >
                   {mode.label}
+                  {modeStatus[mode.id] ? ' ✓' : ''}
                 </button>
               )
             })}
           </div>
 
+          {syncMessage ? <p className="mt-4 text-sm text-rose-700">{syncMessage}</p> : null}
+
           {activeMode === 'read' ? (
-            <section className="mt-4 space-y-3">
-              <h2 className="text-lg font-semibold">Read</h2>
-              <pre className="whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm text-slate-800">
-                {step.readMarkdown}
-              </pre>
-            </section>
+            <ReadMode markdown={step.readMarkdown} onComplete={() => void handleModeComplete('read')} />
           ) : null}
-
           {activeMode === 'practice' ? (
-            <section className="mt-4 space-y-3">
-              <h2 className="text-lg font-semibold">Practice</h2>
-              <p className="text-sm text-slate-700">{currentPractice.prompt}</p>
-              <input
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-                placeholder="回答を入力"
-                value={practiceDraft}
-                onChange={(event) => setPracticeDraft(event.target.value)}
-              />
-              <button
-                className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
-                type="button"
-                onClick={() => setShowHint((prev) => !prev)}
-              >
-                ヒントを{showHint ? '隠す' : '表示'}
-              </button>
-              {showHint ? <p className="text-sm text-blue-700">{currentPractice.hint}</p> : null}
-            </section>
+            <PracticeMode questions={step.practiceQuestions} onComplete={() => void handleModeComplete('practice')} />
           ) : null}
-
           {activeMode === 'test' ? (
-            <section className="mt-4 space-y-3">
-              <h2 className="text-lg font-semibold">Test</h2>
-              <p className="text-sm text-slate-700">{step.testTask.instruction}</p>
-              <pre className="rounded-lg bg-slate-50 p-4 text-sm text-slate-800">{step.testTask.starterCode}</pre>
-            </section>
+            <TestMode stepId={step.id} task={step.testTask} onComplete={() => void handleModeComplete('test')} />
           ) : null}
-
           {activeMode === 'challenge' ? (
-            <section className="mt-4 space-y-3">
-              <h2 className="text-lg font-semibold">Challenge</h2>
-              <p className="text-sm text-slate-700">{step.challengeTask.prompt}</p>
-              <ul className="list-inside list-disc space-y-1 text-sm text-slate-700">
-                {step.challengeTask.requirements.map((requirement) => (
-                  <li key={requirement}>{requirement}</li>
-                ))}
-              </ul>
-            </section>
+            <ChallengeMode task={step.challengeTask} onComplete={() => void handleModeComplete('challenge')} />
           ) : null}
         </div>
       </section>

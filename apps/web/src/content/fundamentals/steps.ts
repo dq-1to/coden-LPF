@@ -17,6 +17,7 @@ export interface ChallengeTask {
   prompt: string
   requirements: string[]
   hints: string[]
+  expectedKeywords: string[]
 }
 
 export interface LearningStepContent {
@@ -40,7 +41,16 @@ export const fundamentalsSteps: LearningStepContent[] = [
 
 - \`useState\` は関数コンポーネントで状態を持つためのHookです。
 - \`const [count, setCount] = useState(0)\` のように定義します。
-- setterを呼ぶと再レンダリングされ、画面に最新の状態が反映されます。`,
+- setterを呼ぶと再レンダリングされ、画面に最新の状態が反映されます。
+
+\`\`\`tsx
+import { useState } from 'react'
+
+export function Counter() {
+  const [count, setCount] = useState(0)
+  return <button onClick={() => setCount(count + 1)}>+1: {count}</button>
+}
+\`\`\``,
     practiceQuestions: [
       {
         id: 'q1',
@@ -59,6 +69,7 @@ return <button onClick={() => ____}>+1 ({count})</button>`,
       prompt: 'いいねボタンを実装し、クリックで数値が増えるコンポーネントを作ってください。',
       requirements: ['初期値0から開始する', 'クリックで+1される', '現在値を表示する'],
       hints: ['まず state を 1 つ定義する', 'イベントハンドラで setter を呼ぶ'],
+      expectedKeywords: ['useState', 'setCount', 'onClick'],
     },
   },
   {
@@ -70,7 +81,14 @@ return <button onClick={() => ____}>+1 ({count})</button>`,
 
 - Reactのイベント名はキャメルケース（例: \`onClick\`）です。
 - イベントハンドラには関数を渡します。
-- フォーム入力では \`event.target.value\` を使います。`,
+- フォーム入力では \`event.target.value\` を使います。
+
+\`\`\`tsx
+function NameInput() {
+  const [name, setName] = useState('')
+  return <input value={name} onChange={(event) => setName(event.target.value)} />
+}
+\`\`\``,
     practiceQuestions: [
       {
         id: 'q1',
@@ -88,6 +106,7 @@ return <button onClick={() => ____}>+1 ({count})</button>`,
       prompt: '入力値をリアルタイム表示するフォームを作成してください。',
       requirements: ['入力欄を1つ置く', '入力値を下に表示する', '表示は即時反映される'],
       hints: ['onChange で値を受け取る', 'useStateで保持する'],
+      expectedKeywords: ['onChange', 'event.target.value', 'useState'],
     },
   },
   {
@@ -99,7 +118,11 @@ return <button onClick={() => ____}>+1 ({count})</button>`,
 
 - \`if\` 文で分岐して JSX を返せます。
 - JSX 内では三項演算子（\`condition ? A : B\`）や \`&&\` が使えます。
-- ログイン状態などの切り替え表現で多用します。`,
+- ログイン状態などの切り替え表現で多用します。
+
+\`\`\`tsx
+return <>{isLoggedIn ? <p>Welcome</p> : <p>Please login</p>}</>
+\`\`\``,
     practiceQuestions: [
       {
         id: 'q1',
@@ -117,6 +140,7 @@ return <button onClick={() => ____}>+1 ({count})</button>`,
       prompt: '切替ボタンで「表示中/非表示」を切り替えるUIを作ってください。',
       requirements: ['表示状態をstateで持つ', 'ボタンで反転する', '文言を条件分岐で表示する'],
       hints: ['booleanのstateを使う', 'setState(prev => !prev) を使う'],
+      expectedKeywords: ['useState', '?', ':'],
     },
   },
   {
@@ -128,7 +152,12 @@ return <button onClick={() => ____}>+1 ({count})</button>`,
 
 - 配列は \`array.map\` で JSX に変換します。
 - それぞれの要素には安定した \`key\` を渡します。
-- key には index よりも一意なIDを使うのが基本です。`,
+- key には index よりも一意なIDを使うのが基本です。
+
+\`\`\`tsx
+const items = [{ id: '1', name: 'React' }]
+return <ul>{items.map((item) => <li key={item.id}>{item.name}</li>)}</ul>
+\`\`\``,
     practiceQuestions: [
       {
         id: 'q1',
@@ -146,6 +175,7 @@ return <button onClick={() => ____}>+1 ({count})</button>`,
       prompt: 'Todo配列を受け取り、未完了件数を表示するリストを実装してください。',
       requirements: ['mapで一覧描画する', 'keyを設定する', '未完了件数を表示する'],
       hints: ['filter で未完了を抽出', 'lengthで件数を算出'],
+      expectedKeywords: ['map', 'key=', 'filter'],
     },
   },
 ]
