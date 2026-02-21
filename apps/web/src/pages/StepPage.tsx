@@ -202,7 +202,7 @@ export function StepPage() {
       return
     }
 
-    navigate(`/step/${nextStep.id}`)
+    navigate(`/step/${nextStep.id}`, { replace: true })
   }
 
   if (isUnavailableStep || (!isLoadingStats && step && step.order > completedStepsCount + 1)) {
