@@ -17,6 +17,19 @@ type ProgressPatch = Partial<
   Pick<StepProgressRow, 'read_done' | 'practice_done' | 'test_done' | 'challenge_done' | 'completed_at'>
 >
 
+export async function getAllStepProgress(userId: string): Promise<StepProgressRow[]> {
+  const { data, error } = await supabase
+    .from('step_progress')
+    .select('user_id, step_id, read_done, practice_done, test_done, challenge_done, updated_at, completed_at')
+    .eq('user_id', userId)
+
+  if (error) {
+    throw error
+  }
+
+  return data as StepProgressRow[]
+}
+
 export async function getStepProgress(userId: string, stepId: string): Promise<StepProgressRow | null> {
   const { data, error } = await supabase
     .from('step_progress')

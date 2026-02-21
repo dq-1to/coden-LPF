@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { useAuth } from './AuthContext'
-import { getLearningStats, type LearningStats } from '../services/pointService'
+import { getLearningStats, type LearningStats } from '../services/statsService'
 import { getCompletedStepCount } from '../services/progressService'
 
 interface LearningContextType {

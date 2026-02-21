@@ -4,8 +4,10 @@ import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
 import { LearningProvider } from './contexts/LearningContext'
+import { AchievementProvider } from './contexts/AchievementContext'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { StepPage } from './pages/StepPage'
 import { ConfigErrorView } from './components/ConfigErrorView'
 import { supabaseConfigError } from './lib/supabaseClient'
@@ -36,6 +38,14 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  {
+    path: '/profile',
+    element: (
+      <ProtectedRoute>
+        <ProfilePage />
+      </ProtectedRoute>
+    ),
+  },
   { path: '*', element: <Navigate to="/" replace /> },
 ])
 
@@ -55,7 +65,9 @@ if (supabaseConfigError) {
     <React.StrictMode>
       <AuthProvider>
         <LearningProvider>
-          <RouterProvider router={router} />
+          <AchievementProvider>
+            <RouterProvider router={router} />
+          </AchievementProvider>
         </LearningProvider>
       </AuthProvider>
     </React.StrictMode>,
