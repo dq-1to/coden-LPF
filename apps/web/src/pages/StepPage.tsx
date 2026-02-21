@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { LearningSidebar } from '../components/LearningSidebar'
-import { findStepMeta } from '../content/courseData'
+import { COURSES, findStepMeta } from '../content/courseData'
 import { fundamentalsSteps, getFundamentalsStep, type LearningMode } from '../content/fundamentals/steps'
+import { getIntermediateStep, intermediateSteps } from '../content/intermediate/steps'
 import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
@@ -43,7 +44,7 @@ export function StepPage() {
   const completedOnceRef = useRef(false)
 
   const stepMeta = findStepMeta(stepId)
-  const step = getFundamentalsStep(stepId)
+  const step = getFundamentalsStep(stepId) || getIntermediateStep(stepId)
   const isUnavailableStep = Boolean(stepMeta && !stepMeta.isImplemented)
 
   const headerDisplayName = useMemo(() => {
@@ -59,7 +60,18 @@ export function StepPage() {
     return 'ゲスト'
   }, [user?.email, user?.user_metadata])
 
-  const orderedSteps = useMemo(() => [...fundamentalsSteps].sort((a, b) => a.order - b.order), [])
+  const orderedSteps = useMemo(() => [...fundamentalsSteps, ...intermediateSteps].sort((a, b) => a.order - b.order), [])
+
+  const currentCourse = useMemo(
+    () => COURSES.find((course) => course.steps.some((s) => s.id === (step?.id || stepId))),
+    [step?.id, stepId]
+  )
+  const sidebarTitle = currentCourse?.title || 'コース'
+  const sidebarSteps = useMemo(() => {
+    if (!currentCourse) return []
+    const stepIds = new Set(currentCourse.steps.map((s) => s.id))
+    return orderedSteps.filter((s) => stepIds.has(s.id))
+  }, [currentCourse, orderedSteps])
   const nextStep = useMemo(() => {
     if (!step) {
       return undefined
@@ -241,7 +253,7 @@ export function StepPage() {
         </section>
 
         <section className="flex flex-col gap-4 lg:flex-row lg:items-start">
-          <LearningSidebar currentStepId={stepId} steps={fundamentalsSteps} />
+          <LearningSidebar courseTitle={sidebarTitle} currentStepId={stepId} steps={sidebarSteps} />
 
           <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-xs font-medium uppercase tracking-wide text-slate-500">stepId: {step.id}</p>
