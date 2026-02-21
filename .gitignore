@@ -5,6 +5,7 @@ CLAUDE.md
 .claude/
 docs/roadmaps/
 docs/appreviews/
+docs/userTest/
 docs/memo/
 .env.local
 node_modules/
