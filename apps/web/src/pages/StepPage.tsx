@@ -34,7 +34,7 @@ function toModeStatus(progress: Awaited<ReturnType<typeof getStepProgress>>): Mo
 export function StepPage() {
   const { stepId = '' } = useParams()
   const { signOut, user } = useAuth()
-  const { refreshStats } = useLearningContext()
+  const { refreshStats, completedStepsCount, isLoadingStats } = useLearningContext()
   const navigate = useNavigate()
   const [activeMode, setActiveMode] = useState<LearningMode>('read')
   const [modeStatus, setModeStatus] = useState<ModeStatus>(INITIAL_MODE_STATUS)
@@ -205,8 +205,16 @@ export function StepPage() {
     navigate(`/step/${nextStep.id}`)
   }
 
-  if (isUnavailableStep) {
+  if (isUnavailableStep || (!isLoadingStats && step && step.order > completedStepsCount + 1)) {
     return <Navigate to="/" replace />
+  }
+
+  if (isLoadingStats) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <p className="font-medium text-slate-500">読み込み中...</p>
+      </div>
+    )
   }
 
   if (!step) {
@@ -244,9 +252,8 @@ export function StepPage() {
                 return (
                   <button
                     key={mode.id}
-                    className={`rounded-md px-3 py-2 text-sm font-medium transition ${
-                      isActive ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    }`}
+                    className={`rounded-md px-3 py-2 text-sm font-medium transition ${isActive ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
                     type="button"
                     onClick={() => setActiveMode(mode.id)}
                   >
