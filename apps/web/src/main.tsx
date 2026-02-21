@@ -7,6 +7,7 @@ import { LearningProvider } from './contexts/LearningContext'
 import { AchievementProvider } from './contexts/AchievementContext'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { StepPage } from './pages/StepPage'
 import { ConfigErrorView } from './components/ConfigErrorView'
 import { supabaseConfigError } from './lib/supabaseClient'
@@ -34,6 +35,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <StepPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/profile',
+    element: (
+      <ProtectedRoute>
+        <ProfilePage />
       </ProtectedRoute>
     ),
   },

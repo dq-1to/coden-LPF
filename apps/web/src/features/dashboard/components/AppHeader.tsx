@@ -37,6 +37,15 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
             >
               コース一覧
             </Link>
+            <Link
+              to="/profile"
+              className={`pb-1 ${location.pathname === '/profile'
+                ? 'border-b-2 border-primary-mint text-slate-900'
+                : 'text-slate-500 hover:text-slate-700'
+                }`}
+            >
+              プロフィール
+            </Link>
             <span className="cursor-not-allowed pb-1 text-slate-400">コミュニティ (準備中)</span>
           </nav>
         </div>
