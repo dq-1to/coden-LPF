@@ -3,16 +3,17 @@ import type { LearningStepContent } from '../content/fundamentals/steps'
 import { useLearningContext } from '../contexts/LearningContext'
 
 interface LearningSidebarProps {
+  courseTitle: string
   currentStepId: string
   steps: LearningStepContent[]
 }
 
-export function LearningSidebar({ currentStepId, steps }: LearningSidebarProps) {
+export function LearningSidebar({ courseTitle, currentStepId, steps }: LearningSidebarProps) {
   const { completedStepsCount, isLoadingStats } = useLearningContext()
 
   return (
     <aside className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:w-72">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">React基礎コース</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{courseTitle}</p>
       <ul className="mt-3 space-y-2">
         {steps.map((step) => {
           const isCurrent = step.id === currentStepId
