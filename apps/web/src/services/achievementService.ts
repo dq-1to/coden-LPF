@@ -1,7 +1,7 @@
 import { COURSES } from '../content/courseData'
 import { supabase } from '../lib/supabaseClient'
 import { getAllStepProgress } from './progressService'
-import { getLearningStats } from './pointService'
+import { getLearningStats } from './statsService'
 
 export interface Achievement {
   id: string
