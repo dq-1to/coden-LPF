@@ -17,10 +17,12 @@ interface StepRowProps {
   step: StepMeta
   isInProgress: boolean
   isDone: boolean
+  isLockedByProgress: boolean
 }
 
-function StepRow({ step, isInProgress, isDone }: StepRowProps) {
-  const isLocked = !step.isImplemented
+function StepRow({ step, isInProgress, isDone, isLockedByProgress }: StepRowProps) {
+  const isUnimplemented = !step.isImplemented
+  const isLocked = isUnimplemented || isLockedByProgress
 
   const borderBg = isInProgress
     ? 'border-primary-mint bg-secondary-bg'
@@ -32,7 +34,7 @@ function StepRow({ step, isInProgress, isDone }: StepRowProps) {
     ? { label: '学習中', cls: 'bg-primary-mint text-white' }
     : isDone
       ? { label: '完了', cls: 'bg-emerald-100 text-emerald-700' }
-      : { label: isLocked ? '準備中' : 'ロック中', cls: 'bg-slate-200 text-slate-500' }
+      : { label: isUnimplemented ? '準備中' : 'ロック中', cls: 'bg-slate-200 text-slate-500' }
 
   const icon = isLocked ? '🔒' : isDone ? '✅' : isInProgress ? '📖' : '📝'
 
@@ -120,12 +122,14 @@ export function LearningOverviewCard({ completedCount }: LearningOverviewCardPro
                 {course.steps.map((step) => {
                   const isDone = step.isImplemented && step.order <= completedCount
                   const isInProgress = inProgressStep?.id === step.id
+                  const isLockedByProgress = step.isImplemented && step.order > completedCount + 1
                   return (
                     <StepRow
                       key={step.id}
                       step={step}
                       isInProgress={isInProgress}
                       isDone={isDone}
+                      isLockedByProgress={isLockedByProgress}
                     />
                   )
                 })}

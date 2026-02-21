@@ -3,18 +3,18 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { IMPLEMENTED_STEP_COUNT } from '../content/courseData'
 import { useAuth } from '../contexts/AuthContext'
+import { useLearningContext } from '../contexts/LearningContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { DashboardSidebar } from '../features/dashboard/components/DashboardSidebar'
 import { LearningOverviewCard } from '../features/dashboard/components/LearningOverviewCard'
 import { WelcomeBanner } from '../features/dashboard/components/WelcomeBanner'
 import { supabase, supabaseConfigError } from '../lib/supabaseClient'
-import { getCompletedStepCount } from '../services/progressService'
 
 export function DashboardPage() {
   const { user, signOut } = useAuth()
+  const { completedStepsCount } = useLearningContext()
   const navigate = useNavigate()
   const userId = user?.id ?? null
-  const [completedCount, setCompletedCount] = useState(0)
   const [displayName, setDisplayName] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -40,16 +40,11 @@ export function DashboardPage() {
 
     async function loadDashboard() {
       try {
-        const [count, profileResult] = await Promise.all([
-          getCompletedStepCount(currentUserId),
-          supabase.from('profiles').select('display_name').eq('id', currentUserId).maybeSingle(),
-        ])
+        const profileResult = await supabase.from('profiles').select('display_name').eq('id', currentUserId).maybeSingle()
 
         if (!isMounted) {
           return
         }
-
-        setCompletedCount(count)
 
         if (!profileResult.error) {
           setDisplayName(profileResult.data?.display_name ?? null)
@@ -93,7 +88,7 @@ export function DashboardPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <section className="space-y-6 lg:col-span-8">
             <WelcomeBanner displayName={greetingName} />
-            <LearningOverviewCard completedCount={Math.min(completedCount, IMPLEMENTED_STEP_COUNT)} />
+            <LearningOverviewCard completedCount={Math.min(completedStepsCount, IMPLEMENTED_STEP_COUNT)} />
             <Link className="inline-flex text-sm font-semibold text-primary-dark underline" to="/step/usestate-basic">
               学習画面へ移動（/step/usestate-basic）
             </Link>
