@@ -38,7 +38,10 @@ export function LoginPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 px-6 py-16">
       <header className="space-y-2">
-        <h1 className="text-3xl font-bold">Coden MVP</h1>
+        <div className="flex items-center gap-3">
+          <img src="/coden_logo.png" alt="Coden Logo" className="h-12 w-12 object-contain" />
+          <h1 className="font-display text-3xl font-bold tracking-tight text-primary-mint">Coden MVP</h1>
+        </div>
         <p className="text-slate-600">メールアドレスとパスワードでログインしてください。</p>
       </header>
 

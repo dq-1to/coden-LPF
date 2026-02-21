@@ -252,7 +252,7 @@ export function StepPage() {
                 return (
                   <button
                     key={mode.id}
-                    className={`rounded-md px-3 py-2 text-sm font-medium transition ${isActive ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    className={`rounded-md px-4 py-2 text-sm font-bold transition ${isActive ? 'bg-primary-mint text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
                       }`}
                     type="button"
                     onClick={() => setActiveMode(mode.id)}
@@ -291,7 +291,7 @@ export function StepPage() {
                     : 'チャレンジ完了。現在の学習フローはすべて完了しています。'}
                 </p>
                 <button
-                  className="mt-3 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                  className="mt-3 rounded-lg bg-primary-mint px-4 py-2 text-sm font-bold text-white transition hover:bg-primary-dark"
                   type="button"
                   onClick={handleNextStep}
                 >

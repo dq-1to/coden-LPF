@@ -26,9 +26,8 @@ export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Read</h2>
         <button
-          className={`rounded-md px-3 py-2 text-sm font-medium text-white ${
-            isCompleted ? 'cursor-not-allowed bg-emerald-300' : 'bg-emerald-600 hover:bg-emerald-500'
-          }`}
+          className={`rounded-md px-4 py-2 text-sm font-bold text-white shadow-sm transition ${isCompleted ? 'cursor-not-allowed bg-slate-300' : 'bg-primary-mint hover:bg-primary-dark'
+            }`}
           type="button"
           onClick={onComplete}
           disabled={isCompleted}
@@ -37,7 +36,7 @@ export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
         </button>
       </div>
 
-      <article className="prose prose-slate max-w-none rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <article className="prose prose-slate prose-lg max-w-none rounded-2xl border border-slate-200 bg-white p-6 leading-relaxed shadow-sm md:prose-xl">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
@@ -69,7 +68,7 @@ export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
               }
 
               return (
-                <div className="not-prose overflow-hidden rounded-lg border border-slate-300 bg-slate-900">
+                <div className="not-prose overflow-hidden rounded-lg border border-slate-800 bg-slate-900 shadow-sm">
                   <div className="flex items-center justify-between border-b border-slate-700 px-3 py-2 text-xs text-slate-200">
                     <span>{language}</span>
                     <button

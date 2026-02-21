@@ -68,10 +68,10 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
             {index < parts.length - 1 && (
               <input
                 className={`mx-1 inline-block w-64 rounded bg-slate-800 px-2 py-0.5 text-emerald-300 outline-none ring-1 placeholder:text-slate-500 focus:ring-2 ${isJudged
-                    ? isPassed
-                      ? 'ring-emerald-500 focus:ring-emerald-400'
-                      : 'ring-rose-500 focus:ring-rose-400'
-                    : 'ring-slate-500 focus:ring-blue-400'
+                  ? isPassed
+                    ? 'ring-emerald-500 focus:ring-emerald-400'
+                    : 'ring-rose-500 focus:ring-rose-400'
+                  : 'ring-slate-500 focus:ring-blue-400'
                   }`}
                 placeholder="例: setCount(count + 1)"
                 value={blankInput}
@@ -84,7 +84,7 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
 
       <div className="flex flex-col items-start gap-4 pt-4 sm:flex-row sm:items-center">
         <button
-          className="rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-500 active:bg-blue-700"
+          className="rounded-md bg-primary-mint px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-primary-dark active:bg-emerald-700"
           type="button"
           onClick={handleJudge}
         >
