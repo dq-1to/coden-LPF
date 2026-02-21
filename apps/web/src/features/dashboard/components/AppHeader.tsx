@@ -1,3 +1,4 @@
+import { Link, useLocation } from 'react-router-dom'
 import { useLearningContext } from '../../../contexts/LearningContext'
 
 interface AppHeaderProps {
@@ -7,6 +8,7 @@ interface AppHeaderProps {
 
 export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
   const { stats } = useLearningContext()
+  const location = useLocation()
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -18,10 +20,26 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
             <span className="font-display text-2xl font-bold tracking-tight text-primary-mint">Coden</span>
           </div>
 
-          <nav className="hidden items-center gap-5 text-sm font-medium text-slate-500 md:flex">
-            <span className="border-b-2 border-primary-mint pb-1 text-slate-900">ダッシュボード</span>
-            <span>コース一覧</span>
-            <span>コミュニティ</span>
+          <nav className="hidden items-center gap-5 text-sm font-medium md:flex">
+            <Link
+              to="/"
+              className={`pb-1 ${location.pathname === '/'
+                  ? 'border-b-2 border-primary-mint text-slate-900'
+                  : 'text-slate-500 hover:text-slate-700'
+                }`}
+            >
+              ダッシュボード
+            </Link>
+            <Link
+              to="/"
+              className={`pb-1 ${location.pathname.startsWith('/step')
+                  ? 'border-b-2 border-primary-mint text-slate-900'
+                  : 'text-slate-500 hover:text-slate-700'
+                }`}
+            >
+              コース一覧
+            </Link>
+            <span className="cursor-not-allowed pb-1 text-slate-400">コミュニティ (準備中)</span>
           </nav>
         </div>
 
