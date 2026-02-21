@@ -56,7 +56,7 @@ export function ChallengeMode({ task, onComplete }: ChallengeModeProps) {
 
       <div className="flex flex-col items-start gap-4 pt-4 sm:flex-row sm:items-center">
         <button
-          className="rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-500 active:bg-blue-700"
+          className="rounded-md bg-primary-mint px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-primary-dark active:bg-emerald-700"
           type="button"
           onClick={handleCheck}
         >
