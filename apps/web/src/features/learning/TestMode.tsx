@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import type { TestTask } from '../../content/fundamentals/steps'
 
 interface TestModeProps {
@@ -28,6 +28,7 @@ const previewByStepId: Record<string, { title: string; description: string }> = 
 
 export function TestMode({ stepId, task, onComplete }: TestModeProps) {
   const [blankInput, setBlankInput] = useState('')
+  const [isJudged, setIsJudged] = useState(false)
   const [reported, setReported] = useState(false)
 
   const mergedCode = useMemo(() => task.starterCode.replace('____', blankInput), [blankInput, task.starterCode])
@@ -38,12 +39,20 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
     [blankInput, mergedCode, task.expectedKeywords],
   )
 
-  useEffect(() => {
+  function handleJudge() {
+    setIsJudged(true)
     if (isPassed && !reported) {
       onComplete()
       setReported(true)
     }
-  }, [isPassed, onComplete, reported])
+  }
+
+  function handleInputChange(value: string) {
+    setIsJudged(false)
+    setBlankInput(value)
+  }
+
+  const parts = task.starterCode.split('____')
 
   const preview = previewByStepId[stepId]
 
@@ -52,31 +61,47 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
       <h2 className="text-lg font-semibold">Test</h2>
       <p className="text-sm text-slate-700">{task.instruction}</p>
 
-      <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-4">
-        <label className="text-sm font-medium text-slate-700" htmlFor="test-blank">
-          空欄入力
-        </label>
-        <input
-          id="test-blank"
-          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
-          placeholder="例: setCount(count + 1)"
-          value={blankInput}
-          onChange={(event) => setBlankInput(event.target.value)}
-        />
-      </div>
-
-      <pre className="overflow-x-auto rounded-lg border border-slate-300 bg-slate-900 p-4 text-sm text-slate-100">
-        {mergedCode}
+      <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-lg border border-slate-300 bg-slate-900 p-4 font-mono text-sm leading-relaxed text-slate-100">
+        {parts.map((part, index) => (
+          <Fragment key={index}>
+            {part}
+            {index < parts.length - 1 && (
+              <input
+                className={`mx-1 inline-block w-64 rounded bg-slate-800 px-2 py-0.5 text-emerald-300 outline-none ring-1 placeholder:text-slate-500 focus:ring-2 ${isJudged
+                    ? isPassed
+                      ? 'ring-emerald-500 focus:ring-emerald-400'
+                      : 'ring-rose-500 focus:ring-rose-400'
+                    : 'ring-slate-500 focus:ring-blue-400'
+                  }`}
+                placeholder="例: setCount(count + 1)"
+                value={blankInput}
+                onChange={(event) => handleInputChange(event.target.value)}
+              />
+            )}
+          </Fragment>
+        ))}
       </pre>
 
-      <p className={`text-sm font-medium ${isPassed ? 'text-emerald-700' : 'text-slate-600'}`}>
-        {isPassed ? 'テスト合格。ライブプレビューが解禁されました。' : '必要キーワードを満たすと合格です。'}
-      </p>
+      <div className="flex flex-col items-start gap-4 pt-4 sm:flex-row sm:items-center">
+        <button
+          className="rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-500 active:bg-blue-700"
+          type="button"
+          onClick={handleJudge}
+        >
+          判定する
+        </button>
 
-      {isPassed && preview ? (
-        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4">
+        {isJudged && (
+          <p className={`text-sm font-medium ${isPassed ? 'text-emerald-700' : 'text-rose-700'}`}>
+            {isPassed ? '🎉 テスト合格！ライブプレビューが解禁されました。' : '❌ 必要キーワードを満たしていません。もう一度試してください。'}
+          </p>
+        )}
+      </div>
+
+      {isJudged && isPassed && preview ? (
+        <div className="mt-4 rounded-lg border border-emerald-300 bg-emerald-50 p-4">
           <p className="text-sm font-semibold text-emerald-800">{preview.title}</p>
-          <p className="text-sm text-emerald-700">{preview.description}</p>
+          <p className="mt-1 text-sm text-emerald-700">{preview.description}</p>
         </div>
       ) : null}
     </section>

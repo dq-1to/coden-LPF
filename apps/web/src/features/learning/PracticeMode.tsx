@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { PracticeQuestion } from '../../content/fundamentals/steps'
 
 interface PracticeModeProps {
@@ -13,6 +13,7 @@ function normalize(value: string) {
 export function PracticeMode({ questions, onComplete }: PracticeModeProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [hints, setHints] = useState<Record<string, boolean>>({})
+  const [isJudged, setIsJudged] = useState(false)
   const [reported, setReported] = useState(false)
 
   const isAllCorrect = useMemo(
@@ -24,12 +25,21 @@ export function PracticeMode({ questions, onComplete }: PracticeModeProps) {
     [answers, questions],
   )
 
-  useEffect(() => {
+  function handleJudge() {
+    setIsJudged(true)
     if (isAllCorrect && !reported) {
       onComplete()
       setReported(true)
     }
-  }, [isAllCorrect, onComplete, reported])
+  }
+
+  function handleAnswerChange(questionId: string, value: string) {
+    setIsJudged(false)
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: value,
+    }))
+  }
 
   return (
     <section className="mt-4 space-y-4">
@@ -44,19 +54,19 @@ export function PracticeMode({ questions, onComplete }: PracticeModeProps) {
               Q{index + 1}. {question.prompt}
             </p>
             <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className={`w-full rounded-md border px-3 py-2 text-sm ${isJudged
+                ? isCorrect
+                  ? 'border-emerald-500 bg-emerald-50/50'
+                  : 'border-rose-500 bg-rose-50/50'
+                : 'border-slate-300'
+                }`}
               placeholder="回答を入力"
               value={answer}
-              onChange={(event) =>
-                setAnswers((prev) => ({
-                  ...prev,
-                  [question.id]: event.target.value,
-                }))
-              }
+              onChange={(event) => handleAnswerChange(question.id, event.target.value)}
             />
-            {answer.length > 0 ? (
+            {isJudged ? (
               <p className={`text-sm font-medium ${isCorrect ? 'text-emerald-700' : 'text-rose-700'}`}>
-                {isCorrect ? '正解です。' : '不正解です。もう一度試してください。'}
+                {isCorrect ? '✅ 正解です。' : '❌ 不正解です。もう一度試してください。'}
               </p>
             ) : null}
             <button
@@ -76,9 +86,21 @@ export function PracticeMode({ questions, onComplete }: PracticeModeProps) {
         )
       })}
 
-      <p className={`text-sm font-medium ${isAllCorrect ? 'text-emerald-700' : 'text-slate-600'}`}>
-        {isAllCorrect ? 'Practiceを完了しました。' : 'すべての問題に正解すると完了です。'}
-      </p>
+      <div className="flex flex-col items-start gap-4 pt-4 sm:flex-row sm:items-center">
+        <button
+          className="rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-500 active:bg-blue-700"
+          type="button"
+          onClick={handleJudge}
+        >
+          判定する
+        </button>
+
+        {isJudged && (
+          <p className={`text-sm font-medium ${isAllCorrect ? 'text-emerald-700' : 'text-rose-700'}`}>
+            {isAllCorrect ? '🎉 すべて正解！Practiceを完了しました。' : '⚠️ すべての問題に正解すると完了です。'}
+          </p>
+        )}
+      </div>
     </section>
   )
 }

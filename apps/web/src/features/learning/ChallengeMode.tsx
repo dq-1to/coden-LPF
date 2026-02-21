@@ -20,9 +20,14 @@ export function ChallengeMode({ task, onComplete }: ChallengeModeProps) {
 
   function handleCheck() {
     setChecked(true)
-    if (missingKeywords.length === 0) {
+    if (isPassed) {
       onComplete()
     }
+  }
+
+  function handleCodeChange(nextValue: string | undefined) {
+    setChecked(false)
+    setCode(nextValue ?? '')
   }
 
   return (
@@ -44,34 +49,36 @@ export function ChallengeMode({ task, onComplete }: ChallengeModeProps) {
             theme="vs-dark"
             value={code}
             options={{ minimap: { enabled: false }, fontSize: 14 }}
-            onChange={(nextValue) => setCode(nextValue ?? '')}
+            onChange={handleCodeChange}
           />
         </Suspense>
       </div>
 
-      <button
-        className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-500"
-        type="button"
-        onClick={handleCheck}
-      >
-        キーワードチェック
-      </button>
+      <div className="flex flex-col items-start gap-4 pt-4 sm:flex-row sm:items-center">
+        <button
+          className="rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-500 active:bg-blue-700"
+          type="button"
+          onClick={handleCheck}
+        >
+          判定する
+        </button>
 
-      {checked ? (
-        <div className={`rounded-lg border p-4 ${isPassed ? 'border-emerald-300 bg-emerald-50' : 'border-rose-300 bg-rose-50'}`}>
-          {isPassed ? (
-            <p className="text-sm font-medium text-emerald-700">Challengeを完了しました。</p>
-          ) : (
-            <>
-              <p className="text-sm font-medium text-rose-700">不足キーワードがあります。</p>
-              <ul className="mt-2 list-inside list-disc text-sm text-rose-700">
-                {missingKeywords.map((keyword) => (
-                  <li key={keyword}>{keyword}</li>
-                ))}
-              </ul>
-              <p className="mt-2 text-sm text-rose-700">ヒント: {task.hints[0]}</p>
-            </>
-          )}
+        {checked && (
+          <p className={`text-sm font-medium ${isPassed ? 'text-emerald-700' : 'text-rose-700'}`}>
+            {isPassed ? '🎉 Challengeを完了しました！' : '❌ 要件を満たしていません。'}
+          </p>
+        )}
+      </div>
+
+      {checked && !isPassed ? (
+        <div className="rounded-lg border border-rose-300 bg-rose-50 p-4">
+          <p className="text-sm font-medium text-rose-700">不足キーワードがあります:</p>
+          <ul className="mt-2 list-inside list-disc text-sm text-rose-700">
+            {missingKeywords.map((keyword) => (
+              <li key={keyword}>{keyword}</li>
+            ))}
+          </ul>
+          {task.hints.length > 0 && <p className="mt-2 text-sm text-rose-700">ヒント: {task.hints[0]}</p>}
         </div>
       ) : null}
     </section>
