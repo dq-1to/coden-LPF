@@ -14,9 +14,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-8">
           <div className="flex items-center gap-2">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-mint-gradient text-lg font-black text-white shadow-glass">
-              C
-            </div>
+            <img src="/coden_logo.png" alt="Coden Logo" className="h-10 w-10 object-contain" />
             <span className="font-display text-2xl font-bold tracking-tight text-primary-mint">Coden</span>
           </div>
 
@@ -24,8 +22,8 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
             <Link
               to="/"
               className={`pb-1 ${location.pathname === '/'
-                  ? 'border-b-2 border-primary-mint text-slate-900'
-                  : 'text-slate-500 hover:text-slate-700'
+                ? 'border-b-2 border-primary-mint text-slate-900'
+                : 'text-slate-500 hover:text-slate-700'
                 }`}
             >
               ダッシュボード
@@ -33,8 +31,8 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
             <Link
               to="/"
               className={`pb-1 ${location.pathname.startsWith('/step')
-                  ? 'border-b-2 border-primary-mint text-slate-900'
-                  : 'text-slate-500 hover:text-slate-700'
+                ? 'border-b-2 border-primary-mint text-slate-900'
+                : 'text-slate-500 hover:text-slate-700'
                 }`}
             >
               コース一覧
