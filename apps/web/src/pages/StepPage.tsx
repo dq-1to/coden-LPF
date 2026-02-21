@@ -3,10 +3,12 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { LearningSidebar } from '../components/LearningSidebar'
 import { fundamentalsSteps, getFundamentalsStep, type LearningMode } from '../content/fundamentals/steps'
 import { useAuth } from '../contexts/AuthContext'
+import { useLearningContext } from '../contexts/LearningContext'
 import { ChallengeMode } from '../features/learning/ChallengeMode'
 import { PracticeMode } from '../features/learning/PracticeMode'
 import { ReadMode } from '../features/learning/ReadMode'
 import { TestMode } from '../features/learning/TestMode'
+import { awardPoints } from '../services/pointService'
 import { getStepProgress, updateModeCompletion } from '../services/progressService'
 
 type ModeStatus = Record<LearningMode, boolean>
@@ -21,6 +23,7 @@ const INITIAL_MODE_STATUS: ModeStatus = {
 export function StepPage() {
   const { stepId = '' } = useParams()
   const { signOut, user } = useAuth()
+  const { refreshStats } = useLearningContext()
   const navigate = useNavigate()
   const [activeMode, setActiveMode] = useState<LearningMode>('read')
   const [modeStatus, setModeStatus] = useState<ModeStatus>(INITIAL_MODE_STATUS)
@@ -143,6 +146,9 @@ export function StepPage() {
 
       try {
         await updateModeCompletion(user.id, step.id, mode)
+        const reason = `「${step.title}」の${mode}モード完了`
+        await awardPoints(user.id, 10, reason)
+        await refreshStats()
       } catch (error) {
         setModeStatus((prev) => ({ ...prev, [mode]: false }))
         const message = error instanceof Error ? error.message : '進捗保存に失敗しました。'
@@ -210,9 +216,8 @@ export function StepPage() {
               return (
                 <button
                   key={mode.id}
-                  className={`rounded-md px-3 py-2 text-sm font-medium transition ${
-                    isActive ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
+                  className={`rounded-md px-3 py-2 text-sm font-medium transition ${isActive ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
                   type="button"
                   onClick={() => setActiveMode(mode.id)}
                 >
