@@ -13,11 +13,17 @@ export interface TestTask {
   expectedKeywords: string[]
 }
 
-export interface ChallengeTask {
+export interface ChallengePattern {
+  id: string
   prompt: string
   requirements: string[]
   hints: string[]
   expectedKeywords: string[]
+  starterCode: string
+}
+
+export interface ChallengeTask {
+  patterns: ChallengePattern[]
 }
 
 export interface LearningStepContent {
@@ -133,10 +139,24 @@ return <button onClick={() => ____}>-1 ({count})</button>`,
       expectedKeywords: ['setCount', 'count - 1'],
     },
     challengeTask: {
-      prompt: 'いいねボタンを実装し、クリックで数値が増えるコンポーネントを作ってください。',
-      requirements: ['初期値0から開始する', 'クリックで+1される', '現在値を表示する'],
-      hints: ['まず state を 1 つ定義する', 'イベントハンドラで setter を呼ぶ'],
-      expectedKeywords: ['useState', 'setCount', 'onClick'],
+      patterns: [
+        {
+          id: 'usestate-like',
+          prompt: 'いいねボタンを実装し、クリックで数値が増えるコンポーネントを作ってください。',
+          requirements: ['初期値0から開始する', 'クリックで+1される', '現在値を表示する'],
+          hints: ['まず state を 1 つ定義する', 'イベントハンドラで setter を呼ぶ'],
+          expectedKeywords: ['useState', 'setCount', 'onClick'],
+          starterCode: `import { useState } from 'react';\n\nexport function LikeButton() {\n  // TODO: useStateを使って、いいね数(count)と更新関数(setCount)を定義してください。\n  // 初期値は 0 にします。\n\n  return (\n    // TODO: buttonのonClickに、クリックされたら count を +1 する処理を書いてください。\n    <button>\n      {/* TODO: ここに現在のいいね数(count)を表示してください */}\n      いいね 0\n    </button>\n  );\n}`
+        },
+        {
+          id: 'usestate-toggle',
+          prompt: 'ON/OFFを切り替えるトグルボタンを作ってください。',
+          requirements: ['初期値は false', 'クリックで値を反転する', 'ONまたはOFFのテキストを表示する'],
+          hints: ['boolean の state を使う', 'setter で 現在値の反転 (!prev) を渡す'],
+          expectedKeywords: ['useState', 'setIsOn', 'onClick'],
+          starterCode: `import { useState } from 'react';\n\nexport function Toggle() {\n  // TODO: useStateを使って、ON/OFFを表す boolean 値(isOn)と更新関数(setIsOn)を定義してください。\n  // 初期値は false にします。\n\n  return (\n    // TODO: buttonのonClickに、クリックされたら isOn の値を反転反転(!isOn)させる処理を書いてください。\n    <button>\n      {/* TODO: isOn が true なら "ON"、false なら "OFF" を表示するように変更してください */}\n      OFF\n    </button>\n  );\n}`
+        }
+      ]
     },
   },
   {
@@ -237,10 +257,24 @@ export function NameInput() {
       expectedKeywords: ['onChange'],
     },
     challengeTask: {
-      prompt: '入力値をリアルタイム表示するフォームを作成してください。',
-      requirements: ['入力欄を1つ置く', '入力値を下に表示する', '表示は即時反映される'],
-      hints: ['onChange で値を受け取る', 'useStateで保持する'],
-      expectedKeywords: ['onChange', 'event.target.value', 'useState'],
+      patterns: [
+        {
+          id: 'events-preview',
+          prompt: '入力値をリアルタイム表示するフォームを作成してください。',
+          requirements: ['入力欄を1つ置く', '入力値を下に表示する', '表示は即時反映される'],
+          hints: ['onChange で値を受け取る', 'useStateで保持する'],
+          expectedKeywords: ['onChange', 'target.value', 'useState'],
+          starterCode: `import { useState } from 'react';\n\nexport function LiveInput() {\n  // TODO: 入力文字列を保持する text というstateを作成してください。\n  \n  return (\n    <div>\n      {/* TODO: inputにonChangeイベントを設定し、入力値(e.target.value)で text を更新してください */}\n      <input placeholder="入力してください" />\n      <p>入力内容: {/* TODO: text変数をここに表示してください */}</p>\n    </div>\n  );\n}`
+        },
+        {
+          id: 'events-submit',
+          prompt: 'フォーム送信時にページリロードを防ぐ処理を作ってください。',
+          requirements: ['onSubmitを使用する', 'event.preventDefault()を呼ぶ'],
+          hints: ['formタグのonSubmitイベントを使う', 'onSubmit内で e.preventDefault() を呼ぶ'],
+          expectedKeywords: ['onSubmit', 'preventDefault'],
+          starterCode: `export function SimpleForm() {\n  // TODO: handleSubmit という関数を作り、引数で event (e) を受け取るようにしてください。\n  // その中で e.preventDefault() を呼び出して送信時のページリロードを防いでください。\n\n  return (\n    // TODO: formタグの onSubmit イベントに、作成した関数を渡してください。\n    <form>\n      <button type="submit">送信</button>\n    </form>\n  );\n}`
+        }
+      ]
     },
   },
   {
@@ -338,10 +372,24 @@ function Notifications({ unreadCount }) {
       expectedKeywords: ['&&'],
     },
     challengeTask: {
-      prompt: '切替ボタンで「表示中/非表示」を切り替えるUIを作ってください。',
-      requirements: ['表示状態をstateで持つ', 'ボタンで反転する', '文言を条件分岐で表示する'],
-      hints: ['booleanのstateを使う', 'setState(prev => !prev) を使う'],
-      expectedKeywords: ['useState', '?', ':'],
+      patterns: [
+        {
+          id: 'conditional-login',
+          prompt: 'ログイン状態(isLoggedIn)に応じて、表示内容を切り替えてください。',
+          requirements: ['trueなら「ようこそ」を描画', 'falseならログインボタンを描画', '三項演算子を使う'],
+          hints: ['isLoggedIn ? A : B を使う'],
+          expectedKeywords: ['isLoggedIn', '?', ':'],
+          starterCode: `import { useState } from 'react';\n\nexport function AuthPanel() {\n  const [isLoggedIn, setIsLoggedIn] = useState(false);\n\n  return (\n    <div>\n      {/* TODO: 以下のコメント部分を三項演算子(?と:)に置き換え、\n          isLoggedInが true なら <p>ようこそ！</p> を、\n          false なら <button onClick={() => setIsLoggedIn(true)}>ログイン</button> を表示してください。 \n      */}\n      {/* ここに三項演算子を書く */}\n    </div>\n  );\n}`
+        },
+        {
+          id: 'conditional-badge',
+          prompt: '新着メッセージがある場合のみバッジを表示してください。',
+          requirements: ['&&演算子を使う', 'hasNewMessageがtrueの時のみ表示'],
+          hints: ['条件 && 要素 の形を使う'],
+          expectedKeywords: ['&&', 'hasNewMessage'],
+          starterCode: `export function Notification({ hasNewMessage }) {\n  return (\n    <div>\n      メッセージ\n      {/* TODO: hasNewMessage が true のときだけ <span>New!</span> が表示されるように論理積(&&)演算子を使って記述してください */}\n      \n    </div>\n  );\n}`
+        }
+      ]
     },
   },
   {
@@ -425,10 +473,24 @@ export function List() {
       expectedKeywords: ['key={user.id}'],
     },
     challengeTask: {
-      prompt: 'Todo配列を受け取り、未完了件数を表示するリストを実装してください。',
-      requirements: ['mapで一覧描画する', 'keyを設定する', '未完了件数を表示する'],
-      hints: ['filter で未完了を抽出', 'lengthで件数を算出'],
-      expectedKeywords: ['map', 'key=', 'filter'],
+      patterns: [
+        {
+          id: 'lists-todo',
+          prompt: 'Todoの配列を map を使ってリストとして表示してください。',
+          requirements: ['mapメソッドを使う', 'keyプロパティを指定する', 'todoのtitleを表示する'],
+          hints: ['todos.map(todo => ...) とする', 'key={todo.id} のように一意な値を渡す'],
+          expectedKeywords: ['map', 'key=', 'todo.id'],
+          starterCode: `export function TodoList() {\n  const todos = [\n    { id: 1, title: 'Reactを学ぶ' },\n    { id: 2, title: 'TypeScriptを学ぶ' },\n  ];\n\n  return (\n    <ul>\n      {/* TODO: todos を map し、それぞれ <li> タグとして描画してください。\n          <li> には必ず key に todo.id を指定し、中身に todo.title を表示してください。 \n      */}\n      \n    </ul>\n  );\n}`
+        },
+        {
+          id: 'lists-filter',
+          prompt: 'isCompletedがtrueのタスクのみを描画してください。',
+          requirements: ['filterとmapを組み合わせて使う', 'keyを指定する'],
+          hints: ['todos.filter(t => t.isCompleted).map(...)'],
+          expectedKeywords: ['filter', 'map', 'key='],
+          starterCode: `export function CompletedTasks() {\n  const todos = [\n    { id: 1, title: '掃除', isCompleted: true },\n    { id: 2, title: '洗濯', isCompleted: false },\n    { id: 3, title: '買い物', isCompleted: true },\n  ];\n\n  return (\n    <ul>\n      {/* TODO: todosから isCompleted が true なものだけを filter で抽出し、\n          その後 map で <li> として描画してください。key の指定も忘れずに！ */}\n      \n    </ul>\n  );\n}`
+        }
+      ]
     },
   },
 ]

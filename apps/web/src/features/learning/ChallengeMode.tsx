@@ -9,12 +9,18 @@ interface ChallengeModeProps {
 }
 
 export function ChallengeMode({ task, onComplete }: ChallengeModeProps) {
-  const [code, setCode] = useState(`export function Solution() {\n  return <div>TODO</div>\n}`)
+  // Use a random pattern on initial render
+  const [pattern] = useState(() => {
+    const randomIndex = Math.floor(Math.random() * task.patterns.length)
+    return task.patterns[randomIndex]
+  })
+
+  const [code, setCode] = useState(pattern.starterCode)
   const [checked, setChecked] = useState(false)
 
   const missingKeywords = useMemo(
-    () => task.expectedKeywords.filter((keyword) => !code.toLowerCase().includes(keyword.toLowerCase())),
-    [code, task.expectedKeywords],
+    () => pattern.expectedKeywords.filter((keyword) => !code.toLowerCase().includes(keyword.toLowerCase())),
+    [code, pattern.expectedKeywords],
   )
   const isPassed = checked && missingKeywords.length === 0
 
@@ -33,10 +39,10 @@ export function ChallengeMode({ task, onComplete }: ChallengeModeProps) {
   return (
     <section className="mt-4 space-y-4">
       <h2 className="text-lg font-semibold">Challenge</h2>
-      <p className="text-sm text-slate-700">{task.prompt}</p>
+      <p className="text-sm text-slate-700">{pattern.prompt}</p>
 
       <ul className="list-inside list-disc space-y-1 text-sm text-slate-700">
-        {task.requirements.map((requirement) => (
+        {pattern.requirements.map((requirement) => (
           <li key={requirement}>{requirement}</li>
         ))}
       </ul>
@@ -78,7 +84,7 @@ export function ChallengeMode({ task, onComplete }: ChallengeModeProps) {
               <li key={keyword}>{keyword}</li>
             ))}
           </ul>
-          {task.hints.length > 0 && <p className="mt-2 text-sm text-rose-700">ヒント: {task.hints[0]}</p>}
+          {pattern.hints.length > 0 && <p className="mt-2 text-sm text-rose-700">ヒント: {pattern.hints[0]}</p>}
         </div>
       ) : null}
     </section>
