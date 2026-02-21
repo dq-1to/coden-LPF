@@ -43,10 +43,11 @@ export function LearningSidebar({ currentStepId, steps }: LearningSidebarProps) 
             <li key={step.id}>
               <Link
                 className={`${baseClass} ${isCurrent
-                    ? 'border-blue-300 bg-blue-50 text-blue-900'
-                    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                  ? 'border-blue-300 bg-blue-50 text-blue-900'
+                  : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 to={`/step/${step.id}`}
+                replace
               >
                 {content}
               </Link>
