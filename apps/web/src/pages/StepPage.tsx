@@ -9,7 +9,7 @@ import { ChallengeMode } from '../features/learning/ChallengeMode'
 import { PracticeMode } from '../features/learning/PracticeMode'
 import { ReadMode } from '../features/learning/ReadMode'
 import { TestMode } from '../features/learning/TestMode'
-import { getStepProgress, updateModeCompletion } from '../services/progressService'
+import { getStepProgress, updateModeCompletion, upsertProgress } from '../services/progressService'
 
 type ModeStatus = Record<LearningMode, boolean>
 
@@ -18,6 +18,15 @@ const INITIAL_MODE_STATUS: ModeStatus = {
   practice: false,
   test: false,
   challenge: false,
+}
+
+function toModeStatus(progress: Awaited<ReturnType<typeof getStepProgress>>): ModeStatus {
+  return {
+    read: progress?.read_done ?? false,
+    practice: progress?.practice_done ?? false,
+    test: progress?.test_done ?? false,
+    challenge: progress?.challenge_done ?? false,
+  }
 }
 
 export function StepPage() {
@@ -87,12 +96,7 @@ export function StepPage() {
           return
         }
 
-        setModeStatus({
-          read: progress?.read_done ?? false,
-          practice: progress?.practice_done ?? false,
-          test: progress?.test_done ?? false,
-          challenge: progress?.challenge_done ?? false,
-        })
+        setModeStatus(toModeStatus(progress))
       } catch (error) {
         if (!isMounted) {
           return
@@ -159,7 +163,14 @@ export function StepPage() {
       setSyncMessage(null)
 
       try {
-        await updateModeCompletion(user.id, step.id, mode)
+        if (mode === 'read') {
+          await upsertProgress(user.id, step.id, { read_done: true })
+        } else {
+          await updateModeCompletion(user.id, step.id, mode)
+        }
+
+        const latestProgress = await getStepProgress(user.id, step.id)
+        setModeStatus(toModeStatus(latestProgress))
       } catch (error) {
         setModeStatus((prev) => ({ ...prev, [mode]: false }))
         const message = error instanceof Error ? error.message : '進捗保存に失敗しました。'
@@ -242,7 +253,11 @@ export function StepPage() {
             {syncMessage ? <p className="mt-4 text-sm text-rose-700">{syncMessage}</p> : null}
 
             {activeMode === 'read' ? (
-              <ReadMode markdown={step.readMarkdown} onComplete={() => void handleModeComplete('read')} />
+              <ReadMode
+                markdown={step.readMarkdown}
+                onComplete={() => void handleModeComplete('read')}
+                isCompleted={modeStatus.read}
+              />
             ) : null}
             {activeMode === 'practice' ? (
               <PracticeMode questions={step.practiceQuestions} onComplete={() => void handleModeComplete('practice')} />

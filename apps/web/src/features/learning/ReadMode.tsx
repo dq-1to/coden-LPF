@@ -11,9 +11,10 @@ import 'prismjs/themes/prism.css'
 interface ReadModeProps {
   markdown: string
   onComplete: () => void
+  isCompleted: boolean
 }
 
-export function ReadMode({ markdown, onComplete }: ReadModeProps) {
+export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -25,11 +26,14 @@ export function ReadMode({ markdown, onComplete }: ReadModeProps) {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Read</h2>
         <button
-          className="rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-500"
+          className={`rounded-md px-3 py-2 text-sm font-medium text-white ${
+            isCompleted ? 'cursor-not-allowed bg-emerald-300' : 'bg-emerald-600 hover:bg-emerald-500'
+          }`}
           type="button"
           onClick={onComplete}
+          disabled={isCompleted}
         >
-          Readを完了
+          {isCompleted ? 'Read完了済み' : 'Readを完了'}
         </button>
       </div>
 
