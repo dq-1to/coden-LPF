@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
 import { LearningProvider } from './contexts/LearningContext'
+import { AchievementProvider } from './contexts/AchievementContext'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
 import { StepPage } from './pages/StepPage'
@@ -55,7 +56,9 @@ if (supabaseConfigError) {
     <React.StrictMode>
       <AuthProvider>
         <LearningProvider>
-          <RouterProvider router={router} />
+          <AchievementProvider>
+            <RouterProvider router={router} />
+          </AchievementProvider>
         </LearningProvider>
       </AuthProvider>
     </React.StrictMode>,

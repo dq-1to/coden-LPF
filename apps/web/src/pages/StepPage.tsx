@@ -6,6 +6,7 @@ import { fundamentalsSteps, getFundamentalsStep, type LearningMode } from '../co
 import { getIntermediateStep, intermediateSteps } from '../content/intermediate/steps'
 import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
+import { useAchievementContext } from '../contexts/AchievementContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { ChallengeMode } from '../features/learning/ChallengeMode'
 import { PracticeMode } from '../features/learning/PracticeMode'
@@ -36,6 +37,7 @@ export function StepPage() {
   const { stepId = '' } = useParams()
   const { signOut, user } = useAuth()
   const { refreshStats, completedStepsCount, isLoadingStats } = useLearningContext()
+  const { refreshAchievements } = useAchievementContext()
   const navigate = useNavigate()
   const [activeMode, setActiveMode] = useState<LearningMode>('read')
   const [modeStatus, setModeStatus] = useState<ModeStatus>(INITIAL_MODE_STATUS)
@@ -190,13 +192,18 @@ export function StepPage() {
         const reason = `「${step.title}」の${mode}モード完了`
         await awardPoints(user.id, 10, reason)
         await refreshStats()
+        try {
+          await refreshAchievements()
+        } catch (err) {
+          console.error('Achievement refresh failed:', err)
+        }
       } catch (error) {
         setModeStatus((prev) => ({ ...prev, [mode]: false }))
         const message = error instanceof Error ? error.message : '進捗保存に失敗しました。'
         setSyncMessage(message)
       }
     },
-    [modeStatus, refreshStats, step, user?.id],
+    [modeStatus, refreshStats, refreshAchievements, step, user?.id],
   )
 
   async function handleSignOut() {
