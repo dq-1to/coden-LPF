@@ -1,4 +1,19 @@
-const HEATMAP_LEVELS = [0, 1, 2, 1, 0, 3, 2, 0, 0, 1, 2, 3, 1, 0, 0, 0, 2, 1, 3, 2, 0, 1, 2, 3, 1, 0, 2, 1]
+import { useEffect, useMemo, useState } from 'react'
+import { useAuth } from '../../../contexts/AuthContext'
+import { useLearningContext } from '../../../contexts/LearningContext'
+import {
+  calculatePointGoalProgress,
+  countMonthlyStudyDays,
+  getLearningHeatmap,
+  type HeatmapCell,
+} from '../../../services/statsService'
+
+const HEATMAP_DAYS = 30
+const EMPTY_HEATMAP: HeatmapCell[] = Array.from({ length: HEATMAP_DAYS }, (_, index) => ({
+  date: `empty-${index}`,
+  count: 0,
+  level: 0,
+}))
 
 function heatmapColor(level: number) {
   if (level === 3) return 'bg-primary-dark'
@@ -8,6 +23,56 @@ function heatmapColor(level: number) {
 }
 
 export function DashboardSidebar() {
+  const { user } = useAuth()
+  const { stats } = useLearningContext()
+  const [heatmap, setHeatmap] = useState<HeatmapCell[]>([])
+  const [isLoadingHeatmap, setIsLoadingHeatmap] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let isMounted = true
+
+    if (!user?.id) {
+      setHeatmap([])
+      setIsLoadingHeatmap(false)
+      setError(null)
+      return () => {
+        isMounted = false
+      }
+    }
+
+    setIsLoadingHeatmap(true)
+    setError(null)
+
+    getLearningHeatmap(user.id, HEATMAP_DAYS)
+      .then((data) => {
+        if (isMounted) {
+          setHeatmap(data)
+        }
+      })
+      .catch((loadError) => {
+        if (!isMounted) {
+          return
+        }
+        const message = loadError instanceof Error ? loadError.message : '学習ヒートマップの取得に失敗しました。'
+        setError(message)
+        setHeatmap([])
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoadingHeatmap(false)
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [user?.id])
+
+  const pointGoal = useMemo(() => calculatePointGoalProgress(stats?.total_points ?? 0), [stats?.total_points])
+  const heatmapCells = heatmap.length > 0 ? heatmap : EMPTY_HEATMAP
+  const monthlyStudyDays = useMemo(() => countMonthlyStudyDays(heatmap), [heatmap])
+
   return (
     <aside className="space-y-5">
       <section className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
@@ -18,21 +83,26 @@ export function DashboardSidebar() {
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-orange-100 bg-orange-50 p-3 text-center">
               <p className="text-[10px] font-bold uppercase tracking-wide text-orange-600">連続学習</p>
-              <p className="mt-1 text-2xl font-black text-orange-700">3日</p>
+              <p className="mt-1 text-2xl font-black text-orange-700">{stats?.current_streak ?? 0}日</p>
             </div>
             <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3 text-center">
               <p className="text-[10px] font-bold uppercase tracking-wide text-indigo-600">合計ポイント</p>
-              <p className="mt-1 text-2xl font-black text-indigo-700">450pt</p>
+              <p className="mt-1 text-2xl font-black text-indigo-700">{stats?.total_points ?? 0}pt</p>
             </div>
           </div>
 
           <div>
             <div className="mb-1 flex justify-between text-xs font-semibold text-text-light">
-              <span>次のレベルまで</span>
-              <span className="text-primary-mint">50 / 500 pt</span>
+              <span>次の目標まで</span>
+              <span className="text-primary-mint">
+                {pointGoal.current} / {pointGoal.target} pt
+              </span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full w-[10%] rounded-full bg-mint-gradient" />
+              <div
+                className="h-full rounded-full bg-mint-gradient transition-all duration-300"
+                style={{ width: `${pointGoal.percent}%` }}
+              />
             </div>
           </div>
 
@@ -57,13 +127,15 @@ export function DashboardSidebar() {
           <span className="text-xs text-text-light">過去30日</span>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {HEATMAP_LEVELS.map((level, index) => (
-            <span key={`${level}-${index}`} className={`h-3 w-3 rounded-sm ${heatmapColor(level)}`} />
+          {heatmapCells.map((cell, index) => (
+            <span key={`${cell.date}-${index}`} className={`h-3 w-3 rounded-sm ${heatmapColor(cell.level)}`} />
           ))}
         </div>
         <p className="mt-3 text-center text-xs text-text-light">
-          今月は <span className="font-bold text-text-dark">12日</span> 学習しました
+          今月は <span className="font-bold text-text-dark">{monthlyStudyDays}日</span> 学習しました
         </p>
+        {isLoadingHeatmap ? <p className="mt-2 text-center text-[11px] text-text-light">ヒートマップを更新中...</p> : null}
+        {error ? <p className="mt-2 text-center text-[11px] text-rose-600">{error}</p> : null}
       </section>
 
       <section className="rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-600 p-5 text-white shadow-sm">
