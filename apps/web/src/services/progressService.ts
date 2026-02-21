@@ -13,6 +13,10 @@ interface StepProgressRow {
   completed_at?: string | null
 }
 
+type ProgressPatch = Partial<
+  Pick<StepProgressRow, 'read_done' | 'practice_done' | 'test_done' | 'challenge_done' | 'completed_at'>
+>
+
 export async function getStepProgress(userId: string, stepId: string): Promise<StepProgressRow | null> {
   const { data, error } = await supabase
     .from('step_progress')
@@ -28,12 +32,26 @@ export async function getStepProgress(userId: string, stepId: string): Promise<S
   return data
 }
 
-export async function updateModeCompletion(userId: string, stepId: string, mode: ProgressMode) {
-  const patch: Partial<StepProgressRow> = {
+export async function upsertProgress(userId: string, stepId: string, patch: ProgressPatch) {
+  const payload: Partial<StepProgressRow> = {
     user_id: userId,
     step_id: stepId,
     updated_at: new Date().toISOString(),
+    ...patch,
   }
+
+  const { error } = await supabase.from('step_progress').upsert(payload, {
+    onConflict: 'user_id,step_id',
+    ignoreDuplicates: false,
+  })
+
+  if (error) {
+    throw error
+  }
+}
+
+export async function updateModeCompletion(userId: string, stepId: string, mode: ProgressMode) {
+  const patch: ProgressPatch = {}
 
   if (mode === 'read') {
     patch.read_done = true
@@ -48,14 +66,7 @@ export async function updateModeCompletion(userId: string, stepId: string, mode:
     patch.challenge_done = true
   }
 
-  const { error } = await supabase.from('step_progress').upsert(patch, {
-    onConflict: 'user_id,step_id',
-    ignoreDuplicates: false,
-  })
-
-  if (error) {
-    throw error
-  }
+  await upsertProgress(userId, stepId, patch)
 }
 
 export async function getCompletedStepCount(userId: string) {
