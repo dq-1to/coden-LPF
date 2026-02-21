@@ -4,11 +4,13 @@ import { LearningSidebar } from '../components/LearningSidebar'
 import { findStepMeta } from '../content/courseData'
 import { fundamentalsSteps, getFundamentalsStep, type LearningMode } from '../content/fundamentals/steps'
 import { useAuth } from '../contexts/AuthContext'
+import { useLearningContext } from '../contexts/LearningContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { ChallengeMode } from '../features/learning/ChallengeMode'
 import { PracticeMode } from '../features/learning/PracticeMode'
 import { ReadMode } from '../features/learning/ReadMode'
 import { TestMode } from '../features/learning/TestMode'
+import { awardPoints } from '../services/pointService'
 import { getStepProgress, updateModeCompletion, upsertProgress } from '../services/progressService'
 
 type ModeStatus = Record<LearningMode, boolean>
@@ -32,6 +34,7 @@ function toModeStatus(progress: Awaited<ReturnType<typeof getStepProgress>>): Mo
 export function StepPage() {
   const { stepId = '' } = useParams()
   const { signOut, user } = useAuth()
+  const { refreshStats } = useLearningContext()
   const navigate = useNavigate()
   const [activeMode, setActiveMode] = useState<LearningMode>('read')
   const [modeStatus, setModeStatus] = useState<ModeStatus>(INITIAL_MODE_STATUS)
@@ -171,13 +174,17 @@ export function StepPage() {
 
         const latestProgress = await getStepProgress(user.id, step.id)
         setModeStatus(toModeStatus(latestProgress))
+
+        const reason = `「${step.title}」の${mode}モード完了`
+        await awardPoints(user.id, 10, reason)
+        await refreshStats()
       } catch (error) {
         setModeStatus((prev) => ({ ...prev, [mode]: false }))
         const message = error instanceof Error ? error.message : '進捗保存に失敗しました。'
         setSyncMessage(message)
       }
     },
-    [modeStatus, step, user?.id],
+    [modeStatus, refreshStats, step, user?.id],
   )
 
   async function handleSignOut() {

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
+import { LearningProvider } from './contexts/LearningContext'
 import { DashboardPage } from './pages/DashboardPage'
 import { LoginPage } from './pages/LoginPage'
 import { StepPage } from './pages/StepPage'
@@ -53,7 +54,9 @@ if (supabaseConfigError) {
   root.render(
     <React.StrictMode>
       <AuthProvider>
-        <RouterProvider router={router} />
+        <LearningProvider>
+          <RouterProvider router={router} />
+        </LearningProvider>
       </AuthProvider>
     </React.StrictMode>,
   )
