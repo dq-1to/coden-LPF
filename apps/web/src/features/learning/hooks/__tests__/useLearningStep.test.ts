@@ -94,7 +94,7 @@ describe('useLearningStep', () => {
   })
 
   it('isImplemented: false のステップは isUnavailableStep が true', () => {
-    const { result } = renderHook(() => useLearningStep('api-counter-get'))
+    const { result } = renderHook(() => useLearningStep('api-tasks-update'))
 
     expect(result.current.isUnavailableStep).toBe(true)
   })
