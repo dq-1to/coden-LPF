@@ -1,55 +1,34 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { LearningSidebar } from '../components/LearningSidebar'
-import { COURSES, findStepMeta } from '../content/courseData'
-import { fundamentalsSteps, getFundamentalsStep, type LearningMode } from '../content/fundamentals/steps'
-import { getIntermediateStep, intermediateSteps } from '../content/intermediate/steps'
-import { advancedSteps, getAdvancedStep } from '../content/advanced/steps'
 import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
-import { useAchievementContext } from '../contexts/AchievementContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { ChallengeMode } from '../features/learning/ChallengeMode'
 import { PracticeMode } from '../features/learning/PracticeMode'
 import { ReadMode } from '../features/learning/ReadMode'
 import { TestMode } from '../features/learning/TestMode'
-import { awardPoints } from '../services/pointService'
-import { getStepProgress, updateModeCompletion, upsertProgress } from '../services/progressService'
-import { recordStudyActivity } from '../services/statsService'
-
-type ModeStatus = Record<LearningMode, boolean>
-
-const INITIAL_MODE_STATUS: ModeStatus = {
-  read: false,
-  practice: false,
-  test: false,
-  challenge: false,
-}
-
-function toModeStatus(progress: Awaited<ReturnType<typeof getStepProgress>>): ModeStatus {
-  return {
-    read: progress?.read_done ?? false,
-    practice: progress?.practice_done ?? false,
-    test: progress?.test_done ?? false,
-    challenge: progress?.challenge_done ?? false,
-  }
-}
+import { useLearningStep } from '../features/learning/hooks/useLearningStep'
+import type { LearningMode } from '../content/fundamentals/steps'
 
 export function StepPage() {
   const { stepId = '' } = useParams()
   const { signOut, user } = useAuth()
-  const { refreshStats, completedStepsCount, isLoadingStats } = useLearningContext()
-  const { refreshAchievements } = useAchievementContext()
+  const { completedStepsCount, isLoadingStats } = useLearningContext()
   const navigate = useNavigate()
   const [activeMode, setActiveMode] = useState<LearningMode>('read')
-  const [modeStatus, setModeStatus] = useState<ModeStatus>(INITIAL_MODE_STATUS)
-  const [syncMessage, setSyncMessage] = useState<string | null>(null)
-  const [toastMessage, setToastMessage] = useState<string | null>(null)
-  const completedOnceRef = useRef(false)
 
-  const stepMeta = findStepMeta(stepId)
-  const step = getFundamentalsStep(stepId) || getIntermediateStep(stepId) || getAdvancedStep(stepId)
-  const isUnavailableStep = Boolean(stepMeta && !stepMeta.isImplemented)
+  const {
+    step,
+    isUnavailableStep,
+    modeStatus,
+    syncMessage,
+    toastMessage,
+    nextStep,
+    sidebarTitle,
+    sidebarSteps,
+    handleModeComplete,
+  } = useLearningStep(stepId)
 
   const headerDisplayName = useMemo(() => {
     const metadataName = user?.user_metadata?.display_name
@@ -64,104 +43,6 @@ export function StepPage() {
     return 'ゲスト'
   }, [user?.email, user?.user_metadata])
 
-  const orderedSteps = useMemo(() => [...fundamentalsSteps, ...intermediateSteps, ...advancedSteps].sort((a, b) => a.order - b.order), [])
-
-  const currentCourse = useMemo(
-    () => COURSES.find((course) => course.steps.some((s) => s.id === (step?.id || stepId))),
-    [step?.id, stepId]
-  )
-  const sidebarTitle = currentCourse?.title || 'コース'
-  const sidebarSteps = useMemo(() => {
-    if (!currentCourse) return []
-    const stepIds = new Set(currentCourse.steps.map((s) => s.id))
-    return orderedSteps.filter((s) => stepIds.has(s.id))
-  }, [currentCourse, orderedSteps])
-  const nextStep = useMemo(() => {
-    if (!step) {
-      return undefined
-    }
-
-    const currentIndex = orderedSteps.findIndex((item) => item.id === step.id)
-    if (currentIndex < 0) {
-      return undefined
-    }
-
-    return orderedSteps[currentIndex + 1]
-  }, [orderedSteps, step])
-
-  const isStepCompleted = modeStatus.read && modeStatus.practice && modeStatus.test && modeStatus.challenge
-
-  useEffect(() => {
-    setActiveMode('read')
-    setSyncMessage(null)
-    setToastMessage(null)
-    completedOnceRef.current = false
-  }, [stepId])
-
-  useEffect(() => {
-    const userId = user?.id ?? ''
-    if (!step || userId.length === 0) {
-      setModeStatus(INITIAL_MODE_STATUS)
-      return
-    }
-
-    const currentStepId = step.id
-    let isMounted = true
-
-    async function loadStepProgress() {
-      try {
-        const progress = await getStepProgress(userId, currentStepId)
-        if (!isMounted) {
-          return
-        }
-
-        setModeStatus(toModeStatus(progress))
-      } catch (error) {
-        if (!isMounted) {
-          return
-        }
-
-        const message = error instanceof Error ? error.message : '進捗の取得に失敗しました。'
-        setSyncMessage(message)
-      }
-    }
-
-    void loadStepProgress()
-
-    return () => {
-      isMounted = false
-    }
-  }, [step, user?.id])
-
-  useEffect(() => {
-    if (!step || !isStepCompleted || completedOnceRef.current) {
-      return
-    }
-
-    completedOnceRef.current = true
-
-    if (nextStep) {
-      setToastMessage(`「${step.title}」を完了しました。次のステップへ進めます。`)
-      return
-    }
-
-    setToastMessage('全ステップを完了しました。おめでとうございます！')
-  }, [isStepCompleted, nextStep, step])
-
-  useEffect(() => {
-    if (!toastMessage) {
-      return
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      setToastMessage(null)
-    }, 3500)
-
-    return () => {
-      window.clearTimeout(timeoutId)
-    }
-  }, [toastMessage])
-
   const modeButtons: { id: LearningMode; label: string }[] = useMemo(
     () => [
       { id: 'read', label: 'Read' },
@@ -172,59 +53,9 @@ export function StepPage() {
     [],
   )
 
-  const handleModeComplete = useCallback(
-    async (mode: LearningMode) => {
-      if (!step || !user?.id || modeStatus[mode]) {
-        return
-      }
-
-      // 全モード完了前かどうかを記録（ストリーク更新の判定に使う）
-      const wasStepCompleted = modeStatus.read && modeStatus.practice && modeStatus.test && modeStatus.challenge
-
-      setModeStatus((prev) => ({ ...prev, [mode]: true }))
-      setSyncMessage(null)
-
-      try {
-        if (mode === 'read') {
-          await upsertProgress(user.id, step.id, { read_done: true })
-        } else {
-          await updateModeCompletion(user.id, step.id, mode)
-        }
-
-        const latestProgress = await getStepProgress(user.id, step.id)
-        setModeStatus(toModeStatus(latestProgress))
-
-        // ストリーク更新: ステップが今回初めて全モード完了になった場合のみ実施
-        const isNowStepCompleted =
-          latestProgress?.read_done &&
-          latestProgress?.practice_done &&
-          latestProgress?.test_done &&
-          latestProgress?.challenge_done
-        if (isNowStepCompleted && !wasStepCompleted) {
-          await recordStudyActivity(user.id)
-        }
-
-        const reason = `「${step.title}」の${mode}モード完了`
-        await awardPoints(user.id, 10, reason)
-        await refreshStats()
-        try {
-          await refreshAchievements()
-        } catch (err) {
-          console.error('Achievement refresh failed:', err)
-        }
-      } catch (error) {
-        setModeStatus((prev) => ({ ...prev, [mode]: false }))
-        const message = error instanceof Error ? error.message : '進捗保存に失敗しました。'
-        setSyncMessage(message)
-      }
-    },
-    [modeStatus, refreshStats, refreshAchievements, step, user?.id],
-  )
-
   async function handleSignOut() {
     const errorMessage = await signOut()
     if (errorMessage) {
-      setSyncMessage(errorMessage)
       return
     }
     navigate('/login', { replace: true })
