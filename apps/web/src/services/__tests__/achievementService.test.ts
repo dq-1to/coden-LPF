@@ -42,6 +42,8 @@ function makeCompletedProgress(stepId: string) {
     practice_done: true,
     test_done: true,
     challenge_done: true,
+    updated_at: '',
+    completed_at: null,
   }
 }
 

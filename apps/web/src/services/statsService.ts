@@ -1,12 +1,11 @@
 import { supabase } from '../lib/supabaseClient'
+import { fromSupabaseError } from '../shared/errors'
+import type { Tables } from '../shared/types/database.types'
 
-export interface LearningStats {
-  user_id: string
-  total_points: number
-  current_streak: number
-  max_streak: number
-  last_study_date: string | null
-}
+export type LearningStats = Pick<
+  Tables<'learning_stats'>,
+  'user_id' | 'total_points' | 'current_streak' | 'max_streak' | 'last_study_date'
+>
 
 export interface HeatmapCell {
   date: string
@@ -64,7 +63,7 @@ export async function getLearningStats(userId: string): Promise<LearningStats> {
     .maybeSingle()
 
   if (error) {
-    throw error
+    throw fromSupabaseError(error, '学習統計の取得に失敗しました')
   }
 
   return data ?? createDefaultLearningStats(userId)
@@ -112,7 +111,7 @@ export async function recordStudyActivity(userId: string, now = new Date()): Pro
   )
 
   if (error) {
-    throw error
+    throw fromSupabaseError(error, '学習記録の保存に失敗しました')
   }
 
   return nextStats
@@ -129,7 +128,7 @@ export async function getLearningHeatmap(userId: string, days = 30): Promise<Hea
     .gte('created_at', `${startDate}T00:00:00.000Z`)
 
   if (error) {
-    throw error
+    throw fromSupabaseError(error, 'ヒートマップデータの取得に失敗しました')
   }
 
   const dateCountMap = new Map<string, number>()
