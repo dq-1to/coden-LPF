@@ -1,17 +1,14 @@
 import { supabase } from '../lib/supabaseClient'
+import { fromSupabaseError } from '../shared/errors'
+import type { Tables } from '../shared/types/database.types'
 
 export type ProgressMode = 'read' | 'practice' | 'test' | 'challenge'
 
-interface StepProgressRow {
-  user_id: string
-  step_id: string
-  read_done: boolean
-  practice_done: boolean
-  test_done: boolean
-  challenge_done: boolean
-  updated_at?: string
-  completed_at?: string | null
-}
+// クエリで SELECT する列のみを含む型（id は SELECT しないため除外）
+type StepProgressRow = Pick<
+  Tables<'step_progress'>,
+  'user_id' | 'step_id' | 'read_done' | 'practice_done' | 'test_done' | 'challenge_done' | 'updated_at' | 'completed_at'
+>
 
 type ProgressPatch = Partial<
   Pick<StepProgressRow, 'read_done' | 'practice_done' | 'test_done' | 'challenge_done' | 'completed_at'>
@@ -24,7 +21,7 @@ export async function getAllStepProgress(userId: string): Promise<StepProgressRo
     .eq('user_id', userId)
 
   if (error) {
-    throw error
+    throw fromSupabaseError(error, '学習進捗の取得に失敗しました')
   }
 
   return data as StepProgressRow[]
@@ -39,7 +36,7 @@ export async function getStepProgress(userId: string, stepId: string): Promise<S
     .maybeSingle()
 
   if (error) {
-    throw error
+    throw fromSupabaseError(error, '学習進捗の取得に失敗しました')
   }
 
   return data
@@ -59,7 +56,7 @@ export async function upsertProgress(userId: string, stepId: string, patch: Prog
   })
 
   if (error) {
-    throw error
+    throw fromSupabaseError(error, '学習進捗の保存に失敗しました')
   }
 }
 
@@ -99,7 +96,7 @@ export async function getCompletedStepCount(userId: string) {
     .eq('user_id', userId)
 
   if (error) {
-    throw error
+    throw fromSupabaseError(error, '完了ステップ数の取得に失敗しました')
   }
 
   const completed = (data ?? []).filter(
