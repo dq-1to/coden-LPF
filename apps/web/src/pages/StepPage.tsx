@@ -120,6 +120,7 @@ export function StepPage() {
                     className={`rounded-md px-4 py-2 text-sm font-bold transition ${isActive ? 'bg-primary-mint text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
                       }`}
                     type="button"
+                    aria-pressed={isActive}
                     onClick={() => setActiveMode(mode.id)}
                   >
                     {mode.label}
@@ -158,6 +159,7 @@ export function StepPage() {
                 <button
                   className="mt-3 rounded-lg bg-primary-mint px-4 py-2 text-sm font-bold text-white transition hover:bg-primary-dark"
                   type="button"
+                  aria-label={nextStep ? `次のステップ「${nextStep.title}」へ進む` : 'ダッシュボードへ戻る'}
                   onClick={handleNextStep}
                 >
                   {nextStep ? '次のステップへ進む' : 'ダッシュボードへ戻る'}
@@ -174,7 +176,11 @@ export function StepPage() {
         </div>
 
         {toastMessage ? (
-          <div className="fixed bottom-5 right-5 z-50 max-w-sm rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm text-emerald-900 shadow-xl">
+          <div
+            className="fixed bottom-5 right-5 z-50 max-w-sm rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm text-emerald-900 shadow-xl"
+            role="alert"
+            aria-live="assertive"
+          >
             <p className="font-semibold">学習達成</p>
             <p className="mt-1">{toastMessage}</p>
           </div>

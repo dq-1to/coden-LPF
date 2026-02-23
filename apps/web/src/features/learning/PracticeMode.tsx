@@ -62,6 +62,7 @@ export function PracticeMode({ questions, onComplete }: PracticeModeProps) {
                 }`}
               placeholder="回答を入力"
               value={answer}
+              aria-label={`Q${index + 1} 回答欄`}
               onChange={(event) => handleAnswerChange(question.id, event.target.value)}
             />
             {isJudged ? (
@@ -72,6 +73,7 @@ export function PracticeMode({ questions, onComplete }: PracticeModeProps) {
             <button
               className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
               type="button"
+              aria-expanded={hints[question.id] ?? false}
               onClick={() =>
                 setHints((prev) => ({
                   ...prev,
@@ -96,7 +98,11 @@ export function PracticeMode({ questions, onComplete }: PracticeModeProps) {
         </button>
 
         {isJudged && (
-          <p className={`text-sm font-medium ${isAllCorrect ? 'text-emerald-700' : 'text-rose-700'}`}>
+          <p
+            className={`text-sm font-medium ${isAllCorrect ? 'text-emerald-700' : 'text-rose-700'}`}
+            role="status"
+            aria-live="polite"
+          >
             {isAllCorrect ? '🎉 すべて正解！Practiceを完了しました。' : '⚠️ すべての問題に正解すると完了です。'}
           </p>
         )}

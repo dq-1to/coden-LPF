@@ -70,7 +70,11 @@ export function ChallengeMode({ task, onComplete }: ChallengeModeProps) {
         </button>
 
         {checked && (
-          <p className={`text-sm font-medium ${isPassed ? 'text-emerald-700' : 'text-rose-700'}`}>
+          <p
+            className={`text-sm font-medium ${isPassed ? 'text-emerald-700' : 'text-rose-700'}`}
+            role="status"
+            aria-live="polite"
+          >
             {isPassed ? '🎉 Challengeを完了しました！' : '❌ 要件を満たしていません。'}
           </p>
         )}
