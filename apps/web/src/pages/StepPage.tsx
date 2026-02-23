@@ -4,6 +4,7 @@ import { LearningSidebar } from '../components/LearningSidebar'
 import { COURSES, findStepMeta } from '../content/courseData'
 import { fundamentalsSteps, getFundamentalsStep, type LearningMode } from '../content/fundamentals/steps'
 import { getIntermediateStep, intermediateSteps } from '../content/intermediate/steps'
+import { advancedSteps, getAdvancedStep } from '../content/advanced/steps'
 import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
 import { useAchievementContext } from '../contexts/AchievementContext'
@@ -47,7 +48,7 @@ export function StepPage() {
   const completedOnceRef = useRef(false)
 
   const stepMeta = findStepMeta(stepId)
-  const step = getFundamentalsStep(stepId) || getIntermediateStep(stepId)
+  const step = getFundamentalsStep(stepId) || getIntermediateStep(stepId) || getAdvancedStep(stepId)
   const isUnavailableStep = Boolean(stepMeta && !stepMeta.isImplemented)
 
   const headerDisplayName = useMemo(() => {
@@ -63,7 +64,7 @@ export function StepPage() {
     return 'ゲスト'
   }, [user?.email, user?.user_metadata])
 
-  const orderedSteps = useMemo(() => [...fundamentalsSteps, ...intermediateSteps].sort((a, b) => a.order - b.order), [])
+  const orderedSteps = useMemo(() => [...fundamentalsSteps, ...intermediateSteps, ...advancedSteps].sort((a, b) => a.order - b.order), [])
 
   const currentCourse = useMemo(
     () => COURSES.find((course) => course.steps.some((s) => s.id === (step?.id || stepId))),

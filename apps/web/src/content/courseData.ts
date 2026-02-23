@@ -96,14 +96,14 @@ export const COURSES: CourseMeta[] = [
         order: 9,
         title: 'カスタムHooks',
         description: '再利用可能なロジックをカスタムHookとして切り出します。',
-        isImplemented: false,
+        isImplemented: true,
       },
       {
         id: 'api-fetch',
         order: 10,
         title: 'API連携',
         description: 'データ取得とローディング状態の管理を実践します。',
-        isImplemented: false,
+        isImplemented: true,
       },
       {
         id: 'performance',
