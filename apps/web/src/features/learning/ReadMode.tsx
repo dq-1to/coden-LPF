@@ -92,7 +92,7 @@ export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
           {markdown}
         </ReactMarkdown>
       </article>
-      {copyMessage ? <p className="text-sm text-slate-600">{copyMessage}</p> : null}
+      {copyMessage ? <p className="text-sm text-slate-600" role="status" aria-live="polite">{copyMessage}</p> : null}
     </section>
   )
 }

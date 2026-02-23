@@ -12,9 +12,9 @@ export function LearningSidebar({ courseTitle, currentStepId, steps }: LearningS
   const { completedStepsCount, isLoadingStats } = useLearningContext()
 
   return (
-    <aside className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:w-72">
+    <aside className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:w-72" aria-label="学習コースナビゲーション">
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{courseTitle}</p>
-      <ul className="mt-3 space-y-2">
+      <ul className="mt-3 space-y-2" aria-label={courseTitle}>
         {steps.map((step) => {
           const isCurrent = step.id === currentStepId
           const isLocked = !isLoadingStats && step.order > completedStepsCount + 1
@@ -33,7 +33,10 @@ export function LearningSidebar({ courseTitle, currentStepId, steps }: LearningS
           if (isLocked) {
             return (
               <li key={step.id}>
-                <div className={`${baseClass} border-slate-200 bg-slate-50 text-slate-400 opacity-60`}>
+                <div
+                  className={`${baseClass} border-slate-200 bg-slate-50 text-slate-400 opacity-60`}
+                  aria-disabled="true"
+                >
                   {content}
                 </div>
               </li>
@@ -49,6 +52,7 @@ export function LearningSidebar({ courseTitle, currentStepId, steps }: LearningS
                   }`}
                 to={`/step/${step.id}`}
                 replace
+                aria-current={isCurrent ? 'page' : undefined}
               >
                 {content}
               </Link>

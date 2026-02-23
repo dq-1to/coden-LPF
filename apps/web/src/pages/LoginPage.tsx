@@ -72,7 +72,7 @@ export function LoginPage() {
           />
         </label>
 
-        {error ? <p className="text-sm text-red-700">{error}</p> : null}
+        {error ? <p className="text-sm text-red-700" role="alert">{error}</p> : null}
 
         <button
           className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"

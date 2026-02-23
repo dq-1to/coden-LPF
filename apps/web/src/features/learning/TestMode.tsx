@@ -74,6 +74,7 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
                   : 'ring-slate-500 focus:ring-blue-400'
                   }`}
                 placeholder="例: setCount(count + 1)"
+                aria-label="コードの空欄を入力"
                 value={blankInput}
                 onChange={(event) => handleInputChange(event.target.value)}
               />
@@ -92,7 +93,11 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
         </button>
 
         {isJudged && (
-          <p className={`text-sm font-medium ${isPassed ? 'text-emerald-700' : 'text-rose-700'}`}>
+          <p
+            className={`text-sm font-medium ${isPassed ? 'text-emerald-700' : 'text-rose-700'}`}
+            role="status"
+            aria-live="polite"
+          >
             {isPassed ? '🎉 テスト合格！ライブプレビューが解禁されました。' : '❌ 必要キーワードを満たしていません。もう一度試してください。'}
           </p>
         )}

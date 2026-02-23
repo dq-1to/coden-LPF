@@ -18,13 +18,14 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
             <span className="font-display text-2xl font-bold tracking-tight text-primary-mint">Coden</span>
           </div>
 
-          <nav className="hidden items-center gap-5 text-sm font-medium md:flex">
+          <nav className="hidden items-center gap-5 text-sm font-medium md:flex" aria-label="メインナビゲーション">
             <Link
               to="/"
               className={`pb-1 ${location.pathname === '/'
                 ? 'border-b-2 border-primary-mint text-slate-900'
                 : 'text-slate-500 hover:text-slate-700'
                 }`}
+              aria-current={location.pathname === '/' ? 'page' : undefined}
             >
               ダッシュボード
             </Link>
@@ -34,6 +35,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
                 ? 'border-b-2 border-primary-mint text-slate-900'
                 : 'text-slate-500 hover:text-slate-700'
                 }`}
+              aria-current={location.pathname.startsWith('/step') ? 'page' : undefined}
             >
               コース一覧
             </Link>
@@ -43,10 +45,11 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
                 ? 'border-b-2 border-primary-mint text-slate-900'
                 : 'text-slate-500 hover:text-slate-700'
                 }`}
+              aria-current={location.pathname === '/profile' ? 'page' : undefined}
             >
               プロフィール
             </Link>
-            <span className="cursor-not-allowed pb-1 text-slate-400">コミュニティ (準備中)</span>
+            <span className="cursor-not-allowed pb-1 text-slate-400" aria-disabled="true">コミュニティ (準備中)</span>
           </nav>
         </div>
 

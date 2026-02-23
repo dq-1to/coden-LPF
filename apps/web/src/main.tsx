@@ -1,24 +1,37 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
 import { LearningProvider } from './contexts/LearningContext'
 import { AchievementProvider } from './contexts/AchievementContext'
-import { DashboardPage } from './pages/DashboardPage'
-import { LoginPage } from './pages/LoginPage'
-import { ProfilePage } from './pages/ProfilePage'
-import { StepPage } from './pages/StepPage'
 import { ConfigErrorView } from './components/ConfigErrorView'
 import { supabaseConfigError } from './lib/supabaseClient'
 import './styles/globals.css'
+
+// Route-based Code Splitting: 各ページを動的インポートでチャンク分割
+const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })))
+const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })))
+const ProfilePage = lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })))
+const StepPage = lazy(() => import('./pages/StepPage').then((m) => ({ default: m.StepPage })))
+
+// ページ遷移中のフォールバック UI
+function PageLoading() {
+  return (
+    <div className="flex min-h-screen items-center justify-center" aria-live="polite" aria-label="ページを読み込み中">
+      <div className="text-gray-500">読み込み中...</div>
+    </div>
+  )
+}
 
 const router = createBrowserRouter([
   {
     path: '/login',
     element: (
       <GuestRoute>
-        <LoginPage />
+        <Suspense fallback={<PageLoading />}>
+          <LoginPage />
+        </Suspense>
       </GuestRoute>
     ),
   },
@@ -26,7 +39,9 @@ const router = createBrowserRouter([
     path: '/',
     element: (
       <ProtectedRoute>
-        <DashboardPage />
+        <Suspense fallback={<PageLoading />}>
+          <DashboardPage />
+        </Suspense>
       </ProtectedRoute>
     ),
   },
@@ -34,7 +49,9 @@ const router = createBrowserRouter([
     path: '/step/:stepId',
     element: (
       <ProtectedRoute>
-        <StepPage />
+        <Suspense fallback={<PageLoading />}>
+          <StepPage />
+        </Suspense>
       </ProtectedRoute>
     ),
   },
@@ -42,7 +59,9 @@ const router = createBrowserRouter([
     path: '/profile',
     element: (
       <ProtectedRoute>
-        <ProfilePage />
+        <Suspense fallback={<PageLoading />}>
+          <ProfilePage />
+        </Suspense>
       </ProtectedRoute>
     ),
   },
