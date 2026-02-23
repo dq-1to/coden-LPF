@@ -3,6 +3,7 @@ import { COURSES, findStepMeta } from '../../../content/courseData'
 import { fundamentalsSteps, getFundamentalsStep, type LearningMode, type LearningStepContent } from '../../../content/fundamentals/steps'
 import { getIntermediateStep, intermediateSteps } from '../../../content/intermediate/steps'
 import { advancedSteps, getAdvancedStep } from '../../../content/advanced/steps'
+import { apiPracticeSteps, getApiPracticeStep } from '../../../content/api-practice/steps'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useLearningContext } from '../../../contexts/LearningContext'
 import { useAchievementContext } from '../../../contexts/AchievementContext'
@@ -52,11 +53,11 @@ export function useLearningStep(stepId: string): UseLearningStepReturn {
   const completedOnceRef = useRef(false)
 
   const stepMeta = findStepMeta(stepId)
-  const step = getFundamentalsStep(stepId) || getIntermediateStep(stepId) || getAdvancedStep(stepId)
+  const step = getFundamentalsStep(stepId) || getIntermediateStep(stepId) || getAdvancedStep(stepId) || getApiPracticeStep(stepId)
   const isUnavailableStep = Boolean(stepMeta && !stepMeta.isImplemented)
 
   const orderedSteps = useMemo(
-    () => [...fundamentalsSteps, ...intermediateSteps, ...advancedSteps].sort((a, b) => a.order - b.order),
+    () => [...fundamentalsSteps, ...intermediateSteps, ...advancedSteps, ...apiPracticeSteps].sort((a, b) => a.order - b.order),
     [],
   )
 
