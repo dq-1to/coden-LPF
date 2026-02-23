@@ -1,0 +1,8 @@
+{
+  "counter": { "value": 0 },
+  "tasks": [
+    { "id": "1", "title": "Reactの基礎を学ぶ", "completed": true },
+    { "id": "2", "title": "useEffectを理解する", "completed": false },
+    { "id": "3", "title": "APIと連携する", "completed": false }
+  ]
+}
