@@ -28,6 +28,7 @@ export const BADGE_DEFINITIONS = [
 export type BadgeId = (typeof BADGE_DEFINITIONS)[number]['id']
 
 const BADGE_ID_SET = new Set<BadgeId>(BADGE_DEFINITIONS.map((badge) => badge.id))
+// all-complete は全20ステップ完了が条件なので未実装ステップも含む
 const ALL_STEP_IDS = COURSES.flatMap((course) => course.steps.map((step) => step.id))
 const COURSE_COMPLETION_RULES: Array<{ badgeId: BadgeId; stepIds: string[] }> = [
   { badgeId: 'course-1-complete', stepIds: getCourseStepIds('course-1') },
@@ -37,7 +38,12 @@ const COURSE_COMPLETION_RULES: Array<{ badgeId: BadgeId; stepIds: string[] }> = 
 ]
 
 function getCourseStepIds(courseId: string): string[] {
-  return COURSES.find((course) => course.id === courseId)?.steps.map((step) => step.id) ?? []
+  // isImplemented: false のステップはバッジ判定対象外とし、未実装コースの誤解禁を防止する
+  return (
+    COURSES.find((course) => course.id === courseId)
+      ?.steps.filter((step) => step.isImplemented)
+      .map((step) => step.id) ?? []
+  )
 }
 
 function isBadgeId(value: string): value is BadgeId {
