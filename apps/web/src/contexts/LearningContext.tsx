@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useAuth } from './AuthContext'
 import { getLearningStats, type LearningStats } from '../services/statsService'
 import { getCompletedStepCount } from '../services/progressService'
@@ -23,7 +23,7 @@ export function LearningProvider({ children }: { children: ReactNode }) {
     const [completedStepsCount, setCompletedStepsCount] = useState(0)
     const [isLoadingStats, setIsLoadingStats] = useState(true)
 
-    const refreshStats = async () => {
+    const refreshStats = useCallback(async () => {
         if (!user) {
             setStats(null)
             setCompletedStepsCount(0)
@@ -43,7 +43,7 @@ export function LearningProvider({ children }: { children: ReactNode }) {
         } finally {
             setIsLoadingStats(false)
         }
-    }
+    }, [user])
 
     useEffect(() => {
         let isMounted = true
@@ -56,10 +56,15 @@ export function LearningProvider({ children }: { children: ReactNode }) {
         return () => {
             isMounted = false
         }
-    }, [user])
+    }, [refreshStats])
+
+    const value = useMemo(
+        () => ({ stats, completedStepsCount, isLoadingStats, refreshStats }),
+        [stats, completedStepsCount, isLoadingStats, refreshStats],
+    )
 
     return (
-        <LearningContext.Provider value={{ stats, completedStepsCount, isLoadingStats, refreshStats }}>
+        <LearningContext.Provider value={value}>
             {children}
         </LearningContext.Provider>
     )
