@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
+import { fromSupabaseError } from '../shared/errors'
 
 export async function awardPoints(userId: string, amount: number, reason: string): Promise<void> {
     const { error } = await supabase.rpc('award_points_tx', {
@@ -8,6 +9,6 @@ export async function awardPoints(userId: string, amount: number, reason: string
     })
 
     if (error) {
-        throw error
+        throw fromSupabaseError(error, 'ポイントの付与に失敗しました')
     }
 }

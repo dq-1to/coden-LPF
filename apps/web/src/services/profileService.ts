@@ -1,18 +1,9 @@
 import { supabase } from '../lib/supabaseClient'
+import { fromSupabaseError } from '../shared/errors'
+import type { Tables } from '../shared/types/database.types'
 
-export interface ProfileRecord {
-  id: string
-  display_name: string | null
-  created_at: string
-}
-
-export interface PointHistoryRecord {
-  id: string
-  user_id: string
-  amount: number
-  reason: string
-  created_at: string
-}
+export type ProfileRecord = Tables<'profiles'>
+export type PointHistoryRecord = Tables<'point_history'>
 
 export async function getProfile(userId: string): Promise<ProfileRecord | null> {
   const { data, error } = await supabase
@@ -22,7 +13,7 @@ export async function getProfile(userId: string): Promise<ProfileRecord | null> 
     .maybeSingle()
 
   if (error) {
-    throw error
+    throw fromSupabaseError(error, 'プロフィールの取得に失敗しました')
   }
 
   return data
@@ -39,7 +30,7 @@ export async function upsertDisplayName(userId: string, displayName: string | nu
   )
 
   if (error) {
-    throw error
+    throw fromSupabaseError(error, 'プロフィールの更新に失敗しました')
   }
 }
 
@@ -53,7 +44,7 @@ export async function getPointHistory(userId: string, limit = 50): Promise<Point
     .limit(safeLimit)
 
   if (error) {
-    throw error
+    throw fromSupabaseError(error, 'ポイント履歴の取得に失敗しました')
   }
 
   return data ?? []

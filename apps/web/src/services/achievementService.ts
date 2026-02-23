@@ -1,14 +1,11 @@
 import { COURSES } from '../content/courseData'
 import { supabase } from '../lib/supabaseClient'
+import { fromSupabaseError } from '../shared/errors'
+import type { Tables } from '../shared/types/database.types'
 import { getAllStepProgress } from './progressService'
 import { getLearningStats } from './statsService'
 
-export interface Achievement {
-  id: string
-  user_id: string
-  badge_id: BadgeId
-  earned_at: string
-}
+export type Achievement = Omit<Tables<'achievements'>, 'badge_id'> & { badge_id: BadgeId }
 
 export const BADGE_DEFINITIONS = [
   { id: 'first-step', name: '最初の一歩', description: '初めてステップを完了した' },
@@ -63,7 +60,7 @@ export async function getUnlockedAchievements(userId: string): Promise<BadgeId[]
   const { data, error } = await supabase.from('achievements').select('badge_id').eq('user_id', userId)
 
   if (error) {
-    throw error
+    throw fromSupabaseError(error, '実績の取得に失敗しました')
   }
 
   return (data ?? []).map((row) => row.badge_id).filter(isBadgeId)
@@ -80,7 +77,7 @@ export async function unlockAchievement(userId: string, badgeId: BadgeId): Promi
     return false
   }
 
-  throw error
+  throw fromSupabaseError(error, 'バッジの付与に失敗しました')
 }
 
 export async function checkAndUnlockAchievements(userId: string): Promise<BadgeId[]> {
