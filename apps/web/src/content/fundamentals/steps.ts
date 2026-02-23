@@ -5,12 +5,14 @@ export interface PracticeQuestion {
   prompt: string
   answer: string
   hint: string
+  explanation?: string
 }
 
 export interface TestTask {
   instruction: string
   starterCode: string
   expectedKeywords: string[]
+  explanation?: string
 }
 
 export interface ChallengePattern {
@@ -106,30 +108,35 @@ setter関数（\`setCount\`など）を呼び出すことで、Reactはそのコ
         prompt: '通常のローカル変数（例: let count = 0）を更新したとき、Reactの画面は再描画されますか？',
         answer: 'いいえ',
         hint: '通常の変数の変更はReactに検知されません。',
+        explanation: 'Reactは通常の変数の変更を追跡しません。再描画が起きるのはuseStateの更新関数（setter）が呼ばれたときだけです。',
       },
       {
         id: 'q2',
         prompt: 'useState が返す配列の1つ目の要素は何を表しますか？',
         answer: '現在の状態',
         hint: '`const [count, setCount] = useState(0)` でいうと `count` です。',
+        explanation: 'const [count, setCount] = useState(0) の分割代入で、最初の count が現在の値（state）を保持します。',
       },
       {
         id: 'q3',
         prompt: 'useState が返す配列の2つ目の要素は何を表しますか？',
         answer: '更新関数',
         hint: '状態を更新し、再レンダリングをトリガーするための関数です。（setterとも呼ばれます）',
+        explanation: 'setter（setCountなど）を呼び出すとReactに新しい値が渡され、コンポーネントが再レンダリングされます。',
       },
       {
         id: 'q4',
         prompt: '状態を更新する関数（例: setCount）を呼び出すと、Reactはコンポーネントに対して何をトリガーしますか？',
         answer: '再レンダリング',
         hint: '画面を新しい状態で描き直す一連の処理のことです。',
+        explanation: 'setterを呼ぶとReactに「状態が変わった」と通知され、コンポーネントが最新の値で再描画（再レンダリング）されます。',
       },
       {
         id: 'q5',
         prompt: 'Reactにおいて、if文の中など、コンポーネントのトップレベル以外でHookを呼び出すことは可能ですか？',
         answer: 'いいえ',
         hint: 'Hookは常にコンポーネントのトップレベルで呼び出すルールがあります。',
+        explanation: 'Reactの「Hookのルール」により、useStateなどのHookはif文・ループ・ネスト関数の中では使えません。常にコンポーネントの最上位で呼び出す必要があります。',
       },
     ],
     testTask: {
@@ -137,6 +144,7 @@ setter関数（\`setCount\`など）を呼び出すことで、Reactはそのコ
       starterCode: `const [count, setCount] = useState(10)
 return <button onClick={() => ____}>-1 ({count})</button>`,
       expectedKeywords: ['setCount', 'count - 1'],
+      explanation: 'setCount に count - 1 を渡します。setCount(count - 1) と書くと、現在値より1小さい値がセットされます。',
     },
     challengeTask: {
       patterns: [
@@ -225,36 +233,42 @@ export function NameInput() {
         prompt: 'ボタンクリック時に実行する関数を渡すためのプロパティ名の綴りは？',
         answer: 'onClick',
         hint: 'Reactのイベント名はキャメルケースになります。',
+        explanation: 'ReactのイベントはキャメルケースなのでonClickです。HTMLのonclickとは大文字小文字が異なります。',
       },
       {
         id: 'q2',
         prompt: '入力フィールド(input)の値が変更された時に発火するイベントのプロパティ名は何でしょう？',
         answer: 'onChange',
         hint: '値が「変わった(Change)」ときに呼ばれます。',
+        explanation: 'Reactでの入力値変化の検知にはonChangeを使います。キーを押すたびに発火し、e.target.valueで現在の入力値を取得できます。',
       },
       {
         id: 'q3',
         prompt: 'onClick={handleClick()} のように関数本体に括弧をつけて渡すと、その関数はいつ実行されてしまいますか？',
         answer: 'レンダリング時',
         hint: 'クリックを待たず、描画されるタイミングで即座に実行されてしまいます。',
+        explanation: 'handleClick() と書くと「handleClickを呼び出した結果」がonClickに渡されます。関数そのものを渡すにはhandleClickと括弧なしで書きます。',
       },
       {
         id: 'q4',
         prompt: '入力イベント（onChange）で入力された文字列を取得するには、e.____.value にアクセスします。空欄は？',
         answer: 'target',
         hint: 'イベントを発生させた要素（ターゲット）の値を参照します。',
+        explanation: 'e.target はイベントを発生させた要素（input要素）を指します。その .value プロパティに現在入力されているテキストが入っています。',
       },
       {
         id: 'q5',
         prompt: 'フォームの送信などで、ブラウザのデフォルトの動作（ページリロードなど）を防ぐために呼ぶメソッドは何ですか？（e.〇〇〇〇）',
         answer: 'preventDefault',
         hint: 'デフォルト(default)の動作を、防ぐ(prevent)関数です。',
+        explanation: 'SPAではページリロードなしで動作させるため、onSubmitハンドラ内でe.preventDefault()を呼び出します。',
       },
     ],
     testTask: {
       instruction: 'input要素に文字が入力されたときに実行されるイベントプロパティを空欄に埋めてください。',
       starterCode: `<input value={name} ____={(e) => setName(e.target.value)} />`,
       expectedKeywords: ['onChange'],
+      explanation: 'input要素の値変化を検知するにはonChangeを使います。e.target.valueで入力テキストを取得できます。',
     },
     challengeTask: {
       patterns: [
@@ -340,36 +354,42 @@ function Notifications({ unreadCount }) {
         prompt: '条件によって「UIのA」か「UIのB」を切り替える場合、JSX内でコンパクトに書ける JavaScript の演算子は何ですか？',
         answer: '三項演算子',
         hint: '`?` と `:` を使う記法です。',
+        explanation: '三項演算子は 条件 ? trueのとき : falseのとき の形式です。JSXの中でどちらか一方を表示する切り替えに最もよく使われます。',
       },
       {
         id: 'q2',
         prompt: '「条件が真の時だけ描画し、偽なら何も描画しない」という場合に最もよく使われる演算子は何ですか？',
         answer: '&&',
         hint: '論理積（AND）を表す記号です。',
+        explanation: '&& の左辺が true なら右辺（JSX要素）が表示され、false なら何も表示されません。「表示するかしないか」の二択に適しています。',
       },
       {
         id: 'q3',
         prompt: 'ある条件のとき画面に何も描画したくない場合、コンポーネントから何を return すればよいですか？',
         answer: 'null',
         hint: '「何もないこと」を表すJSのプリミティブ値です。',
+        explanation: 'return null; とするとReactはそのコンポーネントを描画しません。条件によって非表示にしたい場合に使います。',
       },
       {
         id: 'q4',
         prompt: 'ReactでJSXの内部（タグとタグの間など）に JavaScript の変数や式を埋め込むときに使う括弧の記号は何ですか？',
         answer: '{}',
         hint: '波括弧（ブレース）を使用します。',
+        explanation: 'JSXの中で {} を使うとJavaScript式を埋め込めます。例: <p>{count}</p> や {isLoggedIn ? "A" : "B"} のように使います。',
       },
       {
         id: 'q5',
         prompt: '`unreadCount > 0 && <p>New Message</p>` というコードにおいて、短絡評価と呼ばれる性質により、左辺が false の場合、右辺はどう評価されますか？（実行される/無視される）',
         answer: '無視される',
         hint: '左辺がfalseであれば、全体もfalseになることが確定するため、右辺の評価はスキップされます。',
+        explanation: '&& の短絡評価：左辺がfalseなら全体の結果がfalseで確定するため、右辺は評価されず何も表示されません。',
       },
     ],
     testTask: {
       instruction: 'isLoggedIn が true の時だけ「Welcome」というパラグラフを表示したいです。最適な演算子を埋めてください。',
       starterCode: `{isLoggedIn ____ <p>Welcome</p>}`,
       expectedKeywords: ['&&'],
+      explanation: '「trueのときだけ表示、falseなら何も表示しない」には && を使います。三項演算子では falseのとき に null を返す必要があり冗長になります。',
     },
     challengeTask: {
       patterns: [
@@ -441,36 +461,42 @@ export function List() {
         prompt: '配列のデータを元に、同じ構造のJSX要素を繰り返し生成するのによく使うJavaScriptの配列メソッドは何ですか？',
         answer: 'map',
         hint: '各要素を変換し、新しい配列を返すメソッドです。',
+        explanation: 'map()は配列の各要素を変換して新しい配列を返します。各要素をJSX要素に変換することでリスト描画ができます。',
       },
       {
         id: 'q2',
         prompt: 'リスト内の各要素に必ず指定すべき、Reactが差分を効率的に特定するための属性（prop）は何ですか？',
         answer: 'key',
         hint: '鍵、という意味の英単語です。',
+        explanation: 'keyはReactが要素の追加・削除・移動を効率的に追跡するために使います。keyがないと警告が出るだけでなく、更新時にバグが起きる可能性があります。',
       },
       {
         id: 'q3',
         prompt: 'リストの要素の順番が変化する可能性がある場合、key に配列のインデックス（index）を使用することは推奨されますか？（はい/いいえ）',
         answer: 'いいえ',
         hint: '順番が変わると、データとインデックスの紐付けがずれてしまい、バグの原因になります。',
+        explanation: '並び替えや先頭挿入が起きるとindexは変化します。データのIDなど、値が変わらない一意の識別子をkeyに使ってください。',
       },
       {
         id: 'q4',
         prompt: 'key はアプリケーション全体で重複してはいけませんか、それとも同じリスト（兄弟要素間）で一意であればよいですか？',
         answer: '兄弟要素間',
         hint: 'Reactは親要素の中での並び順だけを気にします。',
+        explanation: 'keyは同じリスト（同じ親要素）の中で一意であれば十分です。異なるリスト間で同じkeyを使っても問題ありません。',
       },
       {
         id: 'q5',
         prompt: 'リストのデータから、特定の条件に合致する要素だけを描画したい場合、map の前によく使われる配列メソッドは何ですか？',
         answer: 'filter',
         hint: '「フィルターをかける」という言葉が由来です。',
+        explanation: 'filter()は条件を満たす要素だけの新しい配列を返します。filter().map()のように繋げて「絞り込んで表示」するパターンがよく使われます。',
       },
     ],
     testTask: {
       instruction: 'ユーザーのリスト (users) を描画するため、map() の要素の li タグに最適な属性を書いてください。',
       starterCode: `{users.map(user => <li ____>{user.name}</li>)}`,
       expectedKeywords: ['key={user.id}'],
+      explanation: 'key={user.id} のようにデータの一意な値を渡します。keyは文字列または数値で、インデックスは推奨されません。',
     },
     challengeTask: {
       patterns: [
