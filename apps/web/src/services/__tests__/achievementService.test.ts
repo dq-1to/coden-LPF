@@ -83,9 +83,11 @@ describe('checkAndUnlockAchievements', () => {
     expect(unlocked).toContain('course-3-complete')
   })
 
-  it('course-4 の実装済みステップ全完了で course-4-complete バッジが付与される', async () => {
-    // isImplemented: true の 4 ステップ（order 13-16）を全完了
-    const course4StepIds = ['api-counter-get', 'api-counter-post', 'api-tasks-list', 'api-tasks-create']
+  it('course-4 の全8ステップ完了で course-4-complete バッジが付与される', async () => {
+    const course4StepIds = [
+      'api-counter-get', 'api-counter-post', 'api-tasks-list', 'api-tasks-create',
+      'api-tasks-update', 'api-tasks-delete', 'api-custom-hook', 'api-error-loading',
+    ]
     mockGetAllStepProgress.mockResolvedValue(course4StepIds.map(makeCompletedProgress))
 
     const unlocked = await checkAndUnlockAchievements('test-user')
@@ -94,13 +96,28 @@ describe('checkAndUnlockAchievements', () => {
   })
 
   it('course-4 の一部ステップのみ完了してもコース完了バッジは付与されない', async () => {
-    // 4 ステップのうち 2 ステップのみ完了（course-4-complete は付与されない）
+    // 8 ステップのうち 2 ステップのみ完了（course-4-complete は付与されない）
     const partialStepIds = ['api-counter-get', 'api-counter-post']
     mockGetAllStepProgress.mockResolvedValue(partialStepIds.map(makeCompletedProgress))
 
     const unlocked = await checkAndUnlockAchievements('test-user')
 
     expect(unlocked).not.toContain('course-4-complete')
+  })
+
+  it('全20ステップ完了で all-complete バッジが付与される', async () => {
+    const allStepIds = [
+      'usestate-basic', 'events', 'conditional', 'lists',
+      'useeffect', 'forms', 'usecontext', 'usereducer',
+      'custom-hooks', 'api-fetch', 'performance', 'testing',
+      'api-counter-get', 'api-counter-post', 'api-tasks-list', 'api-tasks-create',
+      'api-tasks-update', 'api-tasks-delete', 'api-custom-hook', 'api-error-loading',
+    ]
+    mockGetAllStepProgress.mockResolvedValue(allStepIds.map(makeCompletedProgress))
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).toContain('all-complete')
   })
 
   it('isImplemented: true のコース（course-1）が全完了したら course-1-complete バッジが付与される', async () => {
