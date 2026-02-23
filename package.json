@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "npm --workspace @coden/web run dev",
     "build": "npm --workspace @coden/web run build",
-    "typecheck": "npm --workspace @coden/web run typecheck"
+    "typecheck": "npm --workspace @coden/web run typecheck",
+    "lint": "npm --workspace @coden/web run lint",
+    "test": "npm --workspace @coden/web run test"
   }
 }
