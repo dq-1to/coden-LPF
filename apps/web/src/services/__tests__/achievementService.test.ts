@@ -62,10 +62,11 @@ describe('checkAndUnlockAchievements', () => {
     mockGetLearningStats.mockResolvedValue(defaultStats)
   })
 
-  it('isImplemented: false のコース（course-3）の完了バッジは付与されない', async () => {
-    // course-3 の step_id（すべて isImplemented: false）を全モード完了扱いにする
-    const course3StepIds = ['custom-hooks', 'api-fetch', 'performance', 'testing']
-    mockGetAllStepProgress.mockResolvedValue(course3StepIds.map(makeCompletedProgress))
+  it('isImplemented: false のステップのみ完了してもコース完了バッジは付与されない', async () => {
+    // course-3 の未実装ステップ（performance/testing）のみ全モード完了扱いにする
+    // custom-hooks/api-fetch は isImplemented: true だが未完了のため course-3-complete は付与されない
+    const notImplementedStepIds = ['performance', 'testing']
+    mockGetAllStepProgress.mockResolvedValue(notImplementedStepIds.map(makeCompletedProgress))
 
     const unlocked = await checkAndUnlockAchievements('test-user')
 
