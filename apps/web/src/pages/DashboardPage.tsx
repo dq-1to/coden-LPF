@@ -7,6 +7,7 @@ import { useLearningContext } from '../contexts/LearningContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { DashboardSidebar } from '../features/dashboard/components/DashboardSidebar'
 import { LearningOverviewCard } from '../features/dashboard/components/LearningOverviewCard'
+import { ReviewListWidget } from '../features/dashboard/components/ReviewListWidget'
 import { WelcomeBanner } from '../features/dashboard/components/WelcomeBanner'
 import { supabase, supabaseConfigError } from '../lib/supabaseClient'
 
@@ -89,6 +90,7 @@ export function DashboardPage() {
           <section className="space-y-6 lg:col-span-8">
             <WelcomeBanner displayName={greetingName} />
             <LearningOverviewCard completedCount={Math.min(completedStepsCount, IMPLEMENTED_STEP_COUNT)} />
+            <ReviewListWidget />
             <Link className="inline-flex text-sm font-semibold text-primary-dark underline" to="/step/usestate-basic">
               学習画面へ移動（/step/usestate-basic）
             </Link>

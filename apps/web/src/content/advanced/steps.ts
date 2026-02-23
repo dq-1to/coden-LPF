@@ -139,30 +139,35 @@ function useGood() {
         prompt: 'カスタムHookを定義する際、関数名は必ず何で始めなければなりませんか？',
         answer: 'use',
         hint: '「use」＋名詞または動詞の形が一般的です（例: useCounter, useInput）。',
+        explanation: 'カスタムHookの関数名をuseで始めることで、Reactのlintツールがフックルール違反を検出できるようになります。',
       },
       {
         id: 'q2',
         prompt: 'カスタムHookがコンポーネント間で「共有」するのは、StateそのものではなくなんですA？',
         answer: 'ロジック',
         hint: '各コンポーネントでHookを呼ぶたびに、独立したStateが生成されます。',
+        explanation: 'カスタムHookを使う各コンポーネントは独立したStateを持ちます。共有されるのはロジック（関数の定義）だけです。',
       },
       {
         id: 'q3',
         prompt: 'カスタムHookの中では、useStateやuseEffectなどのReactの何を呼び出すことができますか？',
         answer: 'Hook',
         hint: 'カスタムHookも「Hook」の一種です。他のHookを組み合わせて新しいHookを作れます。',
+        explanation: 'カスタムHookはuseState・useEffectなど既存のHookを内部で呼び出して、ロジックを再利用可能な形にまとめた関数です。',
       },
       {
         id: 'q4',
         prompt: 'Hooksのルールとして、「ループ・条件分岐・ネストした関数の中でHookを呼ばない」のはなぜですか？それを一言で表すと？',
         answer: '実行順序',
         hint: 'ReactはHookの呼び出し順序を追跡して状態を管理します。順序が変わると正しく動作しません。',
+        explanation: 'Reactは毎レンダーでHookが同じ順序で呼ばれることを前提に動作します。条件分岐の中でHookを呼ぶと順序が変わりバグになります。',
       },
       {
         id: 'q5',
         prompt: 'カスタムHookから値を返す方法として、一般的に使われる2つのデータ構造は何ですか？',
         answer: '配列とオブジェクト',
         hint: 'useState は配列 [value, setter] を、カスタムHookはオブジェクト { value, setValue } を返すことが多いです。',
+        explanation: '配列で返すと分割代入時に任意の名前を付けられ、オブジェクトで返すと名前付きで受け取れます。用途に応じて使い分けます。',
       },
     ],
     testTask: {
@@ -197,6 +202,7 @@ export function TogglePanel() {
   );
 }`,
       expectedKeywords: ['useToggle', 'useState', 'toggle', 'return'],
+      explanation: 'useで始まる関数名にしてuseStateを内部で使うことで、カスタムHookとして定義できます。コンポーネントはUIだけに集中できます。',
     },
     challengeTask: {
       patterns: [
@@ -402,30 +408,35 @@ return <article><h1>{data.title}</h1></article>;
         prompt: 'Reactコンポーネントでマウント時に一度だけAPIデータを取得したい場合、どのHookを使いますか？',
         answer: 'useEffect',
         hint: '第二引数に空配列 [] を渡すと、初回マウント時のみ実行されます。',
+        explanation: 'useEffectの中でfetchを呼ぶのがReactのデータ取得の基本です。依存配列[]を渡すことでマウント時に1回だけ実行されます。',
       },
       {
         id: 'q2',
         prompt: 'データ取得中の「ローディング状態」を表す isLoading の適切な初期値はどちらですか？（true / false）',
         answer: 'true',
         hint: 'コンポーネントがマウントされたら即座にデータ取得が始まります。最初から取得中と考えましょう。',
+        explanation: 'isLoadingの初期値をtrueにすることで、データ取得前に「読み込み中」UIが表示され、未取得のデータをそのまま表示するのを防げます。',
       },
       {
         id: 'q3',
         prompt: 'async/await を使ったfetchでエラーを適切に処理するために使うブロック構文は何ですか？',
         answer: 'try-catch',
         hint: 'try の中で fetch を実行し、catch でエラー状態を更新します。',
+        explanation: 'try-catchを使うと非同期処理のエラーを安全に捕捉できます。finallyでisLoadingをfalseにすることで成否どちらでもUI更新されます。',
       },
       {
         id: 'q4',
         prompt: 'アンマウント後に fetch が完了して setState が呼ばれると何の原因になりますか？',
         answer: 'メモリリーク',
         hint: '存在しないコンポーネントの State を更新しようとすることで警告が発生します。AbortController で対策できます。',
+        explanation: 'コンポーネントがアンマウントされた後にstateを更新しようとするとメモリリークが発生します。クリーンアップ関数で対処します。',
       },
       {
         id: 'q5',
         prompt: 'fetchをキャンセルするために使うWeb APIの名称は何ですか？',
         answer: 'AbortController',
         hint: 'controller.abort() を呼ぶと、関連付けられた fetch リクエストが中断されます。',
+        explanation: 'AbortControllerのsignalをfetchに渡し、クリーンアップ関数でabort()を呼ぶことでアンマウント後のfetchをキャンセルできます。',
       },
     ],
     testTask: {
@@ -466,6 +477,7 @@ export function PostViewer() {
   return <div>{/* ここに条件分岐した表示を実装 */}</div>;
 }`,
       expectedKeywords: ['useEffect', 'fetch', 'useState', 'isLoading'],
+      explanation: 'useEffectの中でfetchを呼び、isLoading・error・dataの3状態を管理するのがReactのAPI連携の基本パターンです。',
     },
     challengeTask: {
       patterns: [
@@ -635,30 +647,35 @@ function Counter() {
         prompt: 'useMemo はどのような処理に使うフックですか？',
         answer: '重い計算結果をキャッシュする',
         hint: '「依存値が変わらなければ再計算しない」が useMemo の基本動作です。',
+        explanation: 'useMemoは計算結果をキャッシュし、依存配列の値が変わったときだけ再計算します。重いフィルタやソート処理の最適化に使います。',
       },
       {
         id: 'performance-q2',
         prompt: 'useCallback を使うと何がキャッシュされますか？',
         answer: '関数の参照（インスタンス）',
         hint: '同じ関数参照を返すことで、memo でラップした子コンポーネントへの不要な再レンダリングを防げます。',
+        explanation: 'useCallbackは関数自体をキャッシュします。依存配列が変わらない限り同じ参照を返すので、memoでラップした子の再レンダリングを防げます。',
       },
       {
         id: 'performance-q3',
         prompt: 'memo(Button) でラップした Button が再レンダリングされる条件は何ですか？',
         answer: 'プロップが前回と異なる参照・値になったとき',
         hint: '`memo` は「プロップが変わらない限り再レンダリングしない」最適化です。',
+        explanation: 'memo(Button)でラップしたコンポーネントは、受け取るpropsが前回と同じ参照・値のとき再レンダリングをスキップします。',
       },
       {
         id: 'performance-q4',
         prompt: 'useMemo の依存配列を空配列にした場合、計算はいつ実行されますか？',
         answer: '初回レンダリング時のみ',
         hint: '依存する値がないため変化が発生せず、初回のみ実行されます。',
+        explanation: '空配列を依存配列に渡すと変化する値がないため、計算は初回レンダリング時に一度だけ実行されてその後はキャッシュが使われます。',
       },
       {
         id: 'performance-q5',
         prompt: 'useCallback と memo をセットで使わないと効果が薄い理由は何ですか？',
         answer: '子コンポーネントが memo されていないと関数参照が安定しても再レンダリングが起きるから',
         hint: 'useCallback は関数参照を安定させますが、受け取る子が memo されていないと効果がありません。',
+        explanation: 'memoなしの子コンポーネントは親が再レンダーするたびに再レンダーされます。useCallbackだけでは子の再レンダーを防げません。',
       },
     ],
     testTask: {
@@ -698,6 +715,7 @@ export function FilteredList({ items }: FilteredListProps) {
   );
 }`,
       expectedKeywords: ['useMemo', 'filter', 'query', 'items'],
+      explanation: 'useMemoでフィルタ計算をキャッシュすると、queryが変わらない限り再計算されません。countの変化による無駄な計算を防げます。',
     },
     challengeTask: {
       patterns: [
@@ -870,30 +888,35 @@ it('テストの説明', async () => {
         prompt: 'React Testing Library はどのような視点でテストを書くライブラリですか？',
         answer: 'ユーザーが操作する視点',
         hint: 'RTL は「ユーザーが見る・操作できる要素」を通じてテストします。実装詳細は避けます。',
+        explanation: 'ユーザー視点でテストを書くことで、内部実装を変えてもテストが壊れにくくなります。リファクタリングへの安心感が増します。',
       },
       {
         id: 'testing-q2',
         prompt: '要素が存在しないことを確認したいとき使うべきメソッドは queryByText と getByText のどちらですか？',
         answer: 'queryByText',
         hint: 'getByText は見つからないとエラーをthrow します。存在確認（null チェック）には queryByText を使います。',
+        explanation: 'queryByTextは要素が見つからないときnullを返すため、「要素が存在しないこと」をexpect(element).toBeNull()で検証できます。',
       },
       {
         id: 'testing-q3',
         prompt: 'userEvent でクリックするとき await が必要な理由は何ですか？',
         answer: 'userEvent の操作は非同期（Promise）で、await なしだと処理完了前にアサーションが実行されるから',
         hint: 'await を付けないとクリック処理が終わる前に expect() が実行され、テストが不安定になります。',
+        explanation: 'userEvent.clickはPromiseを返す非同期関数です。awaitなしだと操作完了前にアサーションが実行され、テストが失敗します。',
       },
       {
         id: 'testing-q4',
         prompt: 'テストの AAA パターンとは何の略ですか？',
         answer: 'Arrange（準備）・Act（操作）・Assert（検証）',
         hint: 'テストを3段階に整理するパターンです。準備→操作→検証の順で書くと読みやすくなります。',
+        explanation: 'Arrange（準備）でコンポーネントをrenderし、Act（操作）でクリックや入力を行い、Assert（検証）で結果をexpectで確認します。',
       },
       {
         id: 'testing-q5',
         prompt: 'vi.fn() で作成したモック関数が特定の引数で呼ばれたことを検証するアサーションは何ですか？',
         answer: 'toHaveBeenCalledWith(args)',
         hint: 'expect(mockFn).toHaveBeenCalledWith(引数) で呼び出し時の引数を検証できます。',
+        explanation: 'vi.fn()で作ったモック関数はtoHaveBeenCalledWithで引数を検証できます。プロップに渡した関数が正しく呼ばれたかを確認できます。',
       },
     ],
     testTask: {
@@ -931,6 +954,7 @@ describe('Counter', () => {
   });
 });`,
       expectedKeywords: ['getByText', 'getByRole', 'toBeInTheDocument', 'user.click'],
+      explanation: 'render→操作→検証の流れでテストを書きます。getByRoleでボタンを取得しuser.clickで操作、toBeInTheDocumentで結果を確認します。',
     },
     challengeTask: {
       patterns: [

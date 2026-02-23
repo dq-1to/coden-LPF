@@ -144,8 +144,13 @@ export function DashboardSidebar() {
         </p>
         <h3 className="font-bold">ボーナス問題を解く</h3>
         <p className="mt-1 text-sm text-indigo-100">React Hooks クイズに正解して +50pt を獲得しましょう。</p>
-        <button className="mt-4 w-full rounded-lg bg-white py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-50" type="button">
-          チャレンジ開始
+        <button
+          className="mt-4 w-full cursor-not-allowed rounded-lg bg-white/50 py-2 text-sm font-semibold text-indigo-400"
+          type="button"
+          disabled
+          aria-disabled="true"
+        >
+          準備中
         </button>
       </section>
     </aside>

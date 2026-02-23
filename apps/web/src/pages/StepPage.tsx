@@ -140,7 +140,7 @@ export function StepPage() {
               />
             ) : null}
             {activeMode === 'practice' ? (
-              <PracticeMode questions={step.practiceQuestions} onComplete={() => void handleModeComplete('practice')} />
+              <PracticeMode stepId={step.id} questions={step.practiceQuestions} onComplete={() => void handleModeComplete('practice')} />
             ) : null}
             {activeMode === 'test' ? (
               <TestMode stepId={step.id} task={step.testTask} onComplete={() => void handleModeComplete('test')} />
