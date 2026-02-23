@@ -82,6 +82,16 @@ export async function updateModeCompletion(userId: string, stepId: string, mode:
   await upsertProgress(userId, stepId, patch)
 }
 
+/** 4モード（read / practice / test / challenge）すべて完了しているか判定する純粋関数 */
+export function isStepCompleted(progress: {
+  read_done: boolean
+  practice_done: boolean
+  test_done: boolean
+  challenge_done: boolean
+}): boolean {
+  return progress.read_done && progress.practice_done && progress.test_done && progress.challenge_done
+}
+
 export async function getCompletedStepCount(userId: string) {
   const { data, error } = await supabase
     .from('step_progress')
