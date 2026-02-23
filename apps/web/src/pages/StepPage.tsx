@@ -14,6 +14,7 @@ import { ReadMode } from '../features/learning/ReadMode'
 import { TestMode } from '../features/learning/TestMode'
 import { awardPoints } from '../services/pointService'
 import { getStepProgress, updateModeCompletion, upsertProgress } from '../services/progressService'
+import { recordStudyActivity } from '../services/statsService'
 
 type ModeStatus = Record<LearningMode, boolean>
 
@@ -176,6 +177,9 @@ export function StepPage() {
         return
       }
 
+      // 全モード完了前かどうかを記録（ストリーク更新の判定に使う）
+      const wasStepCompleted = modeStatus.read && modeStatus.practice && modeStatus.test && modeStatus.challenge
+
       setModeStatus((prev) => ({ ...prev, [mode]: true }))
       setSyncMessage(null)
 
@@ -188,6 +192,16 @@ export function StepPage() {
 
         const latestProgress = await getStepProgress(user.id, step.id)
         setModeStatus(toModeStatus(latestProgress))
+
+        // ストリーク更新: ステップが今回初めて全モード完了になった場合のみ実施
+        const isNowStepCompleted =
+          latestProgress?.read_done &&
+          latestProgress?.practice_done &&
+          latestProgress?.test_done &&
+          latestProgress?.challenge_done
+        if (isNowStepCompleted && !wasStepCompleted) {
+          await recordStudyActivity(user.id)
+        }
 
         const reason = `「${step.title}」の${mode}モード完了`
         await awardPoints(user.id, 10, reason)
