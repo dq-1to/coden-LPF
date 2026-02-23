@@ -62,14 +62,23 @@ describe('checkAndUnlockAchievements', () => {
     mockGetLearningStats.mockResolvedValue(defaultStats)
   })
 
-  it('isImplemented: false のコース（course-3）の完了バッジは付与されない', async () => {
-    // course-3 の step_id（すべて isImplemented: false）を全モード完了扱いにする
+  it('コースの一部ステップのみ完了してもコース完了バッジは付与されない', async () => {
+    // course-3 の 4 ステップのうち 2 ステップのみ完了（course-3-complete は付与されない）
+    const partialStepIds = ['performance', 'testing']
+    mockGetAllStepProgress.mockResolvedValue(partialStepIds.map(makeCompletedProgress))
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).not.toContain('course-3-complete')
+  })
+
+  it('course-3 の全ステップ完了で course-3-complete バッジが付与される', async () => {
     const course3StepIds = ['custom-hooks', 'api-fetch', 'performance', 'testing']
     mockGetAllStepProgress.mockResolvedValue(course3StepIds.map(makeCompletedProgress))
 
     const unlocked = await checkAndUnlockAchievements('test-user')
 
-    expect(unlocked).not.toContain('course-3-complete')
+    expect(unlocked).toContain('course-3-complete')
   })
 
   it('isImplemented: true のコース（course-1）が全完了したら course-1-complete バッジが付与される', async () => {
