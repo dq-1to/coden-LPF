@@ -536,6 +536,451 @@ export function PostList() {
       ],
     },
   },
+  {
+    id: 'performance',
+    order: 11,
+    title: 'パフォーマンス最適化',
+    summary: 'useMemo と useCallback を使い、不要な再レンダリングを防いでアプリを高速化する方法を学ぶ。',
+    readMarkdown: `# パフォーマンス最適化：useMemo と useCallback
+
+## なぜ最適化が必要か
+
+Reactはステートが変わるたびにコンポーネントを再レンダリングします。ほとんどの場合これは問題ありませんが、**重い計算**や**子コンポーネントへの関数渡し**が絡む場合、不要な処理が繰り返されてパフォーマンスが低下します。
+
+## useMemo — 計算結果をキャッシュする
+
+\`useMemo\` は「前回と同じ依存値なら再計算しない」ためのフックです。
+
+\`\`\`tsx
+import { useState, useMemo } from 'react';
+
+function FilteredList({ items }: { items: string[] }) {
+  const [query, setQuery] = useState('');
+  const [count, setCount] = useState(0);
+
+  // queryが変わったときだけ再計算される
+  const filtered = useMemo(
+    () => items.filter(item => item.includes(query)),
+    [items, query]
+  );
+
+  return (
+    <div>
+      <input value={query} onChange={e => setQuery(e.target.value)} />
+      <button onClick={() => setCount(c => c + 1)}>カウント: {count}</button>
+      <ul>
+        {filtered.map(item => <li key={item}>{item}</li>)}
+      </ul>
+    </div>
+  );
+}
+\`\`\`
+
+ポイント: \`count\` が変わっても \`query\` が変わっていなければ \`filtered\` は再計算されません。
+
+## useCallback — 関数をキャッシュする
+
+\`useCallback\` は「前回と同じ依存値なら同一の関数参照を返す」フックです。主に**子コンポーネントへの関数プロップ**と組み合わせます。
+
+\`\`\`tsx
+import { useState, useCallback, memo } from 'react';
+
+// memo でラップすると、プロップが変わらない限り再レンダリングしない
+const Button = memo(({ onClick, label }: { onClick: () => void; label: string }) => {
+  console.log(\`\${label} ボタンを描画\`);
+  return <button onClick={onClick}>{label}</button>;
+});
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  const [theme, setTheme] = useState('light');
+
+  // useCallbackなしだと再レンダリングのたびに新しい関数が生成される
+  const handleIncrement = useCallback(() => {
+    setCount(c => c + 1);
+  }, []); // 依存なし → 常に同じ関数参照
+
+  return (
+    <div>
+      <p>カウント: {count}</p>
+      <Button onClick={handleIncrement} label="増やす" />
+      <button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}>
+        テーマ: {theme}
+      </button>
+    </div>
+  );
+}
+\`\`\`
+
+\`theme\` が変わっても \`handleIncrement\` の参照が変わらないため、\`Button\` は再レンダリングされません。
+
+## いつ使うべきか
+
+| 状況 | 推奨 |
+|------|------|
+| 重い計算（フィルタ・ソート・集計） | useMemo |
+| memo でラップした子コンポーネントへの関数渡し | useCallback |
+| useEffect の依存配列に関数を入れる | useCallback |
+| 単純な値や軽い計算 | 不要（過剰最適化になる） |
+
+## 注意点
+
+- **早期最適化は避ける**: まず動かし、プロファイラで問題を確認してから適用する
+- **依存配列を正確に書く**: 抜けがあると古い値を参照するバグになる
+- \`memo\` なしで \`useCallback\` を使っても効果は薄い（セットで使う）
+`,
+    practiceQuestions: [
+      {
+        id: 'performance-q1',
+        prompt: 'useMemo はどのような処理に使うフックですか？',
+        answer: '重い計算結果をキャッシュする',
+        hint: '「依存値が変わらなければ再計算しない」が useMemo の基本動作です。',
+      },
+      {
+        id: 'performance-q2',
+        prompt: 'useCallback を使うと何がキャッシュされますか？',
+        answer: '関数の参照（インスタンス）',
+        hint: '同じ関数参照を返すことで、memo でラップした子コンポーネントへの不要な再レンダリングを防げます。',
+      },
+      {
+        id: 'performance-q3',
+        prompt: 'memo(Button) でラップした Button が再レンダリングされる条件は何ですか？',
+        answer: 'プロップが前回と異なる参照・値になったとき',
+        hint: '`memo` は「プロップが変わらない限り再レンダリングしない」最適化です。',
+      },
+      {
+        id: 'performance-q4',
+        prompt: 'useMemo の依存配列を空配列にした場合、計算はいつ実行されますか？',
+        answer: '初回レンダリング時のみ',
+        hint: '依存する値がないため変化が発生せず、初回のみ実行されます。',
+      },
+      {
+        id: 'performance-q5',
+        prompt: 'useCallback と memo をセットで使わないと効果が薄い理由は何ですか？',
+        answer: '子コンポーネントが memo されていないと関数参照が安定しても再レンダリングが起きるから',
+        hint: 'useCallback は関数参照を安定させますが、受け取る子が memo されていないと効果がありません。',
+      },
+    ],
+    testTask: {
+      instruction: `\`FilteredList\` コンポーネントを完成させてください。
+
+仕様:
+- props として \`items: string[]\` を受け取る
+- テキスト入力で一覧をフィルタリングできる
+- フィルタ結果の計算には useMemo を使う
+- 「カウント」ボタンをクリックするとカウントが増える（フィルタとは無関係のステート）
+- カウントが増えてもフィルタ計算は再実行されない（useMemo の恩恵）`,
+      starterCode: `import { useState, useMemo } from 'react';
+
+interface FilteredListProps {
+  items: string[];
+}
+
+export function FilteredList({ items }: FilteredListProps) {
+  const [query, setQuery] = useState('');
+  const [count, setCount] = useState(0);
+
+  // TODO: useMemo でフィルタ計算をキャッシュする
+  const filtered = items; // ここを修正
+
+  return (
+    <div>
+      <input
+        placeholder="絞り込み..."
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+      />
+      <button onClick={() => setCount(c => c + 1)}>カウント: {count}</button>
+      <ul>
+        {filtered.map(item => <li key={item}>{item}</li>)}
+      </ul>
+    </div>
+  );
+}`,
+      expectedKeywords: ['useMemo', 'filter', 'query', 'items'],
+    },
+    challengeTask: {
+      patterns: [
+        {
+          id: 'performance-1',
+          prompt: 'useCallback と memo を使って子コンポーネントの不要な再レンダリングを防ぐ OptimizedCounter を実装してください。',
+          requirements: [
+            'memo でラップした ActionButton コンポーネントを作る（props は onClick: () => void, label: string）',
+            '親の OptimizedCounter では useCallback で increment/decrement 関数を作る',
+            'カウントの表示・増減・テーマ切り替え（light/dark）の機能を持つ',
+            'テーマを切り替えても ActionButton は再レンダリングされない',
+          ],
+          hints: [
+            'console.log を ActionButton 内に入れると再レンダリングを確認できる',
+            'useCallback の依存配列を正しく設定しないと古い値を参照するバグになる',
+            '関数内で setCount(c => c + 1) のように関数形式を使うと依存配列が空でも安全',
+          ],
+          expectedKeywords: ['useCallback', 'memo', 'setCount', 'setTheme'],
+          starterCode: `import { useState, useCallback, memo } from 'react';
+
+interface ActionButtonProps {
+  onClick: () => void;
+  label: string;
+}
+
+// TODO: memo でラップした ActionButton を実装する
+const ActionButton = ({ onClick, label }: ActionButtonProps) => {
+  return <button onClick={onClick}>{label}</button>;
+};
+
+export function OptimizedCounter() {
+  const [count, setCount] = useState(0);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  // TODO: useCallback で increment / decrement を実装する
+  const handleIncrement = () => setCount(c => c + 1);
+  const handleDecrement = () => setCount(c => c - 1);
+
+  return (
+    <div>
+      <p>カウント: {count}</p>
+      <ActionButton onClick={handleIncrement} label="増やす" />
+      <ActionButton onClick={handleDecrement} label="減らす" />
+      <button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}>
+        テーマ切り替え（{theme}）
+      </button>
+    </div>
+  );
+}`,
+        },
+      ],
+    },
+  },
+  {
+    id: 'testing',
+    order: 12,
+    title: 'テスト入門',
+    summary: 'React Testing Library を使ってコンポーネントの動作をテストし、安心してリファクタリングできる基盤を作る方法を学ぶ。',
+    readMarkdown: `# テスト入門：React Testing Library
+
+## なぜテストを書くのか
+
+テストを書く最大の目的は「**安心してコードを変えられる状態にする**」ことです。テストがあれば、リファクタリングや機能追加の際に意図しない壊れが即座に検知できます。
+
+## React Testing Library の基本方針
+
+React Testing Library（RTL）は「**ユーザーが操作する視点**でコンポーネントをテストする」ライブラリです。
+
+- ❌ 実装の詳細（state・class名）をテストしない
+- ✅ ユーザーが見える文字・ボタン・入力欄を通じてテストする
+
+## 基本的なテストの書き方
+
+\`\`\`tsx
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { Counter } from './Counter';
+
+describe('Counter', () => {
+  it('初期値0が表示される', () => {
+    render(<Counter />);
+    expect(screen.getByText('カウント: 0')).toBeInTheDocument();
+  });
+
+  it('+ボタンをクリックするとカウントが増える', async () => {
+    const user = userEvent.setup();
+    render(<Counter />);
+    await user.click(screen.getByRole('button', { name: '+' }));
+    expect(screen.getByText('カウント: 1')).toBeInTheDocument();
+  });
+});
+\`\`\`
+
+## 重要な概念
+
+### render と screen
+
+\`render\` はコンポーネントをJSDomに描画し、\`screen\` はそこから要素を検索します。
+
+\`\`\`tsx
+render(<MyComponent />);  // DOMに描画
+screen.getByText('テキスト');          // テキストで検索（見つからなければエラー）
+screen.queryByText('テキスト');        // 存在確認用（見つからなければnull）
+screen.getByRole('button', { name: '送信' }); // role + アクセシブルな名前で検索
+\`\`\`
+
+### userEvent — ユーザー操作のシミュレーション
+
+\`\`\`tsx
+const user = userEvent.setup();
+await user.click(button);           // クリック
+await user.type(input, 'Hello');    // 文字入力
+await user.clear(input);            // 入力クリア
+await user.selectOptions(select, 'option-value'); // セレクト
+\`\`\`
+
+### アサーション（jest-dom）
+
+\`\`\`tsx
+expect(element).toBeInTheDocument();   // DOMに存在する
+expect(element).toBeVisible();          // 表示されている
+expect(element).toBeDisabled();         // 無効化されている
+expect(element).toHaveValue('text');    // 値が一致する
+expect(element).toHaveTextContent('text'); // テキストが含まれる
+\`\`\`
+
+## モックの活用
+
+外部APIやサービスはモックで置き換えてテストします。
+
+\`\`\`tsx
+import { vi } from 'vitest';
+
+// 関数のモック
+const mockOnSave = vi.fn();
+render(<Form onSave={mockOnSave} />);
+// フォーム送信後
+expect(mockOnSave).toHaveBeenCalledWith({ name: 'テスト太郎' });
+\`\`\`
+
+## テストの構造（AAA パターン）
+
+\`\`\`tsx
+it('テストの説明', async () => {
+  // Arrange（準備）
+  const user = userEvent.setup();
+  render(<LoginForm />);
+
+  // Act（操作）
+  await user.type(screen.getByLabelText('メール'), 'test@example.com');
+  await user.click(screen.getByRole('button', { name: 'ログイン' }));
+
+  // Assert（検証）
+  expect(screen.getByText('ログイン成功')).toBeInTheDocument();
+});
+\`\`\`
+
+## よくあるミス
+
+| ミス | 修正 |
+|------|------|
+| \`getByText\` で部分一致が通らない | \`{ exact: false }\` オプションを使う |
+| \`user.click\` の前に \`await\` を忘れる | 必ず \`await\` を付ける |
+| 実装詳細（class名、state値）をテスト | ユーザー視点の要素（テキスト・role）でテスト |
+| 非同期更新を待たずにアサートする | \`waitFor\` や \`findBy*\` を使う |
+`,
+    practiceQuestions: [
+      {
+        id: 'testing-q1',
+        prompt: 'React Testing Library はどのような視点でテストを書くライブラリですか？',
+        answer: 'ユーザーが操作する視点',
+        hint: 'RTL は「ユーザーが見る・操作できる要素」を通じてテストします。実装詳細は避けます。',
+      },
+      {
+        id: 'testing-q2',
+        prompt: '要素が存在しないことを確認したいとき使うべきメソッドは queryByText と getByText のどちらですか？',
+        answer: 'queryByText',
+        hint: 'getByText は見つからないとエラーをthrow します。存在確認（null チェック）には queryByText を使います。',
+      },
+      {
+        id: 'testing-q3',
+        prompt: 'userEvent でクリックするとき await が必要な理由は何ですか？',
+        answer: 'userEvent の操作は非同期（Promise）で、await なしだと処理完了前にアサーションが実行されるから',
+        hint: 'await を付けないとクリック処理が終わる前に expect() が実行され、テストが不安定になります。',
+      },
+      {
+        id: 'testing-q4',
+        prompt: 'テストの AAA パターンとは何の略ですか？',
+        answer: 'Arrange（準備）・Act（操作）・Assert（検証）',
+        hint: 'テストを3段階に整理するパターンです。準備→操作→検証の順で書くと読みやすくなります。',
+      },
+      {
+        id: 'testing-q5',
+        prompt: 'vi.fn() で作成したモック関数が特定の引数で呼ばれたことを検証するアサーションは何ですか？',
+        answer: 'toHaveBeenCalledWith(args)',
+        hint: 'expect(mockFn).toHaveBeenCalledWith(引数) で呼び出し時の引数を検証できます。',
+      },
+    ],
+    testTask: {
+      instruction: `\`Counter\` コンポーネントに対するテストを完成させてください。
+
+テスト対象コンポーネント（Counter.tsx）の仕様:
+- カウント: {count} を表示する <p> タグ
+- クリックで +1 する "+" ボタン
+- クリックで -1 する "-" ボタン
+
+実装すべきテストケース:
+1. 初期値「カウント: 0」が表示されること
+2. +ボタンをクリックすると「カウント: 1」になること
+3. -ボタンをクリックすると「カウント: -1」になること`,
+      starterCode: `import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { Counter } from './Counter';
+
+describe('Counter', () => {
+  it('初期値0が表示される', () => {
+    render(<Counter />);
+    // TODO: 「カウント: 0」というテキストがDOMにあることを検証する
+  });
+
+  it('+ボタンをクリックするとカウントが増える', async () => {
+    const user = userEvent.setup();
+    render(<Counter />);
+    // TODO: +ボタンをクリックして「カウント: 1」になることを検証する
+  });
+
+  it('-ボタンをクリックするとカウントが減る', async () => {
+    const user = userEvent.setup();
+    render(<Counter />);
+    // TODO: -ボタンをクリックして「カウント: -1」になることを検証する
+  });
+});`,
+      expectedKeywords: ['getByText', 'getByRole', 'toBeInTheDocument', 'user.click'],
+    },
+    challengeTask: {
+      patterns: [
+        {
+          id: 'testing-1',
+          prompt: 'バリデーション付きのログインフォームのテストを実装してください。',
+          requirements: [
+            '初期状態でエラーメッセージが表示されていないことを検証する',
+            '空欄のまま送信するとエラーメッセージが表示されることを検証する',
+            'メールを入力して送信すると onLogin がそのメールアドレスで呼ばれることを検証する',
+          ],
+          hints: [
+            'queryByText はテキストが存在しない場合に null を返す（否定検証に便利）',
+            'vi.fn() でモック関数を作り、toHaveBeenCalledWith で呼び出し引数を検証する',
+            'screen.getByLabelText でラベルに関連付けられた入力欄を取得できる',
+          ],
+          expectedKeywords: ['queryByText', 'vi.fn', 'toHaveBeenCalledWith', 'getByLabelText'],
+          starterCode: `import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
+import { LoginForm } from './LoginForm';
+
+// LoginForm の仕様:
+// - メール入力欄（label: "メールアドレス"）と送信ボタン
+// - メール未入力で送信すると「メールアドレスを入力してください」が表示される
+// - メール入力済みで送信すると onLogin(email) が呼ばれる
+
+describe('LoginForm', () => {
+  it('初期状態でエラーメッセージは表示されない', () => {
+    render(<LoginForm onLogin={vi.fn()} />);
+    // TODO: エラーメッセージが存在しないことを検証する
+  });
+
+  it('空欄のまま送信するとエラーメッセージが表示される', async () => {
+    const user = userEvent.setup();
+    render(<LoginForm onLogin={vi.fn()} />);
+    // TODO: 送信ボタンをクリックしてエラーが出ることを検証する
+  });
+
+  it('メールを入力して送信するとonLoginが呼ばれる', async () => {
+    const user = userEvent.setup();
+    const mockOnLogin = vi.fn();
+    render(<LoginForm onLogin={mockOnLogin} />);
+    // TODO: メールを入力して送信し、onLogin が正しく呼ばれることを検証する
+  });
+});`,
+        },
+      ],
+    },
+  },
 ]
 
 export function getAdvancedStep(stepId: string) {
