@@ -13,10 +13,10 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-8">
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2" aria-label="Coden ホームへ戻る">
             <img src="/coden_logo.png" alt="Coden Logo" className="h-10 w-10 object-contain" />
             <span className="font-display text-2xl font-bold tracking-tight text-primary-mint">Coden</span>
-          </div>
+          </Link>
 
           <nav className="hidden items-center gap-5 text-sm font-medium md:flex" aria-label="メインナビゲーション">
             <Link

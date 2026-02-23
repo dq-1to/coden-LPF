@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { PracticeQuestion } from '../../content/fundamentals/steps'
+import { addToReviewList, removeFromReviewList } from '../../lib/reviewList'
 
 interface PracticeModeProps {
+  stepId: string
   questions: PracticeQuestion[]
   onComplete: () => void
 }
@@ -10,11 +12,19 @@ function normalize(value: string) {
   return value.replace(/\s+/g, '').toLowerCase()
 }
 
-export function PracticeMode({ questions, onComplete }: PracticeModeProps) {
+export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [hints, setHints] = useState<Record<string, boolean>>({})
   const [isJudged, setIsJudged] = useState(false)
   const [reported, setReported] = useState(false)
+
+  // ステップ切り替え時に状態リセット
+  useEffect(() => {
+    setAnswers({})
+    setHints({})
+    setIsJudged(false)
+    setReported(false)
+  }, [stepId])
 
   const isAllCorrect = useMemo(
     () =>
@@ -27,9 +37,14 @@ export function PracticeMode({ questions, onComplete }: PracticeModeProps) {
 
   function handleJudge() {
     setIsJudged(true)
-    if (isAllCorrect && !reported) {
-      onComplete()
-      setReported(true)
+    if (isAllCorrect) {
+      removeFromReviewList(stepId)
+      if (!reported) {
+        onComplete()
+        setReported(true)
+      }
+    } else {
+      addToReviewList(stepId)
     }
   }
 
@@ -47,6 +62,7 @@ export function PracticeMode({ questions, onComplete }: PracticeModeProps) {
       {questions.map((question, index) => {
         const answer = answers[question.id] ?? ''
         const isCorrect = answer.length > 0 && normalize(answer) === normalize(question.answer)
+        const showExplanation = isJudged && !isCorrect && question.explanation
 
         return (
           <article key={question.id} className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -69,6 +85,12 @@ export function PracticeMode({ questions, onComplete }: PracticeModeProps) {
               <p className={`text-sm font-medium ${isCorrect ? 'text-emerald-700' : 'text-rose-700'}`}>
                 {isCorrect ? '✅ 正解です。' : '❌ 不正解です。もう一度試してください。'}
               </p>
+            ) : null}
+            {showExplanation ? (
+              <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2">
+                <p className="text-xs font-semibold text-amber-700">解説</p>
+                <p className="mt-0.5 text-sm text-amber-900">{question.explanation}</p>
+              </div>
             ) : null}
             <button
               className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
