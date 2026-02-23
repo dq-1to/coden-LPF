@@ -897,6 +897,946 @@ export function TaskManager() {
       ],
     },
   },
+
+  // ─────────────────────────────────────────
+  // Step 17: api-tasks-update
+  // ─────────────────────────────────────────
+  {
+    id: 'api-tasks-update',
+    order: 17,
+    title: 'タスク更新 (PATCH)',
+    summary: '完了状態の切り替えなど、既存データの部分更新処理を実装します。',
+    readMarkdown: `# タスク更新 (PATCH)：部分更新の実装
+
+## PATCH と PUT の違い
+
+| メソッド | 用途 | ボディ |
+|---------|------|--------|
+| PUT | リソース全体を置き換える | 全フィールドを含む |
+| PATCH | 一部のフィールドだけ更新する | 変更するフィールドのみ |
+
+タスクの「完了/未完了」を切り替えるだけなら、PATCH で \`completed\` フィールドだけ送るのが適切です。
+
+\`\`\`ts
+// PATCH: completed フィールドだけ更新
+const response = await fetch(\`http://localhost:3001/tasks/\${id}\`, {
+  method: 'PATCH',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ completed: true }),
+})
+const updated = await response.json()
+\`\`\`
+
+## チェックボックスでタスクの完了状態を切り替える
+
+\`\`\`tsx
+async function handleToggle(task: Task) {
+  const res = await fetch(\`http://localhost:3001/tasks/\${task.id}\`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ completed: !task.completed }),
+  })
+  const updated: Task = await res.json()
+
+  // 該当タスクだけ置き換えてリストを更新
+  setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
+}
+\`\`\`
+
+## 楽観的更新（Optimistic Update）
+
+API レスポンスを待たずに UI を先に更新し、失敗時にロールバックする手法です。
+
+\`\`\`tsx
+async function handleToggle(task: Task) {
+  // 先に UI を更新（楽観的）
+  setTasks((prev) =>
+    prev.map((t) => (t.id === task.id ? { ...t, completed: !t.completed } : t))
+  )
+
+  try {
+    await fetch(\`http://localhost:3001/tasks/\${task.id}\`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed: !task.completed }),
+    })
+  } catch {
+    // 失敗したら元に戻す（ロールバック）
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, completed: task.completed } : t))
+    )
+  }
+}
+\`\`\`
+
+## まとめ
+
+| パターン | 特徴 |
+|---------|------|
+| 通常更新 | API 完了後に UI を更新。確実だが遅く感じる |
+| 楽観的更新 | UI を先に更新。高速に感じるが失敗時のロールバックが必要 |
+`,
+    practiceQuestions: [
+      {
+        id: 'q1',
+        prompt: 'リソースの一部フィールドだけを更新するために使う HTTP メソッドはどれですか？',
+        answer: 'PATCH',
+        hint: 'PUT は全体を置き換えますが、___ は一部だけ更新します。',
+      },
+      {
+        id: 'q2',
+        prompt: 'fetch で PATCH リクエストを送るとき、headers に設定する Content-Type の値は何ですか？（完全な文字列で答えてください）',
+        answer: 'application/json',
+        hint: 'JSON 形式でデータを送るときの MIME タイプです。',
+      },
+      {
+        id: 'q3',
+        prompt: 'PATCH でタスクの completed を更新した後、リスト state を更新するには配列の何メソッドを使うのが適切ですか？',
+        answer: 'map',
+        hint: '各要素を変換して新しい配列を返すメソッドです。ID が一致する要素だけ書き換えます。',
+      },
+      {
+        id: 'q4',
+        prompt: 'API レスポンスを待たずに先に UI を更新し、失敗時に元に戻す手法を何と呼びますか？（カタカナ）',
+        answer: '楽観的更新',
+        hint: '「Optimistic Update」の日本語訳です。',
+      },
+      {
+        id: 'q5',
+        prompt: 'fetch で URL にタスク ID を埋め込む場合、テンプレートリテラルで書くとどうなりますか？（task.id を使って）',
+        answer: '`http://localhost:3001/tasks/${task.id}`',
+        hint: 'バッククォートで囲み、${ } でJSの値を埋め込みます。',
+      },
+    ],
+    testTask: {
+      instruction: `チェックボックスでタスクの完了状態を切り替えるコンポーネントを実装してください。
+
+要件:
+- マウント時に GET /tasks でタスク一覧を取得する
+- 各タスクにチェックボックスを表示し、クリックで completed を反転させる
+- チェックボックスのクリックで PATCH /tasks/:id を呼び出す
+- API レスポンスで該当タスクの状態を更新する`,
+      starterCode: `import { useEffect, useState } from 'react';
+
+interface Task {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
+export function TaskList() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    // TODO: GET /tasks でタスク一覧を取得してください
+  }, []);
+
+  async function handleToggle(task: Task) {
+    // TODO: PATCH /tasks/:id で completed を反転してください
+    // レスポンスで該当タスクを更新してください
+  }
+
+  return (
+    <ul>
+      {tasks.map((task) => (
+        <li key={task.id}>
+          <input
+            type="checkbox"
+            checked={task.completed}
+            onChange={() => void handleToggle(task)}
+          />
+          {task.title}
+        </li>
+      ))}
+    </ul>
+  );
+}`,
+      expectedKeywords: ['PATCH', 'fetch', 'setTasks', 'map', 'completed', 'handleToggle'],
+    },
+    challengeTask: {
+      patterns: [
+        {
+          id: 'c1',
+          prompt: '楽観的更新でタスクの完了状態を切り替える TaskList を実装してください。',
+          requirements: [
+            'マウント時に GET /tasks でタスク一覧を取得する',
+            'チェックボックスのクリックで UI を先に更新する（楽観的更新）',
+            'PATCH /tasks/:id を呼び出し、失敗時は元の状態に戻す',
+            'ローディング中はチェックボックスを disabled にする',
+          ],
+          hints: [
+            '楽観的更新: setTasks で先に completed を反転させてから fetch を呼ぶ',
+            'ロールバック: catch ブロックで元の task.completed に戻す',
+            '更新中のタスク ID を Set で管理すると disabled 制御がしやすい',
+          ],
+          expectedKeywords: ['PATCH', 'setTasks', 'map', 'try', 'catch', 'disabled'],
+          starterCode: `import { useEffect, useState } from 'react';
+
+interface Task {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
+export function TaskList() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    // TODO: タスク一覧を取得してください
+  }, []);
+
+  async function handleToggle(task: Task) {
+    // TODO: 楽観的更新を実装してください
+    // 1. updatingIds に task.id を追加
+    // 2. setTasks で completed を先に反転
+    // 3. PATCH を呼び出す
+    // 4. 失敗時はロールバック
+    // 5. finally で updatingIds から task.id を除去
+  }
+
+  return (
+    <ul>
+      {tasks.map((task) => (
+        <li key={task.id}>
+          <input
+            type="checkbox"
+            checked={task.completed}
+            disabled={updatingIds.has(task.id)}
+            onChange={() => void handleToggle(task)}
+          />
+          {task.title}
+        </li>
+      ))}
+    </ul>
+  );
+}`,
+        },
+      ],
+    },
+  },
+
+  // ─────────────────────────────────────────
+  // Step 18: api-tasks-delete
+  // ─────────────────────────────────────────
+  {
+    id: 'api-tasks-delete',
+    order: 18,
+    title: 'タスク削除 (DELETE)',
+    summary: 'APIで削除処理を行い、リストから即時除去するUIを実装します。',
+    readMarkdown: `# タスク削除 (DELETE)：削除処理の実装
+
+## DELETE リクエストの基本
+
+DELETE は指定したリソースを削除するメソッドです。通常、リクエストボディは不要で URL に ID を含めます。
+
+\`\`\`ts
+const response = await fetch(\`http://localhost:3001/tasks/\${id}\`, {
+  method: 'DELETE',
+})
+// 成功時: 200 OK（json-server は削除されたオブジェクトを返す）
+\`\`\`
+
+## 削除後にリストから除去する
+
+API で削除成功後、\`filter\` で該当タスクを配列から取り除きます。
+
+\`\`\`tsx
+async function handleDelete(id: string) {
+  await fetch(\`http://localhost:3001/tasks/\${id}\`, {
+    method: 'DELETE',
+  })
+
+  // 削除したタスクを除外して state を更新
+  setTasks((prev) => prev.filter((t) => t.id !== id))
+}
+\`\`\`
+
+## 削除中の二重クリックを防ぐ
+
+削除ボタンを連打されないよう、削除中は無効化します。
+
+\`\`\`tsx
+const [deletingId, setDeletingId] = useState<string | null>(null)
+
+async function handleDelete(id: string) {
+  if (deletingId) return
+  setDeletingId(id)
+  try {
+    await fetch(\`http://localhost:3001/tasks/\${id}\`, { method: 'DELETE' })
+    setTasks((prev) => prev.filter((t) => t.id !== id))
+  } finally {
+    setDeletingId(null)
+  }
+}
+
+// ボタン側
+<button
+  onClick={() => void handleDelete(task.id)}
+  disabled={deletingId === task.id}
+>
+  {deletingId === task.id ? '削除中...' : '削除'}
+</button>
+\`\`\`
+
+## まとめ
+
+| 操作 | コード |
+|------|--------|
+| 削除リクエスト | \`fetch(url, { method: 'DELETE' })\` |
+| リストから除去 | \`setTasks(prev => prev.filter(t => t.id !== id))\` |
+| 二重クリック防止 | \`deletingId\` state でボタンを \`disabled\` に |
+`,
+    practiceQuestions: [
+      {
+        id: 'q1',
+        prompt: 'リソースを削除するための HTTP メソッドは何ですか？',
+        answer: 'DELETE',
+        hint: '「削除する」を英語にするとそのままメソッド名になります。',
+      },
+      {
+        id: 'q2',
+        prompt: 'DELETE リクエストでは URL にどのような情報を含めますか？',
+        answer: 'ID',
+        hint: 'どのリソースを削除するかを URL で指定します。`/tasks/___` の形です。',
+      },
+      {
+        id: 'q3',
+        prompt: '削除成功後に特定 ID のタスクをリストから除去するには、配列の何メソッドを使いますか？',
+        answer: 'filter',
+        hint: '条件に一致しない要素を取り除いて新しい配列を返すメソッドです。',
+      },
+      {
+        id: 'q4',
+        prompt: '削除処理中のボタンを無効化するため、処理中のタスク ID を保持する state の型は何が適切ですか？（TypeScript で）',
+        answer: 'string | null',
+        hint: '削除中のタスク ID（string）か、処理なし（null）のどちらかです。',
+      },
+      {
+        id: 'q5',
+        prompt: '削除完了・失敗どちらの場合でも `deletingId` を null に戻すには、try-catch の何ブロックに書きますか？',
+        answer: 'finally',
+        hint: '成功でも失敗でも必ず実行されるブロックです。',
+      },
+    ],
+    testTask: {
+      instruction: `削除ボタンでタスクをリストから除去するコンポーネントを実装してください。
+
+要件:
+- マウント時に GET /tasks でタスク一覧を取得する
+- 各タスクに「削除」ボタンを表示する
+- ボタンのクリックで DELETE /tasks/:id を呼び出す
+- 削除成功後にリストから該当タスクを除去する
+- 削除中はボタンを disabled にする`,
+      starterCode: `import { useEffect, useState } from 'react';
+
+interface Task {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
+export function TaskList() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // TODO: GET /tasks でタスク一覧を取得してください
+  }, []);
+
+  async function handleDelete(id: string) {
+    // TODO: DELETE /tasks/:id を呼び出してリストから除去してください
+    // deletingId を使って二重クリックを防いでください
+  }
+
+  return (
+    <ul>
+      {tasks.map((task) => (
+        <li key={task.id}>
+          {task.title}
+          <button
+            onClick={() => void handleDelete(task.id)}
+            disabled={deletingId === task.id}
+          >
+            {deletingId === task.id ? '削除中...' : '削除'}
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}`,
+      expectedKeywords: ['DELETE', 'fetch', 'filter', 'setTasks', 'setDeletingId', 'disabled'],
+    },
+    challengeTask: {
+      patterns: [
+        {
+          id: 'c1',
+          prompt: '確認ダイアログ付きでタスクを削除する TaskList を実装してください。',
+          requirements: [
+            'マウント時に GET /tasks でタスク一覧を取得する',
+            '削除ボタンをクリックしたら window.confirm でユーザーに確認する',
+            'OK なら DELETE /tasks/:id を呼び出してリストから除去する',
+            'キャンセルなら何もしない',
+            '削除中はボタンを disabled にして「削除中...」と表示する',
+          ],
+          hints: [
+            'window.confirm はユーザーが OK を押すと true を返します',
+            'deletingId が null でない場合は処理をスキップする',
+            'finally ブロックで deletingId を null に戻すのを忘れずに',
+          ],
+          expectedKeywords: ['DELETE', 'confirm', 'filter', 'setTasks', 'setDeletingId', 'finally'],
+          starterCode: `import { useEffect, useState } from 'react';
+
+interface Task {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
+export function TaskList() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // TODO: タスク一覧を取得してください
+  }, []);
+
+  async function handleDelete(task: Task) {
+    // TODO: window.confirm で確認してから DELETE を呼び出してください
+  }
+
+  return (
+    <ul>
+      {tasks.map((task) => (
+        <li key={task.id}>
+          {task.title}
+          <button
+            onClick={() => void handleDelete(task)}
+            disabled={deletingId === task.id}
+          >
+            {deletingId === task.id ? '削除中...' : '削除'}
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}`,
+        },
+      ],
+    },
+  },
+
+  // ─────────────────────────────────────────
+  // Step 19: api-custom-hook
+  // ─────────────────────────────────────────
+  {
+    id: 'api-custom-hook',
+    order: 19,
+    title: 'useTasksフック',
+    summary: 'API操作をカスタムフックに集約し、コンポーネントをシンプルに保ちます。',
+    readMarkdown: `# useTasksフック：API操作のカスタムフック化
+
+## カスタムフックとは？
+
+**カスタムフック**は、React の hooks（useState / useEffect など）を組み合わせたロジックを再利用可能な関数として切り出す仕組みです。名前は必ず \`use\` で始めます。
+
+## なぜカスタムフックに分けるのか？
+
+コンポーネントにロジックが増えると、「表示」と「データ処理」が混在して読みにくくなります。
+
+\`\`\`tsx
+// ❌ ロジックとUIが混在したコンポーネント（200行超え）
+export function TaskPage() {
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  // fetchTasks, createTask, updateTask, deleteTask ... 100行のロジック
+
+  return <div>...</div>  // UIが埋もれている
+}
+
+// ✅ カスタムフックに分離
+export function TaskPage() {
+  const { tasks, loading, error, createTask, toggleTask, deleteTask } = useTasks()
+
+  return <div>...</div>  // UIに集中できる
+}
+\`\`\`
+
+## useTasks の実装
+
+\`\`\`ts
+import { useCallback, useEffect, useState } from 'react'
+
+interface Task {
+  id: string
+  title: string
+  completed: boolean
+}
+
+export function useTasks() {
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchTasks = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('http://localhost:3001/tasks')
+      if (!res.ok) throw new Error(\`HTTP \${res.status}\`)
+      const data: Task[] = await res.json()
+      setTasks(data)
+    } catch {
+      setError('タスクの取得に失敗しました')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void fetchTasks()
+  }, [fetchTasks])
+
+  const createTask = useCallback(async (title: string) => {
+    const res = await fetch('http://localhost:3001/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, completed: false }),
+    })
+    const newTask: Task = await res.json()
+    setTasks((prev) => [...prev, newTask])
+  }, [])
+
+  const toggleTask = useCallback(async (task: Task) => {
+    const res = await fetch(\`http://localhost:3001/tasks/\${task.id}\`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed: !task.completed }),
+    })
+    const updated: Task = await res.json()
+    setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
+  }, [])
+
+  const deleteTask = useCallback(async (id: string) => {
+    await fetch(\`http://localhost:3001/tasks/\${id}\`, { method: 'DELETE' })
+    setTasks((prev) => prev.filter((t) => t.id !== id))
+  }, [])
+
+  return { tasks, loading, error, createTask, toggleTask, deleteTask, refetch: fetchTasks }
+}
+\`\`\`
+
+## useCallback を使う理由
+
+\`useEffect\` の依存配列に関数を入れるとき、毎レンダーで新しい関数が作られると無限ループになります。\`useCallback\` でメモ化することで、この問題を防げます。
+
+## まとめ
+
+| 原則 | 説明 |
+|------|------|
+| 名前は use で始める | React の hooks ルールを守るため |
+| ロジックをフックに集約 | コンポーネントは UI に集中できる |
+| useCallback でメモ化 | useEffect との依存関係を安全に管理 |
+`,
+    practiceQuestions: [
+      {
+        id: 'q1',
+        prompt: 'カスタムフックの関数名は必ず何で始める必要がありますか？',
+        answer: 'use',
+        hint: 'React の linting ルール（eslint-plugin-react-hooks）も this naming convention を強制します。',
+      },
+      {
+        id: 'q2',
+        prompt: 'useEffect の依存配列に関数を渡すとき、毎レンダーで新しい関数が生成されるのを防ぐために使う hooks は何ですか？',
+        answer: 'useCallback',
+        hint: '関数をメモ化する hooks です。依存配列が変わらない限り同じ関数参照を返します。',
+      },
+      {
+        id: 'q3',
+        prompt: 'useTasks フックが return すべき値を3つ挙げてください。（例: tasks, loading, ___）',
+        answer: 'error',
+        hint: 'loading/error/data の3状態管理パターンです。',
+      },
+      {
+        id: 'q4',
+        prompt: 'カスタムフックにロジックを分離する最大のメリットは何ですか？（日本語で）',
+        answer: '再利用できる',
+        hint: '同じロジックを複数のコンポーネントで使えます。また「テストしやすい」「読みやすい」も正解です。',
+      },
+      {
+        id: 'q5',
+        prompt: 'useCallback の第2引数（依存配列）が空配列 [] の場合、関数はいつ再生成されますか？',
+        answer: '再生成されない',
+        hint: '依存が変わらないため、コンポーネントが何度再レンダーされても同じ関数参照を維持します。',
+      },
+    ],
+    testTask: {
+      instruction: `useTasks フックを使ってタスク一覧を表示するコンポーネントを実装してください。
+
+useTasks フックは既に実装されており、以下を返します:
+- tasks: Task[] — タスク一覧
+- loading: boolean — ローディング中か
+- error: string | null — エラーメッセージ
+- createTask: (title: string) => Promise<void>
+- toggleTask: (task: Task) => Promise<void>
+- deleteTask: (id: string) => Promise<void>
+
+要件:
+- useTasks フックを呼び出してタスク一覧を取得する
+- ローディング中は「読み込み中...」を表示する
+- エラー時は「エラー: {error}」を表示する
+- タスク一覧を表示する（title と completed チェックボックス）`,
+      starterCode: `import { useTasks } from './useTasks';
+
+interface Task {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
+export function TaskPage() {
+  // TODO: useTasks フックを呼び出してください
+  const { tasks, loading, error } = { tasks: [], loading: false, error: null };
+
+  if (loading) return <p>読み込み中...</p>;
+  if (error) return <p>エラー: {error}</p>;
+
+  return (
+    <ul>
+      {tasks.map((task: Task) => (
+        <li key={task.id}>
+          {/* TODO: チェックボックスと task.title を表示してください */}
+        </li>
+      ))}
+    </ul>
+  );
+}`,
+      expectedKeywords: ['useTasks', 'tasks', 'loading', 'error', 'map', 'task.title'],
+    },
+    challengeTask: {
+      patterns: [
+        {
+          id: 'c1',
+          prompt: 'useTasks カスタムフックを実装してください。',
+          requirements: [
+            'マウント時に GET /tasks でタスク一覧を取得する',
+            'createTask(title): POST でタスクを追加し、リストに追加する',
+            'toggleTask(task): PATCH でタスクの completed を反転し、リストを更新する',
+            'deleteTask(id): DELETE でタスクを削除し、リストから除去する',
+            'loading / error / tasks の3状態を管理して return する',
+          ],
+          hints: [
+            'useCallback で各操作をメモ化すると useEffect の依存配列が安定します',
+            'fetchTasks を useCallback でメモ化して useEffect の deps に入れましょう',
+            'return 値: { tasks, loading, error, createTask, toggleTask, deleteTask }',
+          ],
+          expectedKeywords: ['useCallback', 'useEffect', 'useState', 'fetch', 'setTasks', 'return'],
+          starterCode: `import { useCallback, useEffect, useState } from 'react';
+
+interface Task {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
+export function useTasks() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // TODO: fetchTasks を useCallback で実装してください
+  const fetchTasks = useCallback(async () => {
+    // GET /tasks
+  }, []);
+
+  useEffect(() => {
+    void fetchTasks();
+  }, [fetchTasks]);
+
+  // TODO: createTask を useCallback で実装してください
+  const createTask = useCallback(async (title: string) => {
+    // POST /tasks
+  }, []);
+
+  // TODO: toggleTask を useCallback で実装してください
+  const toggleTask = useCallback(async (task: Task) => {
+    // PATCH /tasks/:id
+  }, []);
+
+  // TODO: deleteTask を useCallback で実装してください
+  const deleteTask = useCallback(async (id: string) => {
+    // DELETE /tasks/:id
+  }, []);
+
+  return { tasks, loading, error, createTask, toggleTask, deleteTask };
+}`,
+        },
+      ],
+    },
+  },
+
+  // ─────────────────────────────────────────
+  // Step 20: api-error-loading
+  // ─────────────────────────────────────────
+  {
+    id: 'api-error-loading',
+    order: 20,
+    title: 'エラー/ローディングUI',
+    summary: 'APIの通信状態に応じたUI表示を実装し、UXを向上させます。',
+    readMarkdown: `# エラー/ローディングUI：通信状態に応じた表示
+
+## 4つの通信状態
+
+API と通信するコンポーネントには4つの状態があります。
+
+| 状態 | 説明 | 表示例 |
+|------|------|--------|
+| \`idle\` | 未取得・待機中 | 何も表示しない |
+| \`loading\` | 通信中 | スピナー / 「読み込み中...」 |
+| \`success\` | 成功 | データを表示 |
+| \`error\` | 失敗 | エラーメッセージ + 再試行ボタン |
+
+## ApiState 型でまとめて管理する
+
+\`\`\`ts
+type ApiStatus = 'idle' | 'loading' | 'success' | 'error'
+
+interface ApiState<T> {
+  status: ApiStatus
+  data: T | null
+  error: string | null
+}
+
+// 初期値
+const initialState: ApiState<Task[]> = {
+  status: 'idle',
+  data: null,
+  error: null,
+}
+\`\`\`
+
+## useReducer で状態遷移を管理する
+
+複数の state を別々に持つと更新の順序が崩れることがあります。useReducer でまとめると安全です。
+
+\`\`\`ts
+type Action<T> =
+  | { type: 'FETCH_START' }
+  | { type: 'FETCH_SUCCESS'; payload: T }
+  | { type: 'FETCH_ERROR'; payload: string }
+
+function apiReducer<T>(state: ApiState<T>, action: Action<T>): ApiState<T> {
+  switch (action.type) {
+    case 'FETCH_START':
+      return { status: 'loading', data: state.data, error: null }
+    case 'FETCH_SUCCESS':
+      return { status: 'success', data: action.payload, error: null }
+    case 'FETCH_ERROR':
+      return { status: 'error', data: null, error: action.payload }
+  }
+}
+\`\`\`
+
+## UI コンポーネントで状態を表示する
+
+\`\`\`tsx
+export function TaskListWithState() {
+  const [state, dispatch] = useReducer(apiReducer<Task[]>, initialState)
+
+  async function load() {
+    dispatch({ type: 'FETCH_START' })
+    try {
+      const res = await fetch('http://localhost:3001/tasks')
+      if (!res.ok) throw new Error(\`HTTP \${res.status}\`)
+      const data: Task[] = await res.json()
+      dispatch({ type: 'FETCH_SUCCESS', payload: data })
+    } catch (e) {
+      dispatch({ type: 'FETCH_ERROR', payload: e instanceof Error ? e.message : 'エラーが発生しました' })
+    }
+  }
+
+  useEffect(() => { void load() }, [])
+
+  if (state.status === 'loading') {
+    return <div className="spinner">読み込み中...</div>
+  }
+
+  if (state.status === 'error') {
+    return (
+      <div>
+        <p>エラー: {state.error}</p>
+        <button onClick={() => void load()}>再試行</button>
+      </div>
+    )
+  }
+
+  return (
+    <ul>
+      {state.data?.map((task) => (
+        <li key={task.id}>{task.title}</li>
+      ))}
+    </ul>
+  )
+}
+\`\`\`
+
+## スケルトンUIでUXを向上させる
+
+ローディング中に実際のレイアウトと似た形のグレーボックスを表示すると、コンテンツが突然出現する「ガタつき」を防げます。
+
+\`\`\`tsx
+if (state.status === 'loading') {
+  return (
+    <ul>
+      {[1, 2, 3].map((i) => (
+        <li key={i} className="animate-pulse bg-gray-200 h-6 rounded mb-2" />
+      ))}
+    </ul>
+  )
+}
+\`\`\`
+
+## まとめ
+
+- **4状態**（idle / loading / success / error）を明示的に管理する
+- **useReducer** で状態遷移をまとめると更新の一貫性が保てる
+- **エラーUI** には必ず再試行手段を提供する
+- **スケルトンUI** はローディング体験を向上させる
+`,
+    practiceQuestions: [
+      {
+        id: 'q1',
+        prompt: 'API 通信の4つの状態を答えてください。（英語カンマ区切りで）',
+        answer: 'idle, loading, success, error',
+        hint: '待機・取得中・成功・失敗の4つです。',
+      },
+      {
+        id: 'q2',
+        prompt: '複数の API 状態（status/data/error）をまとめて管理するのに useState より適した hooks は何ですか？',
+        answer: 'useReducer',
+        hint: '状態遷移を reducer 関数で管理する hooks です。',
+      },
+      {
+        id: 'q3',
+        prompt: 'エラー UI に必ず含めるべき、ユーザーが自己解決できる UI 要素は何ですか？',
+        answer: '再試行ボタン',
+        hint: 'ユーザーが自分で問題を解決できる手段を提供します。',
+      },
+      {
+        id: 'q4',
+        prompt: 'ローディング中に実際のレイアウトと似た形のグレーボックスを表示する手法を何と呼びますか？',
+        answer: 'スケルトンUI',
+        hint: '「Skeleton UI」とも呼ばれます。コンテンツが突然現れるガタつきを防ぎます。',
+      },
+      {
+        id: 'q5',
+        prompt: 'useReducer の第1引数に渡す、状態遷移のロジックを定義した関数を何と呼びますか？',
+        answer: 'reducer',
+        hint: '(state, action) => newState の形を持つ純粋関数です。',
+      },
+    ],
+    testTask: {
+      instruction: `ApiState を使って通信状態に応じた UI を表示するコンポーネントを実装してください。
+
+要件:
+- useReducer と apiReducer を使って status / data / error を管理する
+- マウント時に GET /tasks でタスク一覧を取得する
+- status === 'loading' のとき「読み込み中...」を表示する
+- status === 'error' のとき「エラー: {error}」と「再試行」ボタンを表示する
+- status === 'success' のときタスク一覧を表示する`,
+      starterCode: `import { useEffect, useReducer } from 'react';
+
+interface Task { id: string; title: string; completed: boolean; }
+type ApiStatus = 'idle' | 'loading' | 'success' | 'error';
+interface ApiState { status: ApiStatus; data: Task[] | null; error: string | null; }
+type Action =
+  | { type: 'FETCH_START' }
+  | { type: 'FETCH_SUCCESS'; payload: Task[] }
+  | { type: 'FETCH_ERROR'; payload: string };
+
+function apiReducer(state: ApiState, action: Action): ApiState {
+  switch (action.type) {
+    case 'FETCH_START': return { ...state, status: 'loading', error: null };
+    case 'FETCH_SUCCESS': return { status: 'success', data: action.payload, error: null };
+    case 'FETCH_ERROR': return { status: 'error', data: null, error: action.payload };
+    default: return state;
+  }
+}
+
+export function TaskListWithState() {
+  const [state, dispatch] = useReducer(apiReducer, { status: 'idle', data: null, error: null });
+
+  async function load() {
+    // TODO: FETCH_START をディスパッチしてから fetch してください
+    // 成功時: FETCH_SUCCESS, 失敗時: FETCH_ERROR
+  }
+
+  useEffect(() => { void load(); }, []);
+
+  // TODO: status に応じて loading / error / success UI を表示してください
+
+  return <ul>{state.data?.map((t) => <li key={t.id}>{t.title}</li>)}</ul>;
+}`,
+      expectedKeywords: ['dispatch', 'FETCH_START', 'FETCH_SUCCESS', 'FETCH_ERROR', 'useReducer', 'status'],
+    },
+    challengeTask: {
+      patterns: [
+        {
+          id: 'c1',
+          prompt: 'スケルトンUIを含む完全な通信状態管理コンポーネントを実装してください。',
+          requirements: [
+            'useReducer と apiReducer で4状態（idle/loading/success/error）を管理する',
+            'マウント時に GET /tasks でタスク一覧を取得する',
+            'loading 中はスケルトンUI（グレーの矩形3つ）を表示する',
+            'error 時はエラーメッセージと「再試行」ボタンを表示する',
+            'success 時はタスク一覧を表示する',
+          ],
+          hints: [
+            'スケルトンUI: [1,2,3].map(i => <li key={i} className="animate-pulse bg-gray-200 h-6 ..."/>)',
+            '再試行ボタンの onClick で load 関数を呼び出す',
+            'load 関数は useCallback でメモ化すると useEffect の依存配列に安全に追加できる',
+          ],
+          expectedKeywords: ['useReducer', 'dispatch', 'animate-pulse', 'retry', 'useCallback', 'FETCH_START'],
+          starterCode: `import { useCallback, useEffect, useReducer } from 'react';
+
+interface Task { id: string; title: string; completed: boolean; }
+type ApiStatus = 'idle' | 'loading' | 'success' | 'error';
+interface ApiState { status: ApiStatus; data: Task[] | null; error: string | null; }
+type Action =
+  | { type: 'FETCH_START' }
+  | { type: 'FETCH_SUCCESS'; payload: Task[] }
+  | { type: 'FETCH_ERROR'; payload: string };
+
+function apiReducer(state: ApiState, action: Action): ApiState {
+  switch (action.type) {
+    case 'FETCH_START': return { ...state, status: 'loading', error: null };
+    case 'FETCH_SUCCESS': return { status: 'success', data: action.payload, error: null };
+    case 'FETCH_ERROR': return { status: 'error', data: null, error: action.payload };
+    default: return state;
+  }
+}
+
+export function TaskListWithState() {
+  const [state, dispatch] = useReducer(apiReducer, { status: 'idle', data: null, error: null });
+
+  const load = useCallback(async () => {
+    // TODO: 4状態を適切に dispatch しながら GET /tasks を実装してください
+  }, []);
+
+  useEffect(() => { void load(); }, [load]);
+
+  // TODO: スケルトンUI / エラーUI / 成功UI を実装してください
+  // loading: グレーの矩形3つ (animate-pulse bg-gray-200)
+  // error: エラーメッセージ + 再試行ボタン
+  // success: タスク一覧
+
+  return <p>実装してください</p>;
+}`,
+        },
+      ],
+    },
+  },
 ]
 
 export function getApiPracticeStep(stepId: string) {

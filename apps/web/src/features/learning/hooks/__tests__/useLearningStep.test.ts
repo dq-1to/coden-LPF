@@ -93,9 +93,9 @@ describe('useLearningStep', () => {
     expect(result.current.syncMessage).toBeNull()
   })
 
-  it('isImplemented: false のステップは isUnavailableStep が true', () => {
-    const { result } = renderHook(() => useLearningStep('api-tasks-update'))
+  it('全ステップが実装済みのため既知ステップは isUnavailableStep が false', () => {
+    const { result } = renderHook(() => useLearningStep('api-error-loading'))
 
-    expect(result.current.isUnavailableStep).toBe(true)
+    expect(result.current.isUnavailableStep).toBe(false)
   })
 })
