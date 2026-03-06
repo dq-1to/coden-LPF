@@ -1,4 +1,5 @@
 import { COURSES } from '../content/courseData'
+import { BADGE_POINT_THRESHOLD_HIGH, BADGE_POINT_THRESHOLD_MID, STREAK_THRESHOLD_BRONZE, STREAK_THRESHOLD_GOLD, STREAK_THRESHOLD_SILVER } from '../shared/constants'
 import { supabase } from '../lib/supabaseClient'
 import { fromSupabaseError } from '../shared/errors'
 import type { Tables } from '../shared/types/database.types'
@@ -112,13 +113,13 @@ export async function checkAndUnlockAchievements(userId: string): Promise<BadgeI
     await tryUnlock('first-challenge')
   }
 
-  if (stats.current_streak >= 3) {
+  if (stats.current_streak >= STREAK_THRESHOLD_BRONZE) {
     await tryUnlock('streak-3')
   }
-  if (stats.current_streak >= 7) {
+  if (stats.current_streak >= STREAK_THRESHOLD_SILVER) {
     await tryUnlock('streak-7')
   }
-  if (stats.current_streak >= 30) {
+  if (stats.current_streak >= STREAK_THRESHOLD_GOLD) {
     await tryUnlock('streak-30')
   }
 
@@ -136,10 +137,10 @@ export async function checkAndUnlockAchievements(userId: string): Promise<BadgeI
     await tryUnlock('all-complete')
   }
 
-  if (stats.total_points >= 500) {
+  if (stats.total_points >= BADGE_POINT_THRESHOLD_MID) {
     await tryUnlock('pt-500')
   }
-  if (stats.total_points >= 1000) {
+  if (stats.total_points >= BADGE_POINT_THRESHOLD_HIGH) {
     await tryUnlock('pt-1000')
   }
 
