@@ -7,6 +7,7 @@ docs/roadmaps/
 docs/appreviews/
 docs/userTest/
 docs/memo/
+skills/
 .env.local
 node_modules/
 dist/
