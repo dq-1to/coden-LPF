@@ -5,7 +5,7 @@
  * コース4の各ステップでこのユーティリティを使って fetch パターンを学ぶ。
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001'
+const BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 /**
  * json-server への fetch リクエストを実行する。

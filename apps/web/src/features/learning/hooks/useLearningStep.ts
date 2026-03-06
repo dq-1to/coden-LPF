@@ -8,6 +8,7 @@ import { useAuth } from '../../../contexts/AuthContext'
 import { useLearningContext } from '../../../contexts/LearningContext'
 import { useAchievementContext } from '../../../contexts/AchievementContext'
 import { awardPoints } from '../../../services/pointService'
+import { POINTS_PER_MODE_COMPLETE } from '../../../shared/constants'
 import { getStepProgress, updateModeCompletion, upsertProgress } from '../../../services/progressService'
 import { recordStudyActivity } from '../../../services/statsService'
 
@@ -176,7 +177,7 @@ export function useLearningStep(stepId: string): UseLearningStepReturn {
         }
 
         const reason = `「${step.title}」の${mode}モード完了`
-        await awardPoints(user.id, 10, reason)
+        await awardPoints(user.id, POINTS_PER_MODE_COMPLETE, reason)
         await refreshStats()
         try {
           await refreshAchievements()
