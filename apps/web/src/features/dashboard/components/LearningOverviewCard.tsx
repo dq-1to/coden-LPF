@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { COURSES, TOTAL_STEP_COUNT, type CourseMeta, type StepMeta } from '../../../content/courseData'
+import { COURSES, TOTAL_STEP_COUNT, type CourseMeta, type StepMeta } from '@/content/courseData'
 
 const LEVEL_LABEL: Record<CourseMeta['level'], string> = {
   beginner: '初級',

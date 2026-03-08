@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useAuth } from '../../../contexts/AuthContext'
-import { useLearningContext } from '../../../contexts/LearningContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { useLearningContext } from '@/contexts/LearningContext'
 import {
   calculatePointGoalProgress,
   countMonthlyStudyDays,
   getLearningHeatmap,
   type HeatmapCell,
-} from '../../../services/statsService'
+} from '@/services/statsService'
 
 const HEATMAP_DAYS = 30
 const EMPTY_HEATMAP: HeatmapCell[] = Array.from({ length: HEATMAP_DAYS }, (_, index) => ({

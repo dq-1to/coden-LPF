@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { findStepMeta } from '../../../content/courseData'
-import { getReviewList, removeFromReviewList } from '../../../lib/reviewList'
+import { findStepMeta } from '@/content/courseData'
+import { getReviewList, removeFromReviewList } from '@/lib/reviewList'
 
 export function ReviewListWidget() {
   const [stepIds, setStepIds] = useState<string[]>([])

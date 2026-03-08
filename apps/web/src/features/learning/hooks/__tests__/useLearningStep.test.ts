@@ -3,37 +3,37 @@ import { renderHook } from '@testing-library/react'
 import { useLearningStep } from '../useLearningStep'
 
 // コンテキストフックをモック
-vi.mock('../../../../contexts/AuthContext', () => ({
+vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }))
 
-vi.mock('../../../../contexts/LearningContext', () => ({
+vi.mock('@/contexts/LearningContext', () => ({
   useLearningContext: vi.fn(),
 }))
 
-vi.mock('../../../../contexts/AchievementContext', () => ({
+vi.mock('@/contexts/AchievementContext', () => ({
   useAchievementContext: vi.fn(),
 }))
 
 // サービスをモック
-vi.mock('../../../../services/progressService', () => ({
+vi.mock('@/services/progressService', () => ({
   getStepProgress: vi.fn(),
   updateModeCompletion: vi.fn(),
   upsertProgress: vi.fn(),
 }))
 
-vi.mock('../../../../services/statsService', () => ({
+vi.mock('@/services/statsService', () => ({
   recordStudyActivity: vi.fn(),
 }))
 
-vi.mock('../../../../services/pointService', () => ({
+vi.mock('@/services/pointService', () => ({
   awardPoints: vi.fn(),
 }))
 
-import { useAuth } from '../../../../contexts/AuthContext'
-import { useLearningContext } from '../../../../contexts/LearningContext'
-import { useAchievementContext } from '../../../../contexts/AchievementContext'
-import { getStepProgress } from '../../../../services/progressService'
+import { useAuth } from '@/contexts/AuthContext'
+import { useLearningContext } from '@/contexts/LearningContext'
+import { useAchievementContext } from '@/contexts/AchievementContext'
+import { getStepProgress } from '@/services/progressService'
 
 const mockUseAuth = vi.mocked(useAuth)
 const mockUseLearningContext = vi.mocked(useLearningContext)
