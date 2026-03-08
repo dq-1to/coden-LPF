@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useLearningContext } from '../../../contexts/LearningContext'
+import { useLearningContext } from '@/contexts/LearningContext'
 
 interface AppHeaderProps {
   displayName: string
