@@ -7,8 +7,8 @@ import { supabaseConfigError } from '../lib/supabaseClient'
 export function LoginPage() {
   const { signIn, user } = useAuth()
   const location = useLocation()
-  const [email, setEmail] = useState('test01@coden.dev')
-  const [password, setPassword] = useState('TestPass123!')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 

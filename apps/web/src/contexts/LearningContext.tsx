@@ -70,6 +70,7 @@ export function LearningProvider({ children }: { children: ReactNode }) {
     )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLearningContext() {
     const context = useContext(LearningContext)
     if (!context) {

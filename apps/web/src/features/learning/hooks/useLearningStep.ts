@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { COURSES, findStepMeta } from '../../../content/courseData'
-import { fundamentalsSteps, getFundamentalsStep, type LearningMode, type LearningStepContent } from '../../../content/fundamentals/steps'
-import { getIntermediateStep, intermediateSteps } from '../../../content/intermediate/steps'
-import { advancedSteps, getAdvancedStep } from '../../../content/advanced/steps'
-import { apiPracticeSteps, getApiPracticeStep } from '../../../content/api-practice/steps'
-import { useAuth } from '../../../contexts/AuthContext'
-import { useLearningContext } from '../../../contexts/LearningContext'
-import { useAchievementContext } from '../../../contexts/AchievementContext'
-import { awardPoints } from '../../../services/pointService'
-import { getStepProgress, updateModeCompletion, upsertProgress } from '../../../services/progressService'
-import { recordStudyActivity } from '../../../services/statsService'
+import { COURSES, findStepMeta } from '@/content/courseData'
+import { fundamentalsSteps, getFundamentalsStep, type LearningMode, type LearningStepContent } from '@/content/fundamentals/steps'
+import { getIntermediateStep, intermediateSteps } from '@/content/intermediate/steps'
+import { advancedSteps, getAdvancedStep } from '@/content/advanced/steps'
+import { apiPracticeSteps, getApiPracticeStep } from '@/content/api-practice/steps'
+import { useAuth } from '@/contexts/AuthContext'
+import { useLearningContext } from '@/contexts/LearningContext'
+import { useAchievementContext } from '@/contexts/AchievementContext'
+import { awardPoints } from '@/services/pointService'
+import { POINTS_PER_MODE_COMPLETE } from '@/shared/constants'
+import { getStepProgress, updateModeCompletion, upsertProgress } from '@/services/progressService'
+import { recordStudyActivity } from '@/services/statsService'
 
 type ModeStatus = Record<LearningMode, boolean>
 
@@ -176,7 +177,7 @@ export function useLearningStep(stepId: string): UseLearningStepReturn {
         }
 
         const reason = `「${step.title}」の${mode}モード完了`
-        await awardPoints(user.id, 10, reason)
+        await awardPoints(user.id, POINTS_PER_MODE_COMPLETE, reason)
         await refreshStats()
         try {
           await refreshAchievements()

@@ -24,6 +24,13 @@ export default tseslint.config(
     },
   },
   {
+    // main.tsx はエントリーポイントのため Fast Refresh の制約対象外
+    files: ['src/main.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
     // テストファイルはブラウザ環境を前提としないためグローバルを拡張
     files: ['src/**/__tests__/**/*.{ts,tsx}', 'src/test/**/*.{ts,tsx}'],
     languageOptions: {

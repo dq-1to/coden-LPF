@@ -9,7 +9,8 @@ import { DashboardSidebar } from '../features/dashboard/components/DashboardSide
 import { LearningOverviewCard } from '../features/dashboard/components/LearningOverviewCard'
 import { ReviewListWidget } from '../features/dashboard/components/ReviewListWidget'
 import { WelcomeBanner } from '../features/dashboard/components/WelcomeBanner'
-import { supabase, supabaseConfigError } from '../lib/supabaseClient'
+import { supabaseConfigError } from '../lib/supabaseClient'
+import { getProfile } from '../services/profileService'
 
 export function DashboardPage() {
   const { user, signOut } = useAuth()
@@ -41,15 +42,13 @@ export function DashboardPage() {
 
     async function loadDashboard() {
       try {
-        const profileResult = await supabase.from('profiles').select('display_name').eq('id', currentUserId).maybeSingle()
+        const profile = await getProfile(currentUserId)
 
         if (!isMounted) {
           return
         }
 
-        if (!profileResult.error) {
-          setDisplayName(profileResult.data?.display_name ?? null)
-        }
+        setDisplayName(profile?.display_name ?? null)
       } catch (loadError) {
         if (!isMounted) {
           return
