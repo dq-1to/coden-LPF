@@ -10,6 +10,7 @@ interface AchievementContextType {
 
 const AchievementContext = createContext<AchievementContextType | null>(null)
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAchievementContext() {
   const context = useContext(AchievementContext)
   if (!context) {
