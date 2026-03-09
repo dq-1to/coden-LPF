@@ -146,7 +146,11 @@ export function StepPage() {
               <TestMode stepId={step.id} task={step.testTask} onComplete={() => void handleModeComplete('test')} />
             ) : null}
             {activeMode === 'challenge' ? (
-              <ChallengeMode task={step.challengeTask} onComplete={() => void handleModeComplete('challenge')} />
+              <ChallengeMode
+                stepId={step.id}
+                task={step.challengeTask}
+                onComplete={() => void handleModeComplete('challenge')}
+              />
             ) : null}
 
             {modeStatus.challenge ? (
