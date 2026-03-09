@@ -1,33 +1,45 @@
-import { Suspense, lazy, useMemo, useState } from 'react'
-import type { ChallengeTask } from '../../content/fundamentals/steps'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
 
 const MonacoEditor = lazy(() => import('@monaco-editor/react'))
 
 interface ChallengeModeProps {
+  stepId: string
   task: ChallengeTask
   onComplete: () => void
 }
 
-export function ChallengeMode({ task, onComplete }: ChallengeModeProps) {
-  // Use a random pattern on initial render
-  const [pattern] = useState(() => {
-    const randomIndex = Math.floor(Math.random() * task.patterns.length)
-    return task.patterns[randomIndex]
-  })
+function getRandomPattern(task: ChallengeTask): ChallengePattern {
+  const randomIndex = Math.floor(Math.random() * task.patterns.length)
+  return task.patterns[randomIndex]
+}
 
-  const [code, setCode] = useState(pattern.starterCode)
+export function ChallengeMode({ stepId, task, onComplete }: ChallengeModeProps) {
+  const [pattern, setPattern] = useState<ChallengePattern>(() => getRandomPattern(task))
+  const [code, setCode] = useState(() => pattern.starterCode)
   const [checked, setChecked] = useState(false)
+  const [reported, setReported] = useState(false)
+
+  useEffect(() => {
+    const nextPattern = getRandomPattern(task)
+    setPattern(nextPattern)
+    setCode(nextPattern.starterCode)
+    setChecked(false)
+    setReported(false)
+  }, [stepId, task])
 
   const missingKeywords = useMemo(
     () => pattern.expectedKeywords.filter((keyword) => !code.toLowerCase().includes(keyword.toLowerCase())),
     [code, pattern.expectedKeywords],
   )
-  const isPassed = checked && missingKeywords.length === 0
+  const hasSatisfiedRequirements = missingKeywords.length === 0
+  const isPassed = checked && hasSatisfiedRequirements
 
   function handleCheck() {
     setChecked(true)
-    if (isPassed) {
+    if (hasSatisfiedRequirements && !reported) {
       onComplete()
+      setReported(true)
     }
   }
 
