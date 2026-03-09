@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import type { TestTask } from '../../content/fundamentals/steps'
 import { addToReviewList, removeFromReviewList } from '../../lib/reviewList'
 
@@ -31,6 +31,12 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
   const [blankInput, setBlankInput] = useState('')
   const [isJudged, setIsJudged] = useState(false)
   const [reported, setReported] = useState(false)
+
+  useEffect(() => {
+    setBlankInput('')
+    setIsJudged(false)
+    setReported(false)
+  }, [stepId])
 
   const mergedCode = useMemo(() => task.starterCode.replace('____', blankInput), [blankInput, task.starterCode])
   const isPassed = useMemo(
