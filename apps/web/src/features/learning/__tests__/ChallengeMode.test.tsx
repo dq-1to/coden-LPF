@@ -48,8 +48,9 @@ describe('ChallengeMode', () => {
   it('初回の正解判定で onComplete を呼ぶ', async () => {
     const user = userEvent.setup()
     const onComplete = vi.fn()
+    const onSubmitResult = vi.fn()
 
-    render(<ChallengeMode stepId="step-a" task={firstTask} onComplete={onComplete} />)
+    render(<ChallengeMode stepId="step-a" task={firstTask} onComplete={onComplete} onSubmitResult={onSubmitResult} />)
 
     const editor = await screen.findByLabelText('challenge-editor')
     fireEvent.change(editor, {
@@ -58,6 +59,11 @@ describe('ChallengeMode', () => {
     await user.click(screen.getByRole('button', { name: '判定する' }))
 
     expect(onComplete).toHaveBeenCalledTimes(1)
+    expect(onSubmitResult).toHaveBeenCalledWith({
+      code: 'const [count, setCount] = useState(0); <button onClick={() => setCount(count + 1)} />',
+      isPassed: true,
+      matchedKeywords: ['useState', 'onClick'],
+    })
     expect(screen.getByRole('status').textContent).toContain('Challengeを完了しました')
   })
 

@@ -7,6 +7,7 @@ interface ChallengeModeProps {
   stepId: string
   task: ChallengeTask
   onComplete: () => void
+  onSubmitResult?: (result: { code: string; isPassed: boolean; matchedKeywords: string[] }) => Promise<void> | void
 }
 
 function getRandomPattern(task: ChallengeTask): ChallengePattern {
@@ -14,11 +15,12 @@ function getRandomPattern(task: ChallengeTask): ChallengePattern {
   return task.patterns[randomIndex]
 }
 
-export function ChallengeMode({ stepId, task, onComplete }: ChallengeModeProps) {
+export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: ChallengeModeProps) {
   const [pattern, setPattern] = useState<ChallengePattern>(() => getRandomPattern(task))
   const [code, setCode] = useState(() => pattern.starterCode)
   const [checked, setChecked] = useState(false)
   const [reported, setReported] = useState(false)
+  const [submissionError, setSubmissionError] = useState<string | null>(null)
 
   useEffect(() => {
     const nextPattern = getRandomPattern(task)
@@ -26,6 +28,7 @@ export function ChallengeMode({ stepId, task, onComplete }: ChallengeModeProps) 
     setCode(nextPattern.starterCode)
     setChecked(false)
     setReported(false)
+    setSubmissionError(null)
   }, [stepId, task])
 
   const missingKeywords = useMemo(
@@ -35,8 +38,26 @@ export function ChallengeMode({ stepId, task, onComplete }: ChallengeModeProps) 
   const hasSatisfiedRequirements = missingKeywords.length === 0
   const isPassed = checked && hasSatisfiedRequirements
 
-  function handleCheck() {
+  async function handleCheck() {
+    const matchedKeywords = pattern.expectedKeywords.filter((keyword) =>
+      code.toLowerCase().includes(keyword.toLowerCase()),
+    )
+
     setChecked(true)
+    setSubmissionError(null)
+
+    if (onSubmitResult) {
+      try {
+        await onSubmitResult({
+          code,
+          isPassed: hasSatisfiedRequirements,
+          matchedKeywords,
+        })
+      } catch (error) {
+        setSubmissionError(error instanceof Error ? error.message : '提出履歴の保存に失敗しました。')
+      }
+    }
+
     if (hasSatisfiedRequirements && !reported) {
       onComplete()
       setReported(true)
@@ -76,7 +97,7 @@ export function ChallengeMode({ stepId, task, onComplete }: ChallengeModeProps) 
         <button
           className="rounded-md bg-primary-mint px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-primary-dark active:bg-emerald-700"
           type="button"
-          onClick={handleCheck}
+          onClick={() => void handleCheck()}
         >
           判定する
         </button>
@@ -91,6 +112,8 @@ export function ChallengeMode({ stepId, task, onComplete }: ChallengeModeProps) 
           </p>
         )}
       </div>
+
+      {submissionError ? <p className="text-sm text-rose-700">{submissionError}</p> : null}
 
       {checked && !isPassed ? (
         <div className="rounded-lg border border-rose-300 bg-rose-50 p-4">
