@@ -11,9 +11,6 @@
     "typecheck": "npm --workspace @coden/web run typecheck",
     "lint": "npm --workspace @coden/web run lint",
     "test": "npm --workspace @coden/web run test",
-    "api:dev": "json-server --port 3001 db.json"
-  },
-  "devDependencies": {
-    "json-server": "^1.0.0-beta.9"
+    "api:dev": "npm --workspace @coden/web run api:dev"
   }
 }
