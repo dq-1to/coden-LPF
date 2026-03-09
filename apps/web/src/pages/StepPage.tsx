@@ -1,13 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { LearningSidebar } from '../components/LearningSidebar'
 import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { ChallengeMode } from '../features/learning/ChallengeMode'
+import { ChallengeSubmissionHistory } from '../features/learning/ChallengeSubmissionHistory'
 import { PracticeMode } from '../features/learning/PracticeMode'
 import { ReadMode } from '../features/learning/ReadMode'
 import { TestMode } from '../features/learning/TestMode'
+import { useChallengeSubmission } from '../features/learning/hooks/useChallengeSubmission'
+import { useRecentChallengeSubmissions } from '../features/learning/hooks/useRecentChallengeSubmissions'
 import { useLearningStep } from '../features/learning/hooks/useLearningStep'
 import type { LearningMode } from '../content/fundamentals/steps'
 
@@ -17,6 +20,15 @@ export function StepPage() {
   const { completedStepsCount, isLoadingStats } = useLearningContext()
   const navigate = useNavigate()
   const [activeMode, setActiveMode] = useState<LearningMode>('read')
+  const saveChallengeSubmission = useChallengeSubmission(stepId)
+  const recentChallengeSubmissions = useRecentChallengeSubmissions(stepId)
+  const handleChallengeSubmitResult = useCallback(
+    async (result: { code: string; isPassed: boolean; matchedKeywords: string[] }) => {
+      await saveChallengeSubmission(result)
+      await recentChallengeSubmissions.refresh()
+    },
+    [recentChallengeSubmissions, saveChallengeSubmission],
+  )
 
   const {
     step,
@@ -146,11 +158,19 @@ export function StepPage() {
               <TestMode stepId={step.id} task={step.testTask} onComplete={() => void handleModeComplete('test')} />
             ) : null}
             {activeMode === 'challenge' ? (
-              <ChallengeMode
-                stepId={step.id}
-                task={step.challengeTask}
-                onComplete={() => void handleModeComplete('challenge')}
-              />
+              <>
+                <ChallengeMode
+                  stepId={step.id}
+                  task={step.challengeTask}
+                  onComplete={() => void handleModeComplete('challenge')}
+                  onSubmitResult={handleChallengeSubmitResult}
+                />
+                <ChallengeSubmissionHistory
+                  submissions={recentChallengeSubmissions.submissions}
+                  isLoading={recentChallengeSubmissions.isLoading}
+                  error={recentChallengeSubmissions.error}
+                />
+              </>
             ) : null}
 
             {modeStatus.challenge ? (
