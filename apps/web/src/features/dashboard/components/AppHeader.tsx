@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { getFirstImplementedStep } from '@/content/courseData'
 import { useLearningContext } from '@/contexts/LearningContext'
 
 interface AppHeaderProps {
@@ -9,6 +10,8 @@ interface AppHeaderProps {
 export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
   const { stats } = useLearningContext()
   const location = useLocation()
+  const firstImplementedStep = getFirstImplementedStep()
+  const learningPath = firstImplementedStep ? `/step/${firstImplementedStep.id}` : '/'
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -30,14 +33,14 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
               ダッシュボード
             </Link>
             <Link
-              to="/"
+              to={learningPath}
               className={`pb-1 ${location.pathname.startsWith('/step')
                 ? 'border-b-2 border-primary-mint text-slate-900'
                 : 'text-slate-500 hover:text-slate-700'
                 }`}
               aria-current={location.pathname.startsWith('/step') ? 'page' : undefined}
             >
-              コース一覧
+              学習を始める
             </Link>
             <Link
               to="/profile"

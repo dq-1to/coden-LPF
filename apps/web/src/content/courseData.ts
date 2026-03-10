@@ -207,3 +207,7 @@ export function getNextStep(currentStepId: string): StepMeta | undefined {
   if (currentIndex === -1) return undefined
   return allSteps[currentIndex + 1]
 }
+
+export function getFirstImplementedStep(): StepMeta | undefined {
+  return COURSES.flatMap((course) => course.steps).find((step) => step.isImplemented)
+}
