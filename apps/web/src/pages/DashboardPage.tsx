@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ConfigErrorView } from '../components/ConfigErrorView'
-import { IMPLEMENTED_STEP_COUNT } from '../content/courseData'
+import { getFirstImplementedStep, IMPLEMENTED_STEP_COUNT } from '../content/courseData'
 import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
@@ -19,6 +19,7 @@ export function DashboardPage() {
   const userId = user?.id ?? null
   const [displayName, setDisplayName] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const firstImplementedStep = getFirstImplementedStep()
 
   const greetingName = useMemo(() => {
     if (displayName) {
@@ -90,9 +91,11 @@ export function DashboardPage() {
             <WelcomeBanner displayName={greetingName} />
             <LearningOverviewCard completedCount={Math.min(completedStepsCount, IMPLEMENTED_STEP_COUNT)} />
             <ReviewListWidget />
-            <Link className="inline-flex text-sm font-semibold text-primary-dark underline" to="/step/usestate-basic">
-              学習画面へ移動（/step/usestate-basic）
-            </Link>
+            {firstImplementedStep ? (
+              <Link className="inline-flex text-sm font-semibold text-primary-dark underline" to={`/step/${firstImplementedStep.id}`}>
+                最初のレッスンから始める
+              </Link>
+            ) : null}
           </section>
 
           <section className="lg:col-span-4">

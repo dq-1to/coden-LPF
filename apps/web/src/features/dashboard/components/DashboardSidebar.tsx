@@ -140,18 +140,15 @@ export function DashboardSidebar() {
 
       <section className="rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-600 p-5 text-white shadow-sm">
         <p className="mb-2 inline-block rounded bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
-          Daily Challenge
+          Bonus Challenge
         </p>
-        <h3 className="font-bold">ボーナス問題を解く</h3>
-        <p className="mt-1 text-sm text-indigo-100">React Hooks クイズに正解して +50pt を獲得しましょう。</p>
-        <button
-          className="mt-4 w-full cursor-not-allowed rounded-lg bg-white/50 py-2 text-sm font-semibold text-indigo-400"
-          type="button"
-          disabled
-          aria-disabled="true"
-        >
-          準備中
-        </button>
+        <h3 className="font-bold">MVPでは未提供です</h3>
+        <p className="mt-1 text-sm text-indigo-100">
+          現在のMVPでは、20ステップの学習フローに集中できる構成にしています。追加チャレンジは今後の拡張予定です。
+        </p>
+        <div className="mt-4 rounded-lg border border-white/25 bg-white/10 px-4 py-3 text-sm font-medium text-indigo-50">
+          機能状態: 準備中
+        </div>
       </section>
     </aside>
   )
