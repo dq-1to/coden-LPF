@@ -23,6 +23,40 @@ copy .env.local.example .env.local
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_API_BASE_URL`
 
+環境変数の役割:
+
+- `VITE_SUPABASE_URL`: Supabase プロジェクト URL
+- `VITE_SUPABASE_ANON_KEY`: フロントエンド用公開キー
+- `VITE_API_BASE_URL`: コース4（API連携実践）が接続する API サーバーのベース URL
+
+`VITE_API_BASE_URL` は、ローカル学習環境では通常 `http://localhost:3001` を指定します。
+
+## API サーバー起動手順
+
+コース4（API連携実践）は `json-server` ベースのモック API を前提にしています。
+
+`apps/web/mock-api/db.json` に、以下の学習用エンドポイントの初期データを同梱しています。
+
+- `GET /counter`
+- `PUT /counter`
+- `GET /tasks`
+- `POST /tasks`
+- `PATCH /tasks/:id`
+- `DELETE /tasks/:id`
+
+API サーバーは別ターミナルで起動してください。
+
+```bash
+cd apps/web
+cmd /c npm run api:dev
+```
+
+リポジトリルートから起動する場合は以下でも構いません。
+
+```bash
+cmd /c npm run api:dev
+```
+
 その後、以下で開発サーバーを起動します。
 
 ```bash
@@ -40,6 +74,8 @@ cmd /c npm run build
 
 1. `apps/web/supabase/sql/001_schema_and_rls.sql`
 2. `apps/web/supabase/sql/002_seed_test_users.sql`
+3. `apps/web/supabase/sql/003_gamification.sql`
+4. `apps/web/supabase/sql/004_award_points_rpc.sql`
 
 ## テストユーザー
 
@@ -70,6 +106,17 @@ cmd /c npm run build
 ユーザーテスト開始は以下を満たした時点とします。
 
 1. `apps/web/.env.local` に本番または検証用 Supabase 接続情報が設定済み
-2. SQL 2本の適用が完了している
-3. 上記テストユーザーでログイン可能
-4. `cmd /c npm run typecheck` と `cmd /c npm run build` が成功
+2. `apps/web/.env.local` に `VITE_API_BASE_URL=http://localhost:3001` などの API 接続先が設定済み
+3. `cmd /c npm run api:dev` で API モックサーバーが起動している
+4. SQL 4本の適用が完了している
+5. 上記テストユーザーでログイン可能
+6. `cmd /c npm run typecheck` と `cmd /c npm run build` が成功
+
+## 新規環境で API コースを再現するための前提条件
+
+1. Node.js 22 系と npm が利用できる
+2. `apps/web` で `npm install` が完了している
+3. `.env.local` に Supabase と API の接続先が設定されている
+4. Supabase SQL `001`〜`004` が順に適用されている
+5. `cmd /c npm run api:dev` を別ターミナルで起動している
+6. `cmd /c npm run dev` でフロントエンドを起動している
