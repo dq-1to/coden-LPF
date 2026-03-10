@@ -1,0 +1,22 @@
+{
+  "counter": {
+    "value": 0
+  },
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Learn React basics",
+      "completed": true
+    },
+    {
+      "id": "2",
+      "title": "Review useEffect",
+      "completed": false
+    },
+    {
+      "id": "3",
+      "title": "Connect to API",
+      "completed": false
+    }
+  ]
+}
