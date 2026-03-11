@@ -7,7 +7,7 @@ import type { PracticeQuestion } from '../../../content/fundamentals/steps'
 const addToReviewList = vi.fn()
 const removeFromReviewList = vi.fn()
 
-vi.mock('../../../lib/reviewList', () => ({
+vi.mock('../../../services/reviewListService', () => ({
   addToReviewList: (...args: unknown[]) => addToReviewList(...args),
   removeFromReviewList: (...args: unknown[]) => removeFromReviewList(...args),
 }))

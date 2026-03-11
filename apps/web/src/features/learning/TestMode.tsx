@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import type { TestTask } from '../../content/fundamentals/steps'
-import { addToReviewList, removeFromReviewList } from '../../lib/reviewList'
+import { addToReviewList, removeFromReviewList } from '../../services/reviewListService'
 
 interface TestModeProps {
   stepId: string

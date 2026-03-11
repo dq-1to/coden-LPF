@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { PracticeQuestion } from '../../content/fundamentals/steps'
-import { addToReviewList, removeFromReviewList } from '../../lib/reviewList'
+import { addToReviewList, removeFromReviewList } from '../../services/reviewListService'
 
 interface PracticeModeProps {
   stepId: string
