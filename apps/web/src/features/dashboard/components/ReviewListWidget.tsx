@@ -1,19 +1,9 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { findStepMeta } from '@/content/courseData'
-import { getReviewList, removeFromReviewList } from '@/lib/reviewList'
+import { useReviewList } from '../hooks/useReviewList'
 
 export function ReviewListWidget() {
-  const [stepIds, setStepIds] = useState<string[]>([])
-
-  useEffect(() => {
-    setStepIds(getReviewList())
-  }, [])
-
-  function handleRemove(stepId: string) {
-    removeFromReviewList(stepId)
-    setStepIds(getReviewList())
-  }
+  const { stepIds, removeStep } = useReviewList()
 
   if (stepIds.length === 0) {
     return null
@@ -27,6 +17,9 @@ export function ReviewListWidget() {
           {stepIds.length}件
         </span>
       </div>
+      <p className="mb-3 text-xs text-slate-500">
+        このリストは現在の端末とブラウザにのみ保存されます。
+      </p>
       <ul className="space-y-2">
         {stepIds.map((stepId) => {
           const meta = findStepMeta(stepId)
@@ -43,7 +36,7 @@ export function ReviewListWidget() {
                 type="button"
                 className="shrink-0 rounded text-xs text-slate-400 hover:text-rose-500"
                 aria-label={`${meta.title}を復習リストから削除`}
-                onClick={() => handleRemove(stepId)}
+                onClick={() => removeStep(stepId)}
               >
                 ✕
               </button>
