@@ -27,6 +27,7 @@ describe('ReviewListWidget', () => {
     )
 
     expect(screen.getByText('復習リスト')).toBeTruthy()
+    expect(screen.getByText('このリストは現在の端末とブラウザにのみ保存されます。')).toBeTruthy()
     expect(screen.getByRole('link', { name: /useState基礎/i }).getAttribute('href')).toBe('/step/usestate-basic')
   })
 

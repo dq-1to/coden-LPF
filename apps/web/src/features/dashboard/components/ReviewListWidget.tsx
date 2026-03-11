@@ -17,6 +17,9 @@ export function ReviewListWidget() {
           {stepIds.length}件
         </span>
       </div>
+      <p className="mb-3 text-xs text-slate-500">
+        このリストは現在の端末とブラウザにのみ保存されます。
+      </p>
       <ul className="space-y-2">
         {stepIds.map((stepId) => {
           const meta = findStepMeta(stepId)

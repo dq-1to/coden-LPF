@@ -27,4 +27,13 @@ describe('reviewListService', () => {
 
     expect(getReviewList()).toEqual(['step-b'])
   })
+
+  it('clearReviewList で localStorage 上の復習リストを空にする', () => {
+    addToReviewList('step-a')
+
+    clearReviewList()
+
+    expect(getReviewList()).toEqual([])
+    expect(window.localStorage.getItem('coden_review_list')).toBeNull()
+  })
 })
