@@ -13,6 +13,7 @@ import { useChallengeSubmission } from '../features/learning/hooks/useChallengeS
 import { useRecentChallengeSubmissions } from '../features/learning/hooks/useRecentChallengeSubmissions'
 import { useLearningStep } from '../features/learning/hooks/useLearningStep'
 import type { LearningMode } from '../content/fundamentals/steps'
+import { getDisplayName } from '../shared/utils/getDisplayName'
 
 export function StepPage() {
   const { stepId = '' } = useParams()
@@ -42,18 +43,7 @@ export function StepPage() {
     handleModeComplete,
   } = useLearningStep(stepId)
 
-  const headerDisplayName = useMemo(() => {
-    const metadataName = user?.user_metadata?.display_name
-    if (typeof metadataName === 'string' && metadataName.length > 0) {
-      return metadataName
-    }
-
-    if (user?.email) {
-      return user.email.split('@')[0]
-    }
-
-    return 'ゲスト'
-  }, [user?.email, user?.user_metadata])
+  const headerDisplayName = useMemo(() => getDisplayName(user), [user])
 
   const modeButtons: { id: LearningMode; label: string }[] = useMemo(
     () => [

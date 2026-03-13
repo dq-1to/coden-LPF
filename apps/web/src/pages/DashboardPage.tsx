@@ -11,6 +11,7 @@ import { ReviewListWidget } from '../features/dashboard/components/ReviewListWid
 import { WelcomeBanner } from '../features/dashboard/components/WelcomeBanner'
 import { supabaseConfigError } from '../lib/supabaseClient'
 import { getProfile } from '../services/profileService'
+import { getDisplayName } from '../shared/utils/getDisplayName'
 
 export function DashboardPage() {
   const { user, signOut } = useAuth()
@@ -21,17 +22,21 @@ export function DashboardPage() {
   const [error, setError] = useState<string | null>(null)
   const firstImplementedStep = getFirstImplementedStep()
 
-  const greetingName = useMemo(() => {
-    if (displayName) {
-      return displayName
-    }
-
-    if (user?.email) {
-      return user.email.split('@')[0]
-    }
-
-    return 'ゲスト'
-  }, [displayName, user?.email])
+  const greetingName = useMemo(
+    () =>
+      getDisplayName(
+        user
+          ? {
+              ...user,
+              user_metadata: {
+                ...user.user_metadata,
+                display_name: displayName ?? user.user_metadata?.display_name,
+              },
+            }
+          : null,
+      ),
+    [displayName, user],
+  )
 
   useEffect(() => {
     if (!userId || supabaseConfigError) {
