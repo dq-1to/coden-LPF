@@ -9,6 +9,7 @@ import { supabaseConfigError } from '../lib/supabaseClient'
 import { BADGE_DEFINITIONS } from '../services/achievementService'
 import { getPointHistory, getProfile, upsertDisplayName, type PointHistoryRecord } from '../services/profileService'
 import { formatDateTime, formatStudyDate } from '../shared/utils/dateTime'
+import { getDisplayName } from '../shared/utils/getDisplayName'
 
 export function ProfilePage() {
   const { user, signOut } = useAuth()
@@ -25,17 +26,21 @@ export function ProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
-  const headerDisplayName = useMemo(() => {
-    if (displayName) {
-      return displayName
-    }
-
-    if (user?.email) {
-      return user.email.split('@')[0]
-    }
-
-    return 'ゲスト'
-  }, [displayName, user?.email])
+  const headerDisplayName = useMemo(
+    () =>
+      getDisplayName(
+        user
+          ? {
+              ...user,
+              user_metadata: {
+                ...user.user_metadata,
+                display_name: displayName ?? user.user_metadata?.display_name,
+              },
+            }
+          : null,
+      ),
+    [displayName, user],
+  )
 
   useEffect(() => {
     if (!userId || supabaseConfigError) {
