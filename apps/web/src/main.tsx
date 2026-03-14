@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
 import { LearningProvider } from './contexts/LearningContext'
@@ -12,7 +12,9 @@ import './styles/globals.css'
 // Route-based Code Splitting: 各ページを動的インポートでチャンク分割
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })))
+const SignUpPage = lazy(() => import('./pages/SignUpPage').then((m) => ({ default: m.SignUpPage })))
 const StepPage = lazy(() => import('./pages/StepPage').then((m) => ({ default: m.StepPage })))
 
 // ページ遷移中のフォールバック UI
@@ -31,6 +33,16 @@ const router = createBrowserRouter([
       <GuestRoute>
         <Suspense fallback={<PageLoading />}>
           <LoginPage />
+        </Suspense>
+      </GuestRoute>
+    ),
+  },
+  {
+    path: '/signup',
+    element: (
+      <GuestRoute>
+        <Suspense fallback={<PageLoading />}>
+          <SignUpPage />
         </Suspense>
       </GuestRoute>
     ),
@@ -65,7 +77,14 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  { path: '*', element: <Navigate to="/" replace /> },
+  {
+    path: '*',
+    element: (
+      <Suspense fallback={<PageLoading />}>
+        <NotFoundPage />
+      </Suspense>
+    ),
+  },
 ])
 
 const rootElement = document.getElementById('root')!
