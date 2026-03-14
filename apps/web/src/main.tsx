@@ -13,6 +13,7 @@ import './styles/globals.css'
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })))
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })))
+const SignUpPage = lazy(() => import('./pages/SignUpPage').then((m) => ({ default: m.SignUpPage })))
 const StepPage = lazy(() => import('./pages/StepPage').then((m) => ({ default: m.StepPage })))
 
 // ページ遷移中のフォールバック UI
@@ -31,6 +32,16 @@ const router = createBrowserRouter([
       <GuestRoute>
         <Suspense fallback={<PageLoading />}>
           <LoginPage />
+        </Suspense>
+      </GuestRoute>
+    ),
+  },
+  {
+    path: '/signup',
+    element: (
+      <GuestRoute>
+        <Suspense fallback={<PageLoading />}>
+          <SignUpPage />
         </Suspense>
       </GuestRoute>
     ),
