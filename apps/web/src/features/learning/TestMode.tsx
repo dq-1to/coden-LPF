@@ -1,30 +1,12 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import type { TestTask } from '../../content/fundamentals/steps'
 import { addToReviewList, removeFromReviewList } from '../../services/reviewListService'
+import { previewByStepId } from './testModePreview'
 
 interface TestModeProps {
   stepId: string
   task: TestTask
   onComplete: () => void
-}
-
-const previewByStepId: Record<string, { title: string; description: string }> = {
-  'usestate-basic': {
-    title: 'Counter Preview',
-    description: 'クリックでカウントが増えるUIを確認できる状態です。',
-  },
-  events: {
-    title: 'Event Preview',
-    description: 'イベントハンドラが接続された状態です。',
-  },
-  conditional: {
-    title: 'Conditional Preview',
-    description: '条件分岐に応じて表示切り替えが動作する状態です。',
-  },
-  lists: {
-    title: 'List Preview',
-    description: 'リスト描画とkey設定が有効です。',
-  },
 }
 
 export function TestMode({ stepId, task, onComplete }: TestModeProps) {
