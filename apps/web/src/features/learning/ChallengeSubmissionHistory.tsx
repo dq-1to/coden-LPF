@@ -1,4 +1,5 @@
-﻿import type { ChallengeSubmission } from '@/services/challengeSubmissionService'
+﻿import { ErrorBanner } from '@/components/ErrorBanner'
+import type { ChallengeSubmission } from '@/services/challengeSubmissionService'
 import { formatDateTime } from '@/shared/utils/dateTime'
 
 interface ChallengeSubmissionHistoryProps {
@@ -31,7 +32,7 @@ export function ChallengeSubmissionHistory({
       </div>
 
       {isLoading ? <p className="mt-3 text-sm text-slate-500">提出履歴を読み込み中...</p> : null}
-      {error ? <p className="mt-3 text-sm text-rose-700">{error}</p> : null}
+      {error ? <ErrorBanner className="mt-3">{error}</ErrorBanner> : null}
       {!isLoading && !error && submissions.length === 0 ? (
         <p className="mt-3 text-sm text-slate-500">提出履歴はまだありません。</p>
       ) : null}

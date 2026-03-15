@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { ErrorBanner } from '../../components/ErrorBanner'
 import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
 
 const MonacoEditor = lazy(() => import('@monaco-editor/react'))
@@ -113,7 +114,7 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
         )}
       </div>
 
-      {submissionError ? <p className="text-sm text-rose-700">{submissionError}</p> : null}
+      {submissionError ? <ErrorBanner>{submissionError}</ErrorBanner> : null}
 
       {checked && !isPassed ? (
         <div className="rounded-lg border border-rose-300 bg-rose-50 p-4">

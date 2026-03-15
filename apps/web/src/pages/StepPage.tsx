@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { ErrorBanner } from '../components/ErrorBanner'
 import { LearningSidebar } from '../components/LearningSidebar'
 import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
@@ -129,7 +130,7 @@ export function StepPage() {
               })}
             </div>
 
-            {syncMessage ? <p className="mt-4 text-sm text-rose-700">{syncMessage}</p> : null}
+            {syncMessage ? <ErrorBanner className="mt-4">{syncMessage}</ErrorBanner> : null}
 
             {activeMode === 'read' ? (
               <ReadMode
