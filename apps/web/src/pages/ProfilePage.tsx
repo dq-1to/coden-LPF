@@ -8,6 +8,7 @@ import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { supabaseConfigError } from '../lib/supabaseClient'
 import { BADGE_DEFINITIONS } from '../services/achievementService'
 import { getPointHistory, getProfile, upsertDisplayName, type PointHistoryRecord } from '../services/profileService'
+import { Spinner } from '../components/Spinner'
 import { formatDateTime, formatStudyDate } from '../shared/utils/dateTime'
 import { getDisplayName } from '../shared/utils/getDisplayName'
 
@@ -207,7 +208,7 @@ export function ProfilePage() {
 
         <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-bold text-text-dark">ポイント履歴</h2>
-          {isLoading ? <p className="text-sm text-text-light">履歴を読み込み中...</p> : null}
+          {isLoading ? <Spinner size="sm" label="履歴を読み込み中..." /> : null}
           {!isLoading && pointHistory.length === 0 ? <p className="text-sm text-text-light">ポイント履歴はまだありません。</p> : null}
           {pointHistory.length > 0 ? (
             <ul className="divide-y divide-slate-100">

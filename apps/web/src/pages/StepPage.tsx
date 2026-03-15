@@ -12,6 +12,7 @@ import { TestMode } from '../features/learning/TestMode'
 import { useChallengeSubmission } from '../features/learning/hooks/useChallengeSubmission'
 import { useRecentChallengeSubmissions } from '../features/learning/hooks/useRecentChallengeSubmissions'
 import { useLearningStep } from '../features/learning/hooks/useLearningStep'
+import { PageSpinner } from '../components/Spinner'
 import type { LearningMode } from '../content/fundamentals/steps'
 import { getDisplayName } from '../shared/utils/getDisplayName'
 
@@ -77,11 +78,7 @@ export function StepPage() {
   }
 
   if (isLoadingStats) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="font-medium text-slate-500">読み込み中...</p>
-      </div>
-    )
+    return <PageSpinner />
   }
 
   if (!step) {
