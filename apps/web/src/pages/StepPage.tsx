@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { ErrorBanner } from '../components/ErrorBanner'
 import { LearningSidebar } from '../components/LearningSidebar'
 import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
@@ -12,6 +13,7 @@ import { TestMode } from '../features/learning/TestMode'
 import { useChallengeSubmission } from '../features/learning/hooks/useChallengeSubmission'
 import { useRecentChallengeSubmissions } from '../features/learning/hooks/useRecentChallengeSubmissions'
 import { useLearningStep } from '../features/learning/hooks/useLearningStep'
+import { PageSpinner } from '../components/Spinner'
 import type { LearningMode } from '../content/fundamentals/steps'
 import { getDisplayName } from '../shared/utils/getDisplayName'
 
@@ -77,11 +79,7 @@ export function StepPage() {
   }
 
   if (isLoadingStats) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="font-medium text-slate-500">読み込み中...</p>
-      </div>
-    )
+    return <PageSpinner />
   }
 
   if (!step) {
@@ -132,7 +130,7 @@ export function StepPage() {
               })}
             </div>
 
-            {syncMessage ? <p className="mt-4 text-sm text-rose-700">{syncMessage}</p> : null}
+            {syncMessage ? <ErrorBanner className="mt-4">{syncMessage}</ErrorBanner> : null}
 
             {activeMode === 'read' ? (
               <ReadMode

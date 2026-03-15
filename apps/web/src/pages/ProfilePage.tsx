@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ConfigErrorView } from '../components/ConfigErrorView'
+import { ErrorBanner } from '../components/ErrorBanner'
 import { useAchievementContext } from '../contexts/AchievementContext'
 import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
@@ -8,6 +9,7 @@ import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { supabaseConfigError } from '../lib/supabaseClient'
 import { BADGE_DEFINITIONS } from '../services/achievementService'
 import { getPointHistory, getProfile, upsertDisplayName, type PointHistoryRecord } from '../services/profileService'
+import { Spinner } from '../components/Spinner'
 import { formatDateTime, formatStudyDate } from '../shared/utils/dateTime'
 import { getDisplayName } from '../shared/utils/getDisplayName'
 
@@ -121,8 +123,8 @@ export function ProfilePage() {
 
       <main className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         {supabaseConfigError ? <ConfigErrorView message={supabaseConfigError} /> : null}
-        {error ? <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p> : null}
-        {notice ? <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{notice}</p> : null}
+        {error ? <ErrorBanner>{error}</ErrorBanner> : null}
+        {notice ? <ErrorBanner variant="success">{notice}</ErrorBanner> : null}
 
         <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -207,7 +209,7 @@ export function ProfilePage() {
 
         <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-bold text-text-dark">ポイント履歴</h2>
-          {isLoading ? <p className="text-sm text-text-light">履歴を読み込み中...</p> : null}
+          {isLoading ? <Spinner size="sm" label="履歴を読み込み中..." /> : null}
           {!isLoading && pointHistory.length === 0 ? <p className="text-sm text-text-light">ポイント履歴はまだありません。</p> : null}
           {pointHistory.length > 0 ? (
             <ul className="divide-y divide-slate-100">

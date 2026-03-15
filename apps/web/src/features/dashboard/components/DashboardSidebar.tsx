@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Spinner } from '@/components/Spinner'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLearningContext } from '@/contexts/LearningContext'
 import {
@@ -134,7 +135,7 @@ export function DashboardSidebar() {
         <p className="mt-3 text-center text-xs text-text-light">
           今月は <span className="font-bold text-text-dark">{monthlyStudyDays}日</span> 学習しました
         </p>
-        {isLoadingHeatmap ? <p className="mt-2 text-center text-[11px] text-text-light">ヒートマップを更新中...</p> : null}
+        {isLoadingHeatmap ? <div className="mt-2 flex justify-center"><Spinner size="sm" /></div> : null}
         {error ? <p className="mt-2 text-center text-[11px] text-rose-600">{error}</p> : null}
       </section>
 

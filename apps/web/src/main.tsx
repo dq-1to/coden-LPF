@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { LearningProvider } from './contexts/LearningContext'
 import { AchievementProvider } from './contexts/AchievementContext'
 import { ConfigErrorView } from './components/ConfigErrorView'
+import { PageSpinner } from './components/Spinner'
 import { supabaseConfigError } from './lib/supabaseClient'
 import './styles/globals.css'
 
@@ -19,11 +20,7 @@ const StepPage = lazy(() => import('./pages/StepPage').then((m) => ({ default: m
 
 // ページ遷移中のフォールバック UI
 function PageLoading() {
-  return (
-    <div className="flex min-h-screen items-center justify-center" aria-live="polite" aria-label="ページを読み込み中">
-      <div className="text-gray-500">読み込み中...</div>
-    </div>
-  )
+  return <PageSpinner />
 }
 
 const router = createBrowserRouter([
