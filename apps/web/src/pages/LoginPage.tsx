@@ -1,6 +1,7 @@
 import { FormEvent, useMemo, useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { ConfigErrorView } from '../components/ConfigErrorView'
+import { ErrorBanner } from '../components/ErrorBanner'
 import { useAuth } from '../contexts/AuthContext'
 import { supabaseConfigError } from '../lib/supabaseClient'
 
@@ -72,7 +73,7 @@ export function LoginPage() {
           />
         </label>
 
-        {error ? <p className="text-sm text-red-700" role="alert">{error}</p> : null}
+        {error ? <ErrorBanner>{error}</ErrorBanner> : null}
 
         <button
           className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"

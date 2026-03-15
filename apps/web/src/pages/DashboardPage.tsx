@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ConfigErrorView } from '../components/ConfigErrorView'
+import { ErrorBanner } from '../components/ErrorBanner'
 import { getFirstImplementedStep, IMPLEMENTED_STEP_COUNT } from '../content/courseData'
 import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
@@ -89,7 +90,7 @@ export function DashboardPage() {
 
       <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {supabaseConfigError ? <ConfigErrorView message={supabaseConfigError} /> : null}
-        {error ? <p className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p> : null}
+        {error ? <ErrorBanner className="mb-4">{error}</ErrorBanner> : null}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <section className="space-y-6 lg:col-span-8">
