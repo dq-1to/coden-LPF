@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { Lightbulb } from 'lucide-react'
 import { Button } from '../../components/Button'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -15,20 +16,48 @@ interface ReadModeProps {
   isCompleted: boolean
 }
 
-export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
-  const [copyMessage, setCopyMessage] = useState<string | null>(null)
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
 
+  const handleCopy = useCallback(async () => {
+    if (!navigator.clipboard) return
+
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // コピー失敗時は何もしない
+    }
+  }, [text])
+
+  return (
+    <button
+      className="rounded bg-slate-700 px-2 py-1 text-slate-100 hover:bg-slate-600"
+      type="button"
+      onClick={() => void handleCopy()}
+    >
+      {copied ? 'コピーしました ✓' : 'コードをコピー'}
+    </button>
+  )
+}
+
+export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
   useEffect(() => {
     Prism.highlightAll()
   }, [markdown])
+
+  const completeButton = (
+    <Button onClick={onComplete} disabled={isCompleted}>
+      {isCompleted ? 'Read完了済み' : 'Readを完了'}
+    </Button>
+  )
 
   return (
     <section className="mt-4 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Read</h2>
-        <Button onClick={onComplete} disabled={isCompleted}>
-          {isCompleted ? 'Read完了済み' : 'Readを完了'}
-        </Button>
+        {completeButton}
       </div>
 
       <article className="prose prose-slate prose-lg max-w-none rounded-2xl border border-slate-200 bg-white p-6 leading-relaxed shadow-sm md:prose-xl">
@@ -42,37 +71,17 @@ export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
 
               if (isInline) {
                 return (
-                  <code className="rounded bg-slate-200 px-1 py-0.5 text-sm text-slate-800" {...props}>
+                  <code className="rounded-md bg-primary-mint/10 px-1.5 py-0.5 font-mono text-sm font-semibold text-primary-dark" {...props}>
                     {children}
                   </code>
                 )
-              }
-
-              async function handleCopy() {
-                if (!navigator.clipboard) {
-                  setCopyMessage('この環境ではコピー機能を利用できません。')
-                  return
-                }
-
-                try {
-                  await navigator.clipboard.writeText(codeText)
-                  setCopyMessage('コードをコピーしました。')
-                } catch {
-                  setCopyMessage('コードのコピーに失敗しました。')
-                }
               }
 
               return (
                 <div className="not-prose overflow-hidden rounded-lg border border-slate-800 bg-slate-900 shadow-sm">
                   <div className="flex items-center justify-between border-b border-slate-700 px-3 py-2 text-xs text-slate-200">
                     <span>{language}</span>
-                    <button
-                      className="rounded bg-slate-700 px-2 py-1 text-slate-100 hover:bg-slate-600"
-                      type="button"
-                      onClick={() => void handleCopy()}
-                    >
-                      コードをコピー
-                    </button>
+                    <CopyButton text={codeText} />
                   </div>
                   <pre className="m-0 overflow-x-auto p-4 font-mono text-sm">
                     <code className={`language-${language}`} {...props}>
@@ -82,12 +91,23 @@ export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
                 </div>
               )
             },
+            blockquote({ children }) {
+              return (
+                <div className="not-prose my-4 flex gap-3 rounded-lg border-l-4 border-primary-mint bg-secondary-bg px-4 py-3">
+                  <Lightbulb className="mt-0.5 size-5 shrink-0 text-primary-mint" />
+                  <div className="text-sm text-text-dark [&>p]:m-0">{children}</div>
+                </div>
+              )
+            },
           }}
         >
           {markdown}
         </ReactMarkdown>
       </article>
-      {copyMessage ? <p className="text-sm text-slate-600" role="status" aria-live="polite">{copyMessage}</p> : null}
+
+      <div className="flex justify-end">
+        {completeButton}
+      </div>
     </section>
   )
 }
