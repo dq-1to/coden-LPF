@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { getFirstImplementedStep, IMPLEMENTED_STEP_COUNT } from '../content/courseData'
@@ -15,6 +16,7 @@ import { getProfile } from '../services/profileService'
 import { getDisplayName } from '../shared/utils/getDisplayName'
 
 export function DashboardPage() {
+  useDocumentTitle('ダッシュボード')
   const { user, signOut } = useAuth()
   const { completedStepsCount } = useLearningContext()
   const navigate = useNavigate()
