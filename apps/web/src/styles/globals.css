@@ -4,19 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --primary-mint: #2cc295;
-  --primary-dark: #1e9e78;
-  --secondary-bg: #f0fdf9;
-  --text-dark: #1f2937;
-  --text-light: #6b7280;
-}
-
 body {
   margin: 0;
   min-height: 100vh;
   font-family: 'Noto Sans JP', sans-serif;
-  color: var(--text-dark);
+  color: #1f2937;
   background-color: #f9fafb;
 }
 
@@ -35,12 +27,5 @@ body {
 @layer utilities {
   .font-display {
     font-family: 'Nunito', sans-serif;
-  }
-
-  .glass-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   }
 }
