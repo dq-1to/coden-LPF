@@ -70,7 +70,7 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
               Q{index + 1}. {question.prompt}
             </p>
             <input
-              className={`w-full rounded-md border px-3 py-2 text-sm ${isJudged
+              className={`w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint ${isJudged
                 ? isCorrect
                   ? 'border-emerald-500 bg-emerald-50/50'
                   : 'border-rose-500 bg-rose-50/50'
