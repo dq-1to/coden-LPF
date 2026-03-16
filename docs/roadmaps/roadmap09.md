@@ -121,16 +121,12 @@ uireview02（2026-03-16、スコア 82/100）で以下が残存課題:
   - [x] TestMode は既に `font-mono` 適用済み、ChallengeMode は Monaco Editor が独自フォント管理のため対象外
   - [x] テスト通過を確認（220テスト全通過）
 
-- **タスク3: インラインコード・コールアウト・Read完了ボタン改善**
-  - [ ] ReadMode のインラインコードスタイルを強化:
-    - `bg-slate-200 px-1 py-0.5 text-sm text-slate-800` → `bg-primary-mint/10 px-1.5 py-0.5 text-sm font-semibold text-primary-dark font-mono rounded-md`
-  - [ ] ReactMarkdown の `blockquote` コンポーネントをカスタマイズ:
-    - ブロック引用を「ポイント」カード（`rounded-lg border-l-4 border-primary-mint bg-secondary-bg px-4 py-3`）に変換
-    - アイコン（lucide-react の `Lightbulb` 等）を左に配置
-  - [ ] 「Readを完了」ボタンを記事の下部にも配置（上部と下部の2箇所）
-  - [ ] コピーボタンのフィードバックを改善:
-    - `copyMessage` をコードブロック直下ではなく、ボタン自体のテキスト変化（「コピーしました ✓」→ 2秒後に「コードをコピー」に戻る）に変更
-  - [ ] テスト通過を確認
+- ~~**タスク3: インラインコード・コールアウト・Read完了ボタン改善**~~ ✅ PR #112
+  - [x] ReadMode のインラインコードスタイルを強化（`bg-primary-mint/10` + `text-primary-dark` + `font-mono`）
+  - [x] ReactMarkdown の `blockquote` を Lightbulb アイコン付き「ポイント」カードに変換
+  - [x] 「Readを完了」ボタンを記事の下部にも配置（上部と下部の2箇所）
+  - [x] コピーボタンを `CopyButton` コンポーネントに分離し、ボタンテキスト変化方式に変更
+  - [x] テスト通過を確認（220テスト全通過）
 
 ---
 
