@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Button } from '../../components/Button'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import Prism from 'prismjs'
@@ -25,15 +26,9 @@ export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
     <section className="mt-4 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Read</h2>
-        <button
-          className={`rounded-md px-4 py-2 text-sm font-bold text-white shadow-sm transition ${isCompleted ? 'cursor-not-allowed bg-slate-300' : 'bg-primary-mint hover:bg-primary-dark'
-            }`}
-          type="button"
-          onClick={onComplete}
-          disabled={isCompleted}
-        >
+        <Button onClick={onComplete} disabled={isCompleted}>
           {isCompleted ? 'Read完了済み' : 'Readを完了'}
-        </button>
+        </Button>
       </div>
 
       <article className="prose prose-slate prose-lg max-w-none rounded-2xl border border-slate-200 bg-white p-6 leading-relaxed shadow-sm md:prose-xl">

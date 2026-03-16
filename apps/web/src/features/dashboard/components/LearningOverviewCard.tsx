@@ -82,7 +82,7 @@ export function LearningOverviewCard({ completedCount }: LearningOverviewCardPro
         </div>
         {inProgressStep ? (
           <Link
-            className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+            className="rounded-xl bg-primary-mint px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-primary-dark active:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-primary-mint/30"
             to={`/step/${inProgressStep.id}`}
           >
             続きから再開

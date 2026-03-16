@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Button } from '../components/Button'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { useAuth } from '../contexts/AuthContext'
@@ -100,13 +101,9 @@ export function SignUpPage() {
 
         {error ? <ErrorBanner>{error}</ErrorBanner> : null}
 
-        <button
-          className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
-          type="submit"
-          disabled={isDisabled}
-        >
+        <Button type="submit" fullWidth disabled={isDisabled}>
           {isSubmitting ? '登録中...' : 'アカウントを作成'}
-        </button>
+        </Button>
 
         <p className="text-center text-sm text-slate-600">
           すでにアカウントをお持ちですか？{' '}

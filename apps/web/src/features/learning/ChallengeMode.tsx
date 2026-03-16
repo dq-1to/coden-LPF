@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { Button } from '../../components/Button'
 import { ErrorBanner } from '../../components/ErrorBanner'
 import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
 
@@ -95,13 +96,9 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
       </div>
 
       <div className="flex flex-col items-start gap-4 pt-4 sm:flex-row sm:items-center">
-        <button
-          className="rounded-md bg-primary-mint px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-primary-dark active:bg-emerald-700"
-          type="button"
-          onClick={() => void handleCheck()}
-        >
+        <Button size="lg" onClick={() => void handleCheck()}>
           判定する
-        </button>
+        </Button>
 
         {checked && (
           <p
