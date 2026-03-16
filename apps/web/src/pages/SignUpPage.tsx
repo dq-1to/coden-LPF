@@ -74,7 +74,7 @@ export function SignUpPage() {
           <span className="mb-1 block text-sm font-medium text-slate-700">メールアドレス</span>
           <input
             aria-label="メールアドレス"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none ring-blue-500 focus:ring-2"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -87,7 +87,7 @@ export function SignUpPage() {
           <span className="mb-1 block text-sm font-medium text-slate-700">パスワード</span>
           <input
             aria-label="パスワード"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none ring-blue-500 focus:ring-2"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint"
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}

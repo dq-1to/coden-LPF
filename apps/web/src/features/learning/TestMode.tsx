@@ -65,7 +65,7 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
                   ? isPassed
                     ? 'ring-emerald-500 focus:ring-emerald-400'
                     : 'ring-rose-500 focus:ring-rose-400'
-                  : 'ring-slate-500 focus:ring-blue-400'
+                  : 'ring-slate-500 focus:ring-primary-mint'
                   }`}
                 placeholder="例: setCount(count + 1)"
                 aria-label="コードの空欄を入力"
