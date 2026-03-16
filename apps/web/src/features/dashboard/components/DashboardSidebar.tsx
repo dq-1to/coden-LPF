@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { CheckCircle2, Flame, Lock, Monitor } from 'lucide-react'
 import { Spinner } from '@/components/Spinner'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLearningContext } from '@/contexts/LearningContext'
@@ -76,7 +77,7 @@ export function DashboardSidebar() {
 
   return (
     <aside className="space-y-5">
-      <section className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
+      <section className="rounded-2xl border border-emerald-100 bg-white shadow-sm">
         <div className="bg-mint-gradient px-5 py-4">
           <h3 className="font-bold text-white">学習ステータス</h3>
         </div>
@@ -110,16 +111,15 @@ export function DashboardSidebar() {
           <div>
             <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-light">獲得バッジ</p>
             <div className="flex items-center justify-between text-xl">
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-yellow-200 bg-yellow-100">✅</span>
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-orange-200 bg-orange-100">🔥</span>
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-blue-200 bg-blue-100">💻</span>
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-slate-300 bg-slate-100 text-slate-400">
-                🔒
+              <span className="grid h-10 w-10 place-items-center rounded-full border border-yellow-200 bg-yellow-100"><CheckCircle2 className="h-5 w-5 text-yellow-700" /></span>
+              <span className="grid h-10 w-10 place-items-center rounded-full border border-orange-200 bg-orange-100"><Flame className="h-5 w-5 text-orange-700" /></span>
+              <span className="grid h-10 w-10 place-items-center rounded-full border border-blue-200 bg-blue-100"><Monitor className="h-5 w-5 text-blue-700" /></span>
+              <span className="grid h-10 w-10 place-items-center rounded-full border border-slate-300 bg-slate-100">
+                <Lock className="h-5 w-5 text-slate-400" />
               </span>
             </div>
           </div>
         </div>
-        <div className="pointer-events-none absolute -bottom-6 -right-6 h-20 w-20 rounded-full bg-yellow-300/20 blur-2xl" />
       </section>
 
       <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">

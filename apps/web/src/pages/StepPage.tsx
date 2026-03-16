@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Check } from 'lucide-react'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { LearningSidebar } from '../components/LearningSidebar'
 import { useAuth } from '../contexts/AuthContext'
@@ -108,24 +109,45 @@ export function StepPage() {
           <LearningSidebar courseTitle={sidebarTitle} currentStepId={stepId} steps={sidebarSteps} />
 
           <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mt-4 flex flex-wrap gap-2 border-b border-slate-200 pb-4">
-              {modeButtons.map((mode) => {
-                const isActive = activeMode === mode.id
-                return (
-                  <button
-                    key={mode.id}
-                    className={`rounded-md px-4 py-2 text-sm font-bold transition ${isActive ? 'bg-primary-mint text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
-                      }`}
-                    type="button"
-                    aria-pressed={isActive}
-                    onClick={() => setActiveMode(mode.id)}
-                  >
-                    {mode.label}
-                    {modeStatus[mode.id] ? ' ✓' : ''}
-                  </button>
-                )
-              })}
-            </div>
+            <nav className="mt-4 border-b border-slate-200 pb-4" aria-label="学習モードステッパー">
+              <ol className="flex items-center gap-0">
+                {modeButtons.map((mode, index) => {
+                  const isActive = activeMode === mode.id
+                  const isDone = modeStatus[mode.id]
+                  return (
+                    <li key={mode.id} className="flex items-center">
+                      {index > 0 && (
+                        <div className={`h-0 w-6 border-t-2 sm:w-10 ${modeStatus[modeButtons[index - 1].id] ? 'border-primary-mint' : 'border-slate-200'}`} />
+                      )}
+                      <button
+                        className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition sm:px-4 sm:py-2 sm:text-sm ${
+                          isActive
+                            ? 'bg-primary-mint text-white shadow-sm'
+                            : isDone
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'
+                        }`}
+                        type="button"
+                        aria-label={mode.label}
+                        aria-current={isActive ? 'step' : undefined}
+                        onClick={() => setActiveMode(mode.id)}
+                      >
+                        <span className={`grid h-5 w-5 place-items-center rounded-full text-[10px] font-black sm:h-6 sm:w-6 sm:text-xs ${
+                          isActive
+                            ? 'bg-white/20'
+                            : isDone
+                              ? 'bg-emerald-200 text-emerald-800'
+                              : 'bg-slate-200 text-slate-500'
+                        }`}>
+                          {isDone ? <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> : index + 1}
+                        </span>
+                        <span className="hidden sm:inline">{mode.label}</span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ol>
+            </nav>
 
             {syncMessage ? <ErrorBanner className="mt-4">{syncMessage}</ErrorBanner> : null}
 
