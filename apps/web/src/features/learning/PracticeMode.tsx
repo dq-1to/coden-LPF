@@ -106,7 +106,7 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
             >
               ヒントを{hints[question.id] ? '隠す' : '表示'}
             </button>
-            {hints[question.id] ? <p className="text-sm text-blue-700">{question.hint}</p> : null}
+            {hints[question.id] ? <p className="text-sm text-primary-dark">{question.hint}</p> : null}
           </article>
         )
       })}
