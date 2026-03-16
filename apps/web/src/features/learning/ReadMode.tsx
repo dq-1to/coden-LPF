@@ -7,7 +7,7 @@ import 'prismjs/components/prism-javascript'
 import 'prismjs/components/prism-jsx'
 import 'prismjs/components/prism-typescript'
 import 'prismjs/components/prism-tsx'
-import 'prismjs/themes/prism.css'
+import 'prismjs/themes/prism-okaidia.css'
 
 interface ReadModeProps {
   markdown: string
@@ -74,7 +74,7 @@ export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
                       コードをコピー
                     </button>
                   </div>
-                  <pre className="m-0 overflow-x-auto p-4 text-sm">
+                  <pre className="m-0 overflow-x-auto p-4 font-mono text-sm">
                     <code className={`language-${language}`} {...props}>
                       {codeText}
                     </code>

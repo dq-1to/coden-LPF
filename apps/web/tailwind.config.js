@@ -15,6 +15,7 @@ export default {
       fontFamily: {
         sans: ['"Noto Sans JP"', 'sans-serif'],
         display: ['Nunito', 'sans-serif'],
+        mono: ['"Fira Code"', '"JetBrains Mono"', 'Consolas', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       backgroundImage: {
         'mint-gradient': 'linear-gradient(135deg, #2CC295 0%, #4FD1C5 100%)',
