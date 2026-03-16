@@ -100,7 +100,7 @@ export function DashboardSidebar() {
                 {pointGoal.current} / {pointGoal.target} pt
               </span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuenow={pointGoal.percent} aria-valuemin={0} aria-valuemax={100} aria-label="ポイント目標進捗">
               <div
                 className="h-full rounded-full bg-mint-gradient transition-all duration-300"
                 style={{ width: `${pointGoal.percent}%` }}
