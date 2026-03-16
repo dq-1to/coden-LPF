@@ -77,7 +77,7 @@ export function DashboardSidebar() {
 
   return (
     <aside className="space-y-5">
-      <section className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
+      <section className="rounded-2xl border border-emerald-100 bg-white shadow-sm">
         <div className="bg-mint-gradient px-5 py-4">
           <h3 className="font-bold text-white">学習ステータス</h3>
         </div>
@@ -120,7 +120,6 @@ export function DashboardSidebar() {
             </div>
           </div>
         </div>
-        <div className="pointer-events-none absolute -bottom-6 -right-6 h-20 w-20 rounded-full bg-yellow-300/20 blur-2xl" />
       </section>
 
       <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
