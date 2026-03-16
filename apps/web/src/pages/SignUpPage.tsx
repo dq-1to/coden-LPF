@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { Button } from '../components/Button'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { ErrorBanner } from '../components/ErrorBanner'
@@ -30,6 +31,8 @@ export function SignUpPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const isDisabled = useMemo(() => isSubmitting || Boolean(supabaseConfigError), [isSubmitting])
+
+  useDocumentTitle('アカウント作成')
 
   if (user) {
     return <Navigate to="/" replace />

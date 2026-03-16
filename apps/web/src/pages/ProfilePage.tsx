@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Lock, Trophy } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { useAchievementContext } from '../contexts/AchievementContext'
@@ -15,6 +16,7 @@ import { formatDateTime, formatStudyDate } from '../shared/utils/dateTime'
 import { getDisplayName } from '../shared/utils/getDisplayName'
 
 export function ProfilePage() {
+  useDocumentTitle('プロフィール')
   const { user, signOut } = useAuth()
   const { stats, completedStepsCount } = useLearningContext()
   const { unlockedBadgeIds, isChecking } = useAchievementContext()
@@ -174,22 +176,22 @@ export function ProfilePage() {
         </section>
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <article className="rounded-2xl border border-amber-100 bg-amber-50 p-4 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-wide text-amber-700">総ポイント</p>
-            <p className="mt-2 text-2xl font-black text-amber-800">{stats?.total_points ?? 0} Pt</p>
+          <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-wide text-text-light">総ポイント</p>
+            <p className="mt-2 text-2xl font-black text-amber-600">{stats?.total_points ?? 0} Pt</p>
           </article>
-          <article className="rounded-2xl border border-rose-100 bg-rose-50 p-4 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-wide text-rose-700">連続学習</p>
-            <p className="mt-2 text-2xl font-black text-rose-800">{stats?.current_streak ?? 0} 日</p>
+          <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-wide text-text-light">連続学習</p>
+            <p className="mt-2 text-2xl font-black text-rose-600">{stats?.current_streak ?? 0} 日</p>
           </article>
-          <article className="rounded-2xl border border-indigo-100 bg-indigo-50 p-4 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-wide text-indigo-700">最大ストリーク</p>
-            <p className="mt-2 text-2xl font-black text-indigo-800">{stats?.max_streak ?? 0} 日</p>
+          <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-wide text-text-light">最大ストリーク</p>
+            <p className="mt-2 text-2xl font-black text-indigo-600">{stats?.max_streak ?? 0} 日</p>
           </article>
-          <article className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">完了ステップ</p>
-            <p className="mt-2 text-2xl font-black text-emerald-800">{completedStepsCount}</p>
-            <p className="mt-1 text-xs text-emerald-700">最終学習日: {formatStudyDate(stats?.last_study_date ?? null)}</p>
+          <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-wide text-text-light">完了ステップ</p>
+            <p className="mt-2 text-2xl font-black text-emerald-600">{completedStepsCount}</p>
+            <p className="mt-1 text-xs text-text-light">最終学習日: {formatStudyDate(stats?.last_study_date ?? null)}</p>
           </article>
         </section>
 

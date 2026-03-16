@@ -104,7 +104,7 @@ export function LearningOverviewCard({ completedCount }: LearningOverviewCardPro
           </span>
           <span className="text-text-light">{progressPercent}%</span>
         </div>
-        <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100">
+        <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuenow={progressPercent} aria-valuemin={0} aria-valuemax={100} aria-label="学習進捗">
           <div className="h-full rounded-full bg-primary-mint transition-all duration-500" style={{ width: `${progressPercent}%` }} />
         </div>
       </div>
@@ -122,7 +122,7 @@ export function LearningOverviewCard({ completedCount }: LearningOverviewCardPro
                   {LEVEL_LABEL[course.level]}
                 </span>
                 {!hasSomeImplemented && (
-                  <span className="ml-auto text-xs text-slate-400">準備中</span>
+                  <span className="ml-auto text-xs text-slate-500">準備中</span>
                 )}
               </div>
               <ul className="space-y-2">
