@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { Check } from 'lucide-react'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { LearningSidebar } from '../components/LearningSidebar'
@@ -47,6 +48,7 @@ export function StepPage() {
   } = useLearningStep(stepId)
 
   const headerDisplayName = useMemo(() => getDisplayName(user), [user])
+  useDocumentTitle(step?.title ?? 'ステップ')
 
   const modeButtons: { id: LearningMode; label: string }[] = useMemo(
     () => [

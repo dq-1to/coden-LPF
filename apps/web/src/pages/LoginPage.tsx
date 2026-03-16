@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { Button } from '../components/Button'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { ErrorBanner } from '../components/ErrorBanner'
@@ -18,6 +19,8 @@ export function LoginPage() {
     const state = location.state as { from?: string } | null
     return state?.from ?? '/'
   }, [location.state])
+
+  useDocumentTitle('ログイン')
 
   if (user) {
     return <Navigate to={redirectPath} replace />

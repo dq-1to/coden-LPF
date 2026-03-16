@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Lock, Trophy } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { useAchievementContext } from '../contexts/AchievementContext'
@@ -15,6 +16,7 @@ import { formatDateTime, formatStudyDate } from '../shared/utils/dateTime'
 import { getDisplayName } from '../shared/utils/getDisplayName'
 
 export function ProfilePage() {
+  useDocumentTitle('プロフィール')
   const { user, signOut } = useAuth()
   const { stats, completedStepsCount } = useLearningContext()
   const { unlockedBadgeIds, isChecking } = useAchievementContext()
