@@ -17,7 +17,7 @@ export function NotFoundPage() {
 
       <div className="flex flex-wrap gap-3">
         <Link
-          className="inline-flex items-center justify-center rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+          className="inline-flex items-center justify-center rounded-md bg-primary-mint px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-primary-dark active:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-primary-mint/30"
           to="/"
         >
           ダッシュボードへ戻る

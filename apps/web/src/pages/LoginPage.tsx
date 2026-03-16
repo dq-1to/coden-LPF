@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
+import { Button } from '../components/Button'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { useAuth } from '../contexts/AuthContext'
@@ -52,7 +53,7 @@ export function LoginPage() {
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-slate-700">メールアドレス</span>
           <input
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none ring-blue-500 focus:ring-2"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -64,7 +65,7 @@ export function LoginPage() {
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-slate-700">パスワード</span>
           <input
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none ring-blue-500 focus:ring-2"
+            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint"
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -75,13 +76,9 @@ export function LoginPage() {
 
         {error ? <ErrorBanner>{error}</ErrorBanner> : null}
 
-        <button
-          className="w-full rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
-          type="submit"
-          disabled={isSubmitting || Boolean(supabaseConfigError)}
-        >
+        <Button type="submit" fullWidth disabled={isSubmitting || Boolean(supabaseConfigError)}>
           {isSubmitting ? 'ログイン中...' : 'ログイン'}
-        </button>
+        </Button>
 
         <p className="text-center text-sm text-slate-600">
           はじめて利用しますか？{' '}

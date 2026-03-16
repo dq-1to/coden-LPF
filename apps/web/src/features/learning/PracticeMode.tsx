@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Button } from '../../components/Button'
 import type { PracticeQuestion } from '../../content/fundamentals/steps'
 import { addToReviewList, removeFromReviewList } from '../../services/reviewListService'
 
@@ -70,7 +71,7 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
               Q{index + 1}. {question.prompt}
             </p>
             <input
-              className={`w-full rounded-md border px-3 py-2 text-sm ${isJudged
+              className={`w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint ${isJudged
                 ? isCorrect
                   ? 'border-emerald-500 bg-emerald-50/50'
                   : 'border-rose-500 bg-rose-50/50'
@@ -105,19 +106,15 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
             >
               ヒントを{hints[question.id] ? '隠す' : '表示'}
             </button>
-            {hints[question.id] ? <p className="text-sm text-blue-700">{question.hint}</p> : null}
+            {hints[question.id] ? <p className="text-sm text-primary-dark">{question.hint}</p> : null}
           </article>
         )
       })}
 
       <div className="flex flex-col items-start gap-4 pt-4 sm:flex-row sm:items-center">
-        <button
-          className="rounded-md bg-primary-mint px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-primary-dark active:bg-emerald-700"
-          type="button"
-          onClick={handleJudge}
-        >
+        <Button size="lg" onClick={handleJudge}>
           判定する
-        </button>
+        </Button>
 
         {isJudged && (
           <p
