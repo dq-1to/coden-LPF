@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Button } from '../../components/Button'
 import type { PracticeQuestion } from '../../content/fundamentals/steps'
 import { addToReviewList, removeFromReviewList } from '../../services/reviewListService'
 
@@ -111,13 +112,9 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
       })}
 
       <div className="flex flex-col items-start gap-4 pt-4 sm:flex-row sm:items-center">
-        <button
-          className="rounded-md bg-primary-mint px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-primary-dark active:bg-emerald-700"
-          type="button"
-          onClick={handleJudge}
-        >
+        <Button size="lg" onClick={handleJudge}>
           判定する
-        </button>
+        </Button>
 
         {isJudged && (
           <p
