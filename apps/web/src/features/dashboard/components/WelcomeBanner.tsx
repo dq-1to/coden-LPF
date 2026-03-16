@@ -7,9 +7,9 @@ export function WelcomeBanner({ displayName }: WelcomeBannerProps) {
     <section className="rounded-3xl bg-mint-gradient px-6 py-8 text-white shadow-glass sm:px-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-sm font-semibold uppercase tracking-wide text-emerald-50">Welcome back</p>
+          <p className="text-sm font-semibold uppercase tracking-wide text-white/80">Welcome back</p>
           <h1 className="font-display text-3xl font-bold leading-tight">こんにちは、{displayName}さん</h1>
-          <p className="text-sm text-emerald-50 sm:text-base">
+          <p className="text-sm text-white/80 sm:text-base">
             Reactマスターへの道を進めましょう。今日の1ステップが次の実装力につながります。
           </p>
         </div>
