@@ -80,7 +80,6 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
             >
               プロフィール
             </Link>
-            <span className="cursor-not-allowed pb-1 text-slate-400" aria-disabled="true">コミュニティ (準備中)</span>
           </nav>
         </div>
 
