@@ -118,6 +118,19 @@ export function ProfilePage() {
     }
   }
 
+  // notice/error の自動消去（5秒後）
+  useEffect(() => {
+    if (!notice) return
+    const id = window.setTimeout(() => setNotice(null), 5000)
+    return () => window.clearTimeout(id)
+  }, [notice])
+
+  useEffect(() => {
+    if (!error) return
+    const id = window.setTimeout(() => setError(null), 5000)
+    return () => window.clearTimeout(id)
+  }, [error])
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
       <AppHeader displayName={headerDisplayName} onSignOut={() => void handleSignOut()} />
