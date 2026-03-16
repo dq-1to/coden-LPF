@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Lock, Trophy } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { ErrorBanner } from '../components/ErrorBanner'
@@ -198,7 +199,7 @@ export function ProfilePage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <h3 className={`text-sm font-bold ${unlocked ? 'text-amber-900' : 'text-slate-600'}`}>{badge.name}</h3>
-                    <span className="text-lg">{unlocked ? '🏆' : '🔒'}</span>
+                    <span className="text-lg">{unlocked ? <Trophy className="h-5 w-5 text-amber-600" /> : <Lock className="h-5 w-5 text-slate-400" />}</span>
                   </div>
                   <p className={`mt-1 text-xs ${unlocked ? 'text-amber-700' : 'text-slate-500'}`}>{badge.description}</p>
                 </article>
