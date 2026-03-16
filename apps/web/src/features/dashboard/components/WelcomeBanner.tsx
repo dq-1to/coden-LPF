@@ -13,7 +13,9 @@ export function WelcomeBanner({ displayName }: WelcomeBannerProps) {
             Reactマスターへの道を進めましょう。今日の1ステップが次の実装力につながります。
           </p>
         </div>
-        <div className="grid h-20 w-20 place-items-center rounded-full border border-white/30 bg-white/20 text-4xl">🤖</div>
+        <div className="grid h-20 w-20 place-items-center rounded-full border border-white/30 bg-white/20">
+          <img src="/coden_logo.png" alt="Coden" className="h-12 w-12 object-contain" />
+        </div>
       </div>
       <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
       <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />

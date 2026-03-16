@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { BookOpen, CheckCircle2, Lock, PenLine } from 'lucide-react'
 import { COURSES, TOTAL_STEP_COUNT, type CourseMeta, type StepMeta } from '@/content/courseData'
 
 const LEVEL_LABEL: Record<CourseMeta['level'], string> = {
@@ -36,13 +37,19 @@ function StepRow({ step, isInProgress, isDone, isLockedByProgress }: StepRowProp
       ? { label: '完了', cls: 'bg-emerald-100 text-emerald-700' }
       : { label: isUnimplemented ? '準備中' : 'ロック中', cls: 'bg-slate-200 text-slate-500' }
 
-  const icon = isLocked ? '🔒' : isDone ? '✅' : isInProgress ? '📖' : '📝'
+  const icon = isLocked
+    ? <Lock className="h-4 w-4 text-slate-400" />
+    : isDone
+      ? <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+      : isInProgress
+        ? <BookOpen className="h-4 w-4 text-primary-mint" />
+        : <PenLine className="h-4 w-4 text-slate-500" />
 
   const inner = (
     <li className={`rounded-xl border p-4 ${borderBg} ${isLocked ? 'opacity-60' : ''}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-2">
-          <span className="mt-0.5 shrink-0 text-base">{icon}</span>
+          <span className="mt-0.5 shrink-0">{icon}</span>
           <div>
             <p className={`font-semibold ${isLocked ? 'text-text-light' : 'text-text-dark'}`}>
               Step {step.order}: {step.title}

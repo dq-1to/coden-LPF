@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import { Trophy } from 'lucide-react'
 import { BADGE_DEFINITIONS, checkAndUnlockAchievements, getUnlockedAchievements, type BadgeId } from '../services/achievementService'
 import { useAuth } from './AuthContext'
 
@@ -87,8 +88,8 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
       {badgeDef ? (
         <div className="fixed bottom-5 right-5 z-50 animate-bounce rounded-xl border-2 border-amber-300 bg-amber-50 px-4 py-3 shadow-xl">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-200 text-xl shadow-inner">
-              🏆
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-200 shadow-inner">
+              <Trophy className="h-5 w-5 text-amber-700" />
             </div>
             <div>
               <p className="text-xs font-bold text-amber-600">新しいバッジを獲得しました！</p>

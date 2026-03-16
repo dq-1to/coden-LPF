@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import { Flame, Gem, Menu, X } from 'lucide-react'
 import { getFirstImplementedStep } from '@/content/courseData'
 import { useLearningContext } from '@/contexts/LearningContext'
 
@@ -85,10 +85,10 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
 
         <div className="flex items-center gap-3">
           <div className="hidden rounded-full border border-amber-300/30 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 sm:block">
-            💎 {stats?.total_points ?? 0} Pt
+            <Gem className="inline-block h-3.5 w-3.5" /> {stats?.total_points ?? 0} Pt
           </div>
           <div className="hidden rounded-full border border-primary-mint/30 bg-secondary-bg px-3 py-1 text-xs font-semibold text-primary-dark sm:block">
-            🔥 {stats?.current_streak ?? 0}日連続
+            <Flame className="inline-block h-3.5 w-3.5" /> {stats?.current_streak ?? 0}日連続
           </div>
           <div className="hidden text-sm font-medium text-slate-600 sm:block">{displayName}</div>
           <button
@@ -144,10 +144,10 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
               <div className="text-sm font-medium text-slate-900">{displayName}</div>
               <div className="mt-1.5 flex items-center gap-2">
                 <span className="rounded-full border border-amber-300/30 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                  💎 {stats?.total_points ?? 0} Pt
+                  <Gem className="inline-block h-3.5 w-3.5" /> {stats?.total_points ?? 0} Pt
                 </span>
                 <span className="rounded-full border border-primary-mint/30 bg-secondary-bg px-2 py-0.5 text-xs font-semibold text-primary-dark">
-                  🔥 {stats?.current_streak ?? 0}日連続
+                  <Flame className="inline-block h-3.5 w-3.5" /> {stats?.current_streak ?? 0}日連続
                 </span>
               </div>
             </div>

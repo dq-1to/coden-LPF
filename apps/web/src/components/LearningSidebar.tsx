@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Lock } from 'lucide-react'
 import type { LearningStepContent } from '../content/fundamentals/steps'
 import { useLearningContext } from '../contexts/LearningContext'
 
@@ -22,7 +23,7 @@ export function LearningSidebar({ courseTitle, currentStepId, steps }: LearningS
           const content = (
             <>
               <p className="text-xs text-slate-500">
-                STEP {step.order} {isLocked ? '🔒' : ''}
+                STEP {step.order} {isLocked ? <Lock className="inline-block h-3 w-3" /> : ''}
               </p>
               <p className="font-medium">{step.title}</p>
             </>
