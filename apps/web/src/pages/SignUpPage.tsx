@@ -59,7 +59,7 @@ export function SignUpPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 px-6 py-16">
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50 px-6 py-16">
       <header className="space-y-2">
         <div className="flex items-center gap-3">
           <img src="/coden_logo.png" alt="Coden Logo" className="h-12 w-12 object-contain" />
@@ -70,7 +70,7 @@ export function SignUpPage() {
 
       {supabaseConfigError ? <ConfigErrorView message={supabaseConfigError} /> : null}
 
-      <form className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm" onSubmit={handleSubmit} noValidate>
+      <form className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" onSubmit={handleSubmit} noValidate>
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-slate-700">メールアドレス</span>
           <input
