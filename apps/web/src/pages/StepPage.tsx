@@ -86,8 +86,7 @@ export function StepPage() {
     return (
       <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-6 px-6 py-16">
         <h1 className="text-3xl font-bold">指定したステップが見つかりません</h1>
-        <p className="text-slate-600">stepId: {stepId}</p>
-        <Link className="text-sm font-medium text-blue-700 underline" to="/step/usestate-basic">
+        <Link className="text-sm font-medium text-primary-dark underline" to="/step/usestate-basic">
           最初のステップへ戻る
         </Link>
       </main>
@@ -109,8 +108,6 @@ export function StepPage() {
           <LearningSidebar courseTitle={sidebarTitle} currentStepId={stepId} steps={sidebarSteps} />
 
           <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">stepId: {step.id}</p>
-
             <div className="mt-4 flex flex-wrap gap-2 border-b border-slate-200 pb-4">
               {modeButtons.map((mode) => {
                 const isActive = activeMode === mode.id
@@ -182,7 +179,7 @@ export function StepPage() {
         </section>
 
         <div className="flex gap-4 text-sm">
-          <Link className="font-medium text-blue-700 underline" to="/">
+          <Link className="font-medium text-primary-dark underline" to="/">
             ダッシュボードへ戻る
           </Link>
         </div>
