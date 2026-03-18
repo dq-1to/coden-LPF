@@ -65,6 +65,7 @@ describe('ChallengeMode', () => {
       matchedKeywords: ['useState', 'onClick'],
     })
     expect(screen.getByRole('status').textContent).toContain('Challengeを完了しました')
+    expect(screen.getByRole('status').className).toContain('animate-bounceIn')
   })
 
   it('stepId が変わると入力内容と判定状態をリセットする', async () => {

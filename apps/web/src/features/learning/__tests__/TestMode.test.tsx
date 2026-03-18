@@ -50,6 +50,7 @@ describe('TestMode', () => {
     expect(onComplete).toHaveBeenCalledTimes(1)
     expect(removeFromReviewList).toHaveBeenCalledWith('step-a')
     expect(screen.getByRole('status').textContent).toContain('テスト合格')
+    expect(screen.getByRole('status').className).toContain('animate-bounceIn')
 
     rerender(<TestMode stepId="step-b" task={secondTask} onComplete={onComplete} />)
 

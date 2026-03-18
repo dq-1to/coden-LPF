@@ -85,7 +85,7 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
 
         {isJudged && (
           <p
-            className={`text-sm font-medium ${isPassed ? 'text-emerald-700' : 'text-rose-700'}`}
+            className={`text-sm font-medium ${isPassed ? 'animate-bounceIn text-emerald-700' : 'text-rose-700'}`}
             role="status"
             aria-live="polite"
           >

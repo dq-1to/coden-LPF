@@ -28,4 +28,65 @@ body {
   .font-display {
     font-family: 'Nunito', sans-serif;
   }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 300ms ease-out;
+  }
+
+  @keyframes bounceIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+
+    50% {
+      transform: scale(1.05);
+    }
+
+    70% {
+      transform: scale(0.9);
+    }
+
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-bounceIn {
+    animation: bounceIn 500ms ease-out;
+  }
+
+  @keyframes pulseMint {
+    0% {
+      box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.45);
+      transform: scale(1);
+    }
+
+    50% {
+      box-shadow: 0 0 0 10px rgba(45, 212, 191, 0);
+      transform: scale(1.04);
+    }
+
+    100% {
+      box-shadow: 0 0 0 0 rgba(45, 212, 191, 0);
+      transform: scale(1);
+    }
+  }
+
+  .animate-pulseMint {
+    animation: pulseMint 700ms ease-out;
+  }
 }

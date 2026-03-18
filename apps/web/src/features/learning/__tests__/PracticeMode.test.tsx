@@ -50,6 +50,7 @@ describe('PracticeMode', () => {
     expect(onComplete).toHaveBeenCalledTimes(1)
     expect(removeFromReviewList).toHaveBeenCalledWith('step-a')
     expect(screen.getByRole('status').textContent).toContain('Practiceを完了しました')
+    expect(screen.getByRole('status').className).toContain('animate-bounceIn')
     expect(screen.getByText('ヒント1')).toBeTruthy()
 
     rerender(<PracticeMode stepId="step-b" questions={secondQuestions} onComplete={onComplete} />)
