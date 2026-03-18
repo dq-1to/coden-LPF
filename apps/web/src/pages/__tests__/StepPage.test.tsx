@@ -62,7 +62,80 @@ vi.mock('@/features/learning/hooks/useLearningStep', () => ({
   useLearningStep: (...args: unknown[]) => useLearningStepMock(...args),
 }))
 
+function mockLearningStep() {
+  useLearningStepMock.mockReturnValue({
+    step: {
+      id: 'usestate-basic',
+      title: 'useState基礎',
+      summary: 'summary',
+      readMarkdown: '# read',
+      practiceQuestions: [],
+      testTask: {
+        instruction: 'instruction',
+        starterCode: 'const value = ____;',
+        expectedKeywords: ['value'],
+      },
+      challengeTask: {
+        patterns: [
+          {
+            id: 'pattern-1',
+            prompt: 'challenge',
+            requirements: [],
+            hints: [],
+            expectedKeywords: ['useState'],
+            starterCode: 'const [count, setCount] = useState(0);',
+          },
+        ],
+      },
+      order: 1,
+    },
+    isUnavailableStep: false,
+    modeStatus: {
+      read: false,
+      practice: false,
+      test: false,
+      challenge: false,
+    },
+    syncMessage: null,
+    toastMessage: null,
+    nextStep: undefined,
+    sidebarTitle: 'React基礎',
+    sidebarSteps: [],
+    isStepCompleted: false,
+    handleModeComplete: vi.fn(),
+  })
+}
+
 describe('StepPage', () => {
+  it('モード切り替え時に説明カードが切り替わる', async () => {
+    const user = userEvent.setup()
+
+    useChallengeSubmissionMock.mockReturnValue(vi.fn())
+    useRecentChallengeSubmissionsMock.mockReturnValue({
+      submissions: [],
+      isLoading: false,
+      error: null,
+      refresh: vi.fn(),
+    })
+    mockLearningStep()
+
+    render(
+      <MemoryRouter initialEntries={['/step/usestate-basic']}>
+        <Routes>
+          <Route path="/step/:stepId" element={<StepPage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('heading', { name: 'Read', level: 2 })).toBeTruthy()
+    expect(screen.getByText('読んで理解しよう')).toBeTruthy()
+
+    await user.click(screen.getByRole('button', { name: 'Practice' }))
+
+    expect(screen.getByRole('heading', { name: 'Practice', level: 2 })).toBeTruthy()
+    expect(screen.getByText('手を動かして定着させよう')).toBeTruthy()
+  })
+
   it('Challenge タブで提出履歴を主要導線上に表示する', async () => {
     const user = userEvent.setup()
 
@@ -83,47 +156,7 @@ describe('StepPage', () => {
       error: null,
       refresh: vi.fn(),
     })
-    useLearningStepMock.mockReturnValue({
-      step: {
-        id: 'usestate-basic',
-        title: 'useState基礎',
-        summary: 'summary',
-        readMarkdown: '# read',
-        practiceQuestions: [],
-        testTask: {
-          instruction: 'instruction',
-          starterCode: 'const value = ____;',
-          expectedKeywords: ['value'],
-        },
-        challengeTask: {
-          patterns: [
-            {
-              id: 'pattern-1',
-              prompt: 'challenge',
-              requirements: [],
-              hints: [],
-              expectedKeywords: ['useState'],
-              starterCode: 'const [count, setCount] = useState(0);',
-            },
-          ],
-        },
-        order: 1,
-      },
-      isUnavailableStep: false,
-      modeStatus: {
-        read: false,
-        practice: false,
-        test: false,
-        challenge: false,
-      },
-      syncMessage: null,
-      toastMessage: null,
-      nextStep: undefined,
-      sidebarTitle: 'React基礎',
-      sidebarSteps: [],
-      isStepCompleted: false,
-      handleModeComplete: vi.fn(),
-    })
+    mockLearningStep()
 
     render(
       <MemoryRouter initialEntries={['/step/usestate-basic']}>
@@ -133,7 +166,7 @@ describe('StepPage', () => {
       </MemoryRouter>,
     )
 
-    await user.click(screen.getByRole('button', { name: 'Challenge' }))
+    await user.click(screen.getAllByRole('button', { name: 'Challenge' })[0])
 
     expect(screen.getByText('直近の提出履歴')).toBeTruthy()
     expect(screen.getByText('Latest Submission')).toBeTruthy()
