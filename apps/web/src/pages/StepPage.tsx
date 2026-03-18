@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { BookOpen, Check, Code2, PenLine, Trophy } from 'lucide-react'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { LearningSidebar } from '../components/LearningSidebar'
+import { TOTAL_STEP_COUNT } from '../content/courseData'
 import { PageSpinner } from '../components/Spinner'
 import type { LearningMode } from '../content/fundamentals/steps'
 import { useAuth } from '../contexts/AuthContext'
@@ -218,8 +219,28 @@ export function StepPage() {
       <AppHeader displayName={headerDisplayName} onSignOut={() => void handleSignOut()} />
 
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-10">
-        <section className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary-mint">Learning Step</p>
+        <nav className="flex flex-wrap items-center gap-2 text-sm text-slate-500" aria-label="パンくずリスト">
+          <Link className="font-medium text-primary-dark underline" to="/">
+            ダッシュボード
+          </Link>
+          <span aria-hidden="true">/</span>
+          <span>{sidebarTitle}</span>
+          <span aria-hidden="true">/</span>
+          <span className="text-slate-700">{step.title}</span>
+        </nav>
+
+        <section className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-primary-mint/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary-dark">
+              Learning Step
+            </span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+              {sidebarTitle}
+            </span>
+            <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
+              Step {step.order} / {TOTAL_STEP_COUNT}
+            </span>
+          </div>
           <h1 className="text-3xl font-bold">{step.title}</h1>
           <p className="text-slate-600">{step.summary}</p>
         </section>
@@ -245,7 +266,7 @@ export function StepPage() {
                         />
                       ) : null}
                       <button
-                        className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition sm:px-4 sm:py-2 sm:text-sm ${
+                        className={`flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-xs font-bold transition sm:px-4 sm:text-sm ${
                           isActive
                             ? mode.activeClassName
                             : isDone
@@ -258,7 +279,7 @@ export function StepPage() {
                         onClick={() => setActiveMode(mode.id)}
                       >
                         <span
-                          className={`grid h-5 w-5 place-items-center rounded-full text-[10px] font-black sm:h-6 sm:w-6 sm:text-xs ${
+                          className={`grid h-6 w-6 place-items-center rounded-full text-xs font-black sm:h-6 sm:w-6 ${
                             isActive
                               ? 'bg-white/20'
                               : isDone
@@ -358,13 +379,6 @@ export function StepPage() {
             ) : null}
           </div>
         </section>
-
-        <div className="flex gap-4 text-sm">
-          <Link className="font-medium text-primary-dark underline" to="/">
-            ダッシュボードへ戻る
-          </Link>
-        </div>
-
         {toastMessage ? (
           <div
             className="fixed bottom-5 right-5 z-50 max-w-sm rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm text-emerald-900 shadow-xl"
