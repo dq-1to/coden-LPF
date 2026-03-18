@@ -102,7 +102,7 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
 
         {checked && (
           <p
-            className={`text-sm font-medium ${isPassed ? 'text-emerald-700' : 'text-rose-700'}`}
+            className={`text-sm font-medium ${isPassed ? 'animate-bounceIn text-emerald-700' : 'text-rose-700'}`}
             role="status"
             aria-live="polite"
           >

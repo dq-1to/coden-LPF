@@ -118,7 +118,7 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
 
         {isJudged && (
           <p
-            className={`text-sm font-medium ${isAllCorrect ? 'text-emerald-700' : 'text-rose-700'}`}
+            className={`text-sm font-medium ${isAllCorrect ? 'animate-bounceIn text-emerald-700' : 'text-rose-700'}`}
             role="status"
             aria-live="polite"
           >
