@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { BookOpen, Check, Code2, PenLine, Trophy } from 'lucide-react'
 import { ErrorBanner } from '../components/ErrorBanner'
@@ -80,6 +80,15 @@ export function StepPage() {
   const { completedStepsCount, isLoadingStats } = useLearningContext()
   const navigate = useNavigate()
   const [activeMode, setActiveMode] = useState<LearningMode>('read')
+  const [pulseModes, setPulseModes] = useState<Record<LearningMode, boolean>>({
+    read: false,
+    practice: false,
+    test: false,
+    challenge: false,
+  })
+  const challengeCompleteRef = useRef<HTMLDivElement | null>(null)
+  const previousModeStatusRef = useRef<Record<LearningMode, boolean> | null>(null)
+  const pulseTimeoutsRef = useRef<number[]>([])
   const saveChallengeSubmission = useChallengeSubmission(stepId)
   const recentChallengeSubmissions = useRecentChallengeSubmissions(stepId)
   const handleChallengeSubmitResult = useCallback(
@@ -115,6 +124,57 @@ export function StepPage() {
   const ActiveModeIcon = activeModeMeta.icon
 
   useDocumentTitle(step?.title ?? 'ステップ')
+
+  useEffect(() => {
+    if (!previousModeStatusRef.current) {
+      previousModeStatusRef.current = modeStatus
+      return
+    }
+
+    const previousModeStatus = previousModeStatusRef.current
+    const newlyCompletedModes = (Object.keys(modeStatus) as LearningMode[]).filter(
+      (mode) => !previousModeStatus[mode] && modeStatus[mode],
+    )
+
+    if (newlyCompletedModes.length > 0) {
+      setPulseModes((current) => {
+        const next = { ...current }
+
+        for (const mode of newlyCompletedModes) {
+          next[mode] = true
+        }
+
+        return next
+      })
+
+      for (const mode of newlyCompletedModes) {
+        const timeoutId = window.setTimeout(() => {
+          setPulseModes((current) => ({
+            ...current,
+            [mode]: false,
+          }))
+        }, 750)
+
+        pulseTimeoutsRef.current.push(timeoutId)
+      }
+    }
+
+    if (!previousModeStatus.challenge && modeStatus.challenge) {
+      challengeCompleteRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+
+    previousModeStatusRef.current = modeStatus
+  }, [modeStatus])
+
+  useEffect(() => {
+    const timeoutIds = pulseTimeoutsRef.current
+
+    return () => {
+      for (const timeoutId of timeoutIds) {
+        window.clearTimeout(timeoutId)
+      }
+    }
+  }, [])
 
   async function handleSignOut() {
     const errorMessage = await signOut()
@@ -191,7 +251,7 @@ export function StepPage() {
                             : isDone
                               ? mode.doneClassName
                               : 'border-slate-200 bg-slate-100 text-slate-500 hover:border-slate-300 hover:bg-slate-200 hover:text-slate-700'
-                        }`}
+                        } ${pulseModes[mode.id] ? 'animate-pulseMint' : ''}`}
                         type="button"
                         aria-label={mode.label}
                         aria-current={isActive ? 'step' : undefined}
@@ -280,7 +340,7 @@ export function StepPage() {
             ) : null}
 
             {modeStatus.challenge ? (
-              <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+              <div ref={challengeCompleteRef} className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
                 <p className="text-sm font-medium text-emerald-800">
                   {nextStep
                     ? `チャレンジ完了です。次は「${nextStep.title}」へ進めます。`
