@@ -137,11 +137,15 @@ describe('StepPage', () => {
 
     expect(screen.getByRole('heading', { name: 'Read', level: 2 })).toBeTruthy()
     expect(screen.getByText('読んで理解しよう')).toBeTruthy()
+    expect(screen.getByRole('navigation', { name: 'パンくずリスト' }).textContent).toContain('ダッシュボード')
+    expect(screen.getByText('Step 1 / 20')).toBeTruthy()
+    expect(screen.getAllByText('React基礎').length).toBeGreaterThan(0)
 
     await user.click(screen.getByRole('button', { name: 'Practice' }))
 
     expect(screen.getByRole('heading', { name: 'Practice', level: 2 })).toBeTruthy()
     expect(screen.getByText('手を動かして定着させよう')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Practice' }).className).toContain('min-h-11')
   })
 
   it('Challenge タブで提出履歴を主要導線上に表示する', async () => {
