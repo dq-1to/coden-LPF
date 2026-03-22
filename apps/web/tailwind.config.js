@@ -31,12 +31,12 @@ export default {
             'h2': {
               borderLeft: '4px solid #2CC295',
               paddingLeft: '0.75rem',
-              marginTop: '2.5rem',
-              marginBottom: '1rem',
+              marginTop: '1.75rem',
+              marginBottom: '0.75rem',
             },
             'h3': {
-              marginTop: '2rem',
-              marginBottom: '0.75rem',
+              marginTop: '1.25rem',
+              marginBottom: '0.5rem',
             },
             'strong': {
               color: '#1E9E78',
@@ -49,8 +49,8 @@ export default {
               },
             },
             'pre': {
-              marginTop: '1.5rem',
-              marginBottom: '1.5rem',
+              marginTop: '1rem',
+              marginBottom: '1rem',
             },
           },
         },

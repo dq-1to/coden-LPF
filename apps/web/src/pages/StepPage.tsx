@@ -25,10 +25,7 @@ const MODE_META: Record<
   {
     label: string
     description: string
-    accentLabel: string
     icon: typeof BookOpen
-    cardClassName: string
-    iconClassName: string
     activeClassName: string
     doneClassName: string
   }
@@ -36,40 +33,28 @@ const MODE_META: Record<
   read: {
     label: 'Read',
     description: '読んで理解しよう',
-    accentLabel: 'Mint',
     icon: BookOpen,
-    cardClassName: 'border-primary-mint/30 bg-gradient-to-r from-primary-mint/18 via-white to-primary-mint/5',
-    iconClassName: 'bg-primary-mint text-primary-dark',
     activeClassName: 'border-primary-mint bg-primary-mint text-white shadow-sm shadow-primary-mint/30',
     doneClassName: 'border-primary-mint/30 bg-primary-mint/15 text-primary-dark',
   },
   practice: {
     label: 'Practice',
     description: '手を動かして定着させよう',
-    accentLabel: 'Amber',
     icon: PenLine,
-    cardClassName: 'border-amber-200 bg-gradient-to-r from-amber-100 via-white to-amber-50',
-    iconClassName: 'bg-amber-100 text-amber-700',
     activeClassName: 'border-amber-400 bg-amber-400 text-slate-950 shadow-sm shadow-amber-300/40',
     doneClassName: 'border-amber-200 bg-amber-100 text-amber-800',
   },
   test: {
     label: 'Test',
     description: 'コードを書いて理解を確かめよう',
-    accentLabel: 'Sky',
     icon: Code2,
-    cardClassName: 'border-sky-200 bg-gradient-to-r from-sky-100 via-white to-sky-50',
-    iconClassName: 'bg-sky-100 text-sky-700',
     activeClassName: 'border-sky-500 bg-sky-500 text-white shadow-sm shadow-sky-400/30',
     doneClassName: 'border-sky-200 bg-sky-100 text-sky-800',
   },
   challenge: {
     label: 'Challenge',
     description: '自由に実装して力を試そう',
-    accentLabel: 'Violet',
     icon: Trophy,
-    cardClassName: 'border-violet-200 bg-gradient-to-r from-violet-100 via-white to-violet-50',
-    iconClassName: 'bg-violet-100 text-violet-700',
     activeClassName: 'border-violet-500 bg-violet-500 text-white shadow-sm shadow-violet-400/30',
     doneClassName: 'border-violet-200 bg-violet-100 text-violet-800',
   },
@@ -121,9 +106,6 @@ export function StepPage() {
       })),
     [],
   )
-  const activeModeMeta = MODE_META[activeMode]
-  const ActiveModeIcon = activeModeMeta.icon
-
   useDocumentTitle(step?.title ?? 'ステップ')
 
   useEffect(() => {
@@ -218,7 +200,7 @@ export function StepPage() {
     <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
       <AppHeader displayName={headerDisplayName} onSignOut={() => void handleSignOut()} />
 
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-10">
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-6 sm:px-6">
         <nav className="flex flex-wrap items-center gap-2 text-sm text-slate-500" aria-label="パンくずリスト">
           <Link className="font-medium text-primary-dark underline" to="/">
             ダッシュボード
@@ -274,6 +256,7 @@ export function StepPage() {
                               : 'border-slate-200 bg-slate-100 text-slate-500 hover:border-slate-300 hover:bg-slate-200 hover:text-slate-700'
                         } ${pulseModes[mode.id] ? 'animate-pulseMint' : ''}`}
                         type="button"
+                        title={mode.description}
                         aria-label={mode.label}
                         aria-current={isActive ? 'step' : undefined}
                         onClick={() => setActiveMode(mode.id)}
@@ -297,25 +280,6 @@ export function StepPage() {
                 })}
               </ol>
             </nav>
-
-            <section
-              key={activeMode}
-              className={`mt-4 rounded-2xl border px-4 py-4 animate-fadeIn sm:px-5 ${activeModeMeta.cardClassName}`}
-              aria-label={`${activeModeMeta.label} の説明`}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${activeModeMeta.iconClassName}`}
-                >
-                  <ActiveModeIcon className="h-5 w-5" aria-hidden="true" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold tracking-wide text-slate-500">現在のモード</p>
-                  <h2 className="mt-1 text-lg font-bold text-slate-900">{activeModeMeta.label}</h2>
-                  <p className="mt-1 text-sm text-slate-700">{activeModeMeta.description}</p>
-                </div>
-              </div>
-            </section>
 
             {syncMessage ? <ErrorBanner className="mt-4">{syncMessage}</ErrorBanner> : null}
 

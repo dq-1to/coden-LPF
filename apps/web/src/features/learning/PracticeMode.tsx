@@ -66,7 +66,7 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
         const showExplanation = isJudged && !isCorrect && question.explanation
 
         return (
-          <article key={question.id} className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <article key={question.id} className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4">
             <p className="text-sm font-medium text-slate-700">
               Q{index + 1}. {question.prompt}
             </p>

@@ -115,7 +115,7 @@ describe('StepPage', () => {
     cleanup()
   })
 
-  it('モード切り替え時に説明カードが切り替わる', async () => {
+  it('モード切り替え時にステッパーの aria-current が切り替わる', async () => {
     const user = userEvent.setup()
 
     useChallengeSubmissionMock.mockReturnValue(vi.fn())
@@ -135,16 +135,16 @@ describe('StepPage', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('heading', { name: 'Read', level: 2 })).toBeTruthy()
-    expect(screen.getByText('読んで理解しよう')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Read' }).getAttribute('aria-current')).toBe('step')
+    expect(screen.getByRole('button', { name: 'Practice' }).getAttribute('aria-current')).toBeNull()
     expect(screen.getByRole('navigation', { name: 'パンくずリスト' }).textContent).toContain('ダッシュボード')
     expect(screen.getByText('Step 1 / 20')).toBeTruthy()
     expect(screen.getAllByText('React基礎').length).toBeGreaterThan(0)
 
     await user.click(screen.getByRole('button', { name: 'Practice' }))
 
-    expect(screen.getByRole('heading', { name: 'Practice', level: 2 })).toBeTruthy()
-    expect(screen.getByText('手を動かして定着させよう')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Practice' }).getAttribute('aria-current')).toBe('step')
+    expect(screen.getByRole('button', { name: 'Read' }).getAttribute('aria-current')).toBeNull()
     expect(screen.getByRole('button', { name: 'Practice' }).className).toContain('min-h-11')
   })
 
