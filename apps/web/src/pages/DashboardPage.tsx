@@ -97,13 +97,20 @@ export function DashboardPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <section className="space-y-6 lg:col-span-8">
             <WelcomeBanner displayName={greetingName} />
+            {completedStepsCount === 0 && firstImplementedStep ? (
+              <div className="rounded-2xl border border-primary-mint/30 bg-gradient-to-r from-primary-mint/10 via-white to-primary-mint/5 p-6 shadow-sm">
+                <p className="text-sm font-semibold text-slate-600">はじめての方へ</p>
+                <p className="mt-1 text-lg font-bold text-slate-900">React学習を始めましょう</p>
+                <Link
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary-mint px-6 py-3 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-primary-dark active:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-primary-mint/30"
+                  to={`/step/${firstImplementedStep.id}`}
+                >
+                  最初のレッスンから始める →
+                </Link>
+              </div>
+            ) : null}
             <LearningOverviewCard completedCount={Math.min(completedStepsCount, IMPLEMENTED_STEP_COUNT)} />
             <ReviewListWidget />
-            {firstImplementedStep ? (
-              <Link className="inline-flex text-sm font-semibold text-primary-dark underline" to={`/step/${firstImplementedStep.id}`}>
-                最初のレッスンから始める
-              </Link>
-            ) : null}
           </section>
 
           <section className="lg:col-span-4">
