@@ -20,7 +20,7 @@ describe('ChallengeSubmissionHistory', () => {
     render(<ChallengeSubmissionHistory submissions={submissions} isLoading={false} error={null} />)
 
     expect(screen.getByText('直近の提出履歴')).toBeTruthy()
-    expect(screen.getByText('Latest Submission')).toBeTruthy()
+    expect(screen.getByText('最新の提出')).toBeTruthy()
     expect(screen.getByText('合格')).toBeTruthy()
     expect(screen.getByText('const [count, setCount] = useState(0);')).toBeTruthy()
     expect(screen.getByText(/2026\/03\/09/)).toBeTruthy()

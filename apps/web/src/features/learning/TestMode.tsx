@@ -56,19 +56,19 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
       <h2 className="text-lg font-semibold">Test</h2>
       <p className="text-sm text-slate-700">{task.instruction}</p>
 
-      <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-lg border border-slate-300 bg-slate-900 p-4 font-mono text-sm leading-relaxed text-slate-100">
+      <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-lg border border-slate-300 bg-slate-900 p-4 font-mono text-sm leading-relaxed text-slate-100">
         {parts.map((part, index) => (
           <Fragment key={index}>
             {part}
             {index < parts.length - 1 && (
               <input
-                className={`mx-1 inline-block w-64 rounded bg-slate-800 px-2 py-0.5 text-emerald-300 outline-none ring-1 placeholder:text-slate-500 focus:ring-2 ${isJudged
+                className={`mx-1 inline-block w-full max-w-xs rounded bg-slate-800 px-2 py-0.5 text-emerald-300 outline-none ring-1 placeholder:text-slate-500 focus:ring-2 sm:w-64 ${isJudged
                   ? isPassed
                     ? 'ring-emerald-500 focus:ring-emerald-400'
                     : 'ring-rose-500 focus:ring-rose-400'
                   : 'ring-slate-500 focus:ring-primary-mint'
                   }`}
-                placeholder="例: setCount(count + 1)"
+                placeholder="コードを入力"
                 aria-label="コードの空欄を入力"
                 value={blankInput}
                 onChange={(event) => handleInputChange(event.target.value)}
@@ -84,13 +84,18 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
         </Button>
 
         {isJudged && (
-          <p
-            className={`text-sm font-medium ${isPassed ? 'animate-bounceIn text-emerald-700' : 'text-rose-700'}`}
+          <div
+            className={`animate-fadeIn rounded-xl border px-4 py-3 ${isPassed ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'}`}
             role="status"
             aria-live="polite"
           >
-            {isPassed ? '🎉 テスト合格！ライブプレビューが解禁されました。' : '❌ 必要キーワードを満たしていません。もう一度試してください。'}
-          </p>
+            <p className={`text-sm font-semibold ${isPassed ? 'text-emerald-800' : 'text-rose-800'}`}>
+              {isPassed ? 'テスト合格！ ライブプレビューが解禁されました。' : '必要キーワードを満たしていません。'}
+            </p>
+            {!isPassed && (
+              <p className="mt-1 text-xs text-rose-700">コードを見直して、もう一度試してください。</p>
+            )}
+          </div>
         )}
       </div>
 
