@@ -83,13 +83,13 @@ export function DashboardSidebar() {
         </div>
         <div className="space-y-4 p-5">
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl border border-orange-100 bg-orange-50 p-3 text-center">
-              <p className="text-xs font-bold uppercase tracking-wide text-orange-600">連続学習</p>
-              <p className="mt-1 text-2xl font-black text-orange-700">{stats?.current_streak ?? 0}日</p>
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 text-center">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">連続学習</p>
+              <p className="mt-1 text-2xl font-black text-slate-800">{stats?.current_streak ?? 0}日</p>
             </div>
-            <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3 text-center">
-              <p className="text-xs font-bold uppercase tracking-wide text-indigo-600">合計ポイント</p>
-              <p className="mt-1 text-2xl font-black text-indigo-700">{stats?.total_points ?? 0}pt</p>
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 text-center">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">合計ポイント</p>
+              <p className="mt-1 text-2xl font-black text-slate-800">{stats?.total_points ?? 0}pt</p>
             </div>
           </div>
 
@@ -111,10 +111,10 @@ export function DashboardSidebar() {
           <div>
             <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-light">獲得バッジ</p>
             <div className="flex items-center justify-between text-xl">
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-yellow-200 bg-yellow-100"><CheckCircle2 className="h-5 w-5 text-yellow-700" /></span>
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-orange-200 bg-orange-100"><Flame className="h-5 w-5 text-orange-700" /></span>
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-blue-200 bg-blue-100"><Monitor className="h-5 w-5 text-blue-700" /></span>
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-slate-300 bg-slate-100">
+              <span className="grid h-10 w-10 place-items-center rounded-full border border-emerald-200 bg-emerald-50"><CheckCircle2 className="h-5 w-5 text-emerald-600" /></span>
+              <span className="grid h-10 w-10 place-items-center rounded-full border border-emerald-200 bg-emerald-50"><Flame className="h-5 w-5 text-emerald-600" /></span>
+              <span className="grid h-10 w-10 place-items-center rounded-full border border-emerald-200 bg-emerald-50"><Monitor className="h-5 w-5 text-emerald-600" /></span>
+              <span className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-slate-100">
                 <Lock className="h-5 w-5 text-slate-400" />
               </span>
             </div>
@@ -132,25 +132,23 @@ export function DashboardSidebar() {
             <span key={`${cell.date}-${index}`} className={`h-3 w-3 rounded-sm ${heatmapColor(cell.level)}`} />
           ))}
         </div>
-        <p className="mt-3 text-center text-xs text-text-light">
-          今月は <span className="font-bold text-text-dark">{monthlyStudyDays}日</span> 学習しました
-        </p>
+        <div className="mt-3 flex items-center justify-between">
+          <p className="text-xs text-text-light">
+            今月は <span className="font-bold text-text-dark">{monthlyStudyDays}日</span> 学習
+          </p>
+          <div className="flex items-center gap-1 text-[10px] text-text-light">
+            <span>少</span>
+            <span className="inline-block h-2.5 w-2.5 rounded-sm bg-slate-100" />
+            <span className="inline-block h-2.5 w-2.5 rounded-sm bg-emerald-200" />
+            <span className="inline-block h-2.5 w-2.5 rounded-sm bg-primary-mint" />
+            <span className="inline-block h-2.5 w-2.5 rounded-sm bg-primary-dark" />
+            <span>多</span>
+          </div>
+        </div>
         {isLoadingHeatmap ? <div className="mt-2 flex justify-center"><Spinner size="sm" /></div> : null}
         {error ? <p className="mt-2 text-center text-[11px] text-rose-600">{error}</p> : null}
       </section>
 
-      <section className="rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-600 p-5 text-white shadow-sm">
-        <p className="mb-2 inline-block rounded bg-white/20 px-2 py-0.5 text-xs font-bold uppercase tracking-wide">
-          Bonus Challenge
-        </p>
-        <h3 className="font-bold">MVPでは未提供です</h3>
-        <p className="mt-1 text-sm text-indigo-100">
-          現在のMVPでは、20ステップの学習フローに集中できる構成にしています。追加チャレンジは今後の拡張予定です。
-        </p>
-        <div className="mt-4 rounded-lg border border-white/25 bg-white/10 px-4 py-3 text-sm font-medium text-indigo-50">
-          機能状態: 準備中
-        </div>
-      </section>
     </aside>
   )
 }
