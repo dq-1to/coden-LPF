@@ -84,27 +84,37 @@ const router = createBrowserRouter([
   },
 ])
 
-const rootElement = document.getElementById('root')!
-const root = ReactDOM.createRoot(rootElement)
+async function startApp() {
+  // VITE_API_BASE_URL 未設定時は MSW で API をモック（本番環境の API Practice 用）
+  if (!import.meta.env.VITE_API_BASE_URL) {
+    const { worker } = await import('./mocks/browser')
+    await worker.start({ onUnhandledRequest: 'bypass' })
+  }
 
-if (supabaseConfigError) {
-  root.render(
-    <React.StrictMode>
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <ConfigErrorView message={supabaseConfigError} />
-      </div>
-    </React.StrictMode>,
-  )
-} else {
-  root.render(
-    <React.StrictMode>
-      <AuthProvider>
-        <LearningProvider>
-          <AchievementProvider>
-            <RouterProvider router={router} />
-          </AchievementProvider>
-        </LearningProvider>
-      </AuthProvider>
-    </React.StrictMode>,
-  )
+  const rootElement = document.getElementById('root')!
+  const root = ReactDOM.createRoot(rootElement)
+
+  if (supabaseConfigError) {
+    root.render(
+      <React.StrictMode>
+        <div className="flex min-h-screen items-center justify-center p-4">
+          <ConfigErrorView message={supabaseConfigError} />
+        </div>
+      </React.StrictMode>,
+    )
+  } else {
+    root.render(
+      <React.StrictMode>
+        <AuthProvider>
+          <LearningProvider>
+            <AchievementProvider>
+              <RouterProvider router={router} />
+            </AchievementProvider>
+          </LearningProvider>
+        </AuthProvider>
+      </React.StrictMode>,
+    )
+  }
 }
+
+void startApp()
