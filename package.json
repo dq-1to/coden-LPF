@@ -12,5 +12,10 @@
     "lint": "npm --workspace @coden/web run lint",
     "test": "npm --workspace @coden/web run test",
     "api:dev": "npm --workspace @coden/web run api:dev"
+  },
+  "msw": {
+    "workerDirectory": [
+      "apps\\web\\public"
+    ]
   }
 }
