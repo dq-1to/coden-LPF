@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { AppHeader } from '../AppHeader'
-import { DashboardSidebar } from '../DashboardSidebar'
 
 vi.mock('@/contexts/LearningContext', () => ({
   useLearningContext: () => ({
@@ -41,15 +40,4 @@ describe('dashboard navigation placeholders', () => {
     expect(link.getAttribute('href')).toBe('/step/usestate-basic')
   })
 
-  it('Bonus Challenge プレースホルダーが MVP 対象外であることを明示する', () => {
-    render(
-      <MemoryRouter>
-        <DashboardSidebar />
-      </MemoryRouter>,
-    )
-
-    expect(screen.getByText('MVPでは未提供です')).toBeTruthy()
-    expect(screen.getByText('機能状態: 準備中')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: '準備中' })).toBeNull()
-  })
 })

@@ -83,8 +83,8 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
               onChange={(event) => handleAnswerChange(question.id, event.target.value)}
             />
             {isJudged ? (
-              <p className={`text-sm font-medium ${isCorrect ? 'text-emerald-700' : 'text-rose-700'}`}>
-                {isCorrect ? '✅ 正解です。' : '❌ 不正解です。もう一度試してください。'}
+              <p className={`rounded-md px-3 py-1.5 text-sm font-medium ${isCorrect ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                {isCorrect ? '正解です。' : '不正解です。もう一度試してください。'}
               </p>
             ) : null}
             {showExplanation ? (
@@ -117,13 +117,18 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
         </Button>
 
         {isJudged && (
-          <p
-            className={`text-sm font-medium ${isAllCorrect ? 'animate-bounceIn text-emerald-700' : 'text-rose-700'}`}
+          <div
+            className={`animate-fadeIn rounded-xl border px-4 py-3 ${isAllCorrect ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}
             role="status"
             aria-live="polite"
           >
-            {isAllCorrect ? '🎉 すべて正解！Practiceを完了しました。' : '⚠️ すべての問題に正解すると完了です。'}
-          </p>
+            <p className={`text-sm font-semibold ${isAllCorrect ? 'text-emerald-800' : 'text-amber-800'}`}>
+              {isAllCorrect ? 'すべて正解！ Practiceを完了しました。' : 'まだ不正解の問題があります。'}
+            </p>
+            {!isAllCorrect && (
+              <p className="mt-1 text-xs text-amber-700">すべての問題に正解すると完了です。ヒントを活用してみましょう。</p>
+            )}
+          </div>
         )}
       </div>
     </section>

@@ -43,7 +43,7 @@ export function ChallengeSubmissionHistory({
             <li key={submission.id} className="rounded-lg border border-slate-200 bg-white p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  {index === 0 ? 'Latest Submission' : `Submission ${index + 1}`}
+                  {index === 0 ? '最新の提出' : `提出 ${index + 1}`}
                 </p>
                 <span
                   className={`rounded-full px-2.5 py-1 text-xs font-semibold ${

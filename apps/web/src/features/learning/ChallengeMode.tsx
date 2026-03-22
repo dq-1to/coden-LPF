@@ -101,27 +101,36 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
         </Button>
 
         {checked && (
-          <p
-            className={`text-sm font-medium ${isPassed ? 'animate-bounceIn text-emerald-700' : 'text-rose-700'}`}
+          <div
+            className={`animate-fadeIn rounded-xl border px-4 py-3 ${isPassed ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'}`}
             role="status"
             aria-live="polite"
           >
-            {isPassed ? '🎉 Challengeを完了しました！' : '❌ 要件を満たしていません。'}
-          </p>
+            <p className={`text-sm font-semibold ${isPassed ? 'text-emerald-800' : 'text-rose-800'}`}>
+              {isPassed ? 'Challengeを完了しました！' : '要件を満たしていません。'}
+            </p>
+            {!isPassed && (
+              <p className="mt-1 text-xs text-rose-700">下記の不足要件を確認して、もう一度挑戦してみましょう。</p>
+            )}
+          </div>
         )}
       </div>
 
       {submissionError ? <ErrorBanner>{submissionError}</ErrorBanner> : null}
 
       {checked && !isPassed ? (
-        <div className="rounded-lg border border-rose-300 bg-rose-50 p-4">
-          <p className="text-sm font-medium text-rose-700">不足キーワードがあります:</p>
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4">
+          <p className="text-sm font-semibold text-rose-800">以下の要件が未達成です:</p>
           <ul className="mt-2 list-inside list-disc text-sm text-rose-700">
             {missingKeywords.map((keyword) => (
               <li key={keyword}>{keyword}</li>
             ))}
           </ul>
-          {pattern.hints.length > 0 && <p className="mt-2 text-sm text-rose-700">ヒント: {pattern.hints[0]}</p>}
+          {pattern.hints.length > 0 && (
+            <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              ヒント: {pattern.hints[0]}
+            </p>
+          )}
         </div>
       ) : null}
     </section>

@@ -5,11 +5,11 @@ export function NotFoundPage() {
   useDocumentTitle('ページが見つかりません')
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 px-6 py-16">
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50 px-6 py-16">
       <header className="space-y-3">
         <div className="flex items-center gap-3">
           <img src="/coden_logo.png" alt="Coden Logo" className="h-12 w-12 object-contain" />
-          <p className="font-display text-2xl font-bold tracking-tight text-primary-mint">Coden MVP</p>
+          <p className="font-display text-2xl font-bold tracking-tight text-primary-mint">Coden</p>
         </div>
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">404 Not Found</p>
         <h1 className="font-display text-4xl font-bold tracking-tight text-slate-900">ページが見つかりません</h1>

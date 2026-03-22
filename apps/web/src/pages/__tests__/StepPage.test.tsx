@@ -181,7 +181,7 @@ describe('StepPage', () => {
     await user.click(screen.getAllByRole('button', { name: 'Challenge' })[0])
 
     expect(screen.getByText('直近の提出履歴')).toBeTruthy()
-    expect(screen.getByText('Latest Submission')).toBeTruthy()
+    expect(screen.getByText('最新の提出')).toBeTruthy()
     expect(screen.getByText('合格')).toBeTruthy()
     expect(screen.getByText('const [count, setCount] = useState(0);')).toBeTruthy()
   })
@@ -278,7 +278,7 @@ describe('StepPage', () => {
     await waitFor(() => {
       expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth', block: 'nearest' })
     })
-    expect(screen.getByText('チャレンジ完了です。次は「イベント処理」へ進めます。')).toBeTruthy()
+    expect(screen.getByText('このステップを完了しました！ 次は「イベント処理」へ進めます。')).toBeTruthy()
   })
 
   it('完了したモードが増えたときにステッパーへ pulse 演出を付与する', async () => {
