@@ -133,42 +133,15 @@ if (tasks.length === 0) {
       },
     ],
     testTask: {
-      instruction: `GET /tasks を呼び出してタスク一覧を表示するコンポーネントを実装してください。
-
-要件:
-- useEffect でマウント時に fetch('http://localhost:3001/tasks') を呼ぶ
-- ローディング中は「読み込み中...」を表示する
-- 各タスクを <li> で表示し、completed が true なら打ち消し線を適用する
-- タスクが0件なら「タスクはありません」を表示する`,
-      starterCode: `import { useEffect, useState } from 'react';
-
-interface Task {
-  id: string;
-  title: string;
-  completed: boolean;
-}
-
-export function TaskList() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // TODO: fetch で /tasks を取得し、setTasks してください
-  }, []);
-
-  if (loading) return <p>読み込み中...</p>;
-  if (tasks.length === 0) return <p>タスクはありません</p>;
-
-  return (
-    <ul>
-      {tasks.map((task) => (
-        // TODO: key を設定し、completed なら打ち消し線を適用してください
-        <li>{task.title}</li>
-      ))}
-    </ul>
-  );
-}`,
-      expectedKeywords: ['fetch', 'useEffect', 'setTasks', 'setLoading', 'map', 'key', 'task.id'],
+      instruction: 'map でリストをレンダリングする際に、各要素に一意の値を渡す属性の空欄を埋めてください。',
+      starterCode: `<ul>
+  {tasks.map((task) => (
+    <li ____={task.id}>
+      {task.title}
+    </li>
+  ))}
+</ul>`,
+      expectedKeywords: ['key'],
       explanation: 'useEffectでGET /tasksを呼び、setTasksでstateを更新してからmapでリストをレンダリングします。keyにはtask.idを使います。',
     },
     challengeTask: {

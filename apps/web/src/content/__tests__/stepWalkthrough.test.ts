@@ -243,9 +243,9 @@ describe('API連携コース（course-4）コンテンツ固有検証', () => {
     expect(step.testTask.expectedKeywords).toContain('PATCH')
   })
 
-  it('api-tasks-delete: DELETE が expectedKeywords に含まれる', () => {
+  it('api-tasks-delete: filter が expectedKeywords に含まれる', () => {
     const step = course4Steps.find((s) => s.id === 'api-tasks-delete')!
-    expect(step.testTask.expectedKeywords).toContain('DELETE')
+    expect(step.testTask.expectedKeywords).toContain('filter')
   })
 
   it('api-custom-hook: useCallback が expectedKeywords に含まれる', () => {
@@ -253,15 +253,14 @@ describe('API連携コース（course-4）コンテンツ固有検証', () => {
     expect(step.challengeTask.patterns[0].expectedKeywords).toContain('useCallback')
   })
 
-  it('api-error-loading: useReducer / dispatch が expectedKeywords に含まれる', () => {
+  it('api-error-loading: dispatch が expectedKeywords に含まれる', () => {
     const step = course4Steps.find((s) => s.id === 'api-error-loading')!
-    expect(step.testTask.expectedKeywords).toContain('useReducer')
     expect(step.testTask.expectedKeywords).toContain('dispatch')
   })
 
-  it('course-4 の各ステップの starterCode に TODO コメントが含まれる', () => {
+  it('course-4 の各ステップの starterCode に ____ ブランクが含まれる', () => {
     for (const step of course4Steps) {
-      expect(step.testTask.starterCode, `${step.id}: starterCode に TODO がない`).toContain('TODO')
+      expect(step.testTask.starterCode, `${step.id}: starterCode に ____ がない`).toContain('____')
     }
   })
 })

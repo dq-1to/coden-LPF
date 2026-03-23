@@ -190,44 +190,23 @@ return <article><h1>{data.title}</h1></article>;
       },
     ],
     testTask: {
-      instruction: `JSONPlaceholderのAPIを使って記事を取得するコンポーネントを実装してください。
-
-- URL: \`https://jsonplaceholder.typicode.com/posts/1\`
-- \`isLoading\`（初期値 true）、\`error\`、\`data\` の3つの state を管理する
-- ローディング中は「読み込み中...」を表示する
-- エラー時は「エラー: {メッセージ}」を表示する
-- 取得成功時は記事のタイトル（\`data.title\`）を \`<h1>\` で表示する
-- \`useEffect\` の依存配列は空配列 \`[]\` にする`,
-      starterCode: `import { useState, useEffect } from 'react';
-
-interface Post {
-  id: number;
-  title: string;
-  body: string;
-}
-
-export function PostViewer() {
-  // TODO: data, isLoading, error の3つのstateを定義してください
-  // isLoading の初期値は true にしてください
-
-  useEffect(() => {
-    // TODO: async関数 fetchData を定義してください
-    // - fetch で https://jsonplaceholder.typicode.com/posts/1 を取得
-    // - try-catch-finally を使ってエラーハンドリングを実装
-    // - finally で setIsLoading(false) を呼ぶ
-
-    // TODO: fetchData() を呼び出してください
-  }, []);
-
-  // TODO: isLoading が true なら「読み込み中...」を表示
-
-  // TODO: error があれば「エラー: {error}」を表示
-
-  // TODO: data があれば <h1>{data.title}</h1> を表示
-  return <div>{/* ここに条件分岐した表示を実装 */}</div>;
-}`,
-      expectedKeywords: ['useEffect', 'fetch', 'useState', 'isLoading'],
-      explanation: 'useEffectの中でfetchを呼び、isLoading・error・dataの3状態を管理するのがReactのAPI連携の基本パターンです。',
+      instruction: 'useEffect 内で API を取得する処理の空欄を埋めてください。finally ブロックでローディングを解除します。',
+      starterCode: `useEffect(() => {
+  async function fetchData() {
+    try {
+      const res = await fetch('https://jsonplaceholder.typicode.com/posts/1');
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      setError((err as Error).message);
+    } ____ {
+      setIsLoading(false);
+    }
+  }
+  void fetchData();
+}, []);`,
+      expectedKeywords: ['finally'],
+      explanation: 'try-catch-finallyのfinallyブロックは成功・失敗に関わらず必ず実行されます。ローディング解除はここに書くのが定石です。',
     },
     challengeTask: {
       patterns: [

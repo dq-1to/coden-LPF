@@ -131,43 +131,16 @@ function Counter() {
       },
     ],
     testTask: {
-      instruction: `\`FilteredList\` コンポーネントを完成させてください。
+      instruction: 'useMemo を使ってフィルタ計算をメモ化してください。空欄に useMemo の呼び出しを書いてください。',
+      starterCode: `const [query, setQuery] = useState('');
+const [count, setCount] = useState(0);
 
-仕様:
-- props として \`items: string[]\` を受け取る
-- テキスト入力で一覧をフィルタリングできる
-- フィルタ結果の計算には useMemo を使う
-- 「カウント」ボタンをクリックするとカウントが増える（フィルタとは無関係のステート）
-- カウントが増えてもフィルタ計算は再実行されない（useMemo の恩恵）`,
-      starterCode: `import { useState, useMemo } from 'react';
-
-interface FilteredListProps {
-  items: string[];
-}
-
-export function FilteredList({ items }: FilteredListProps) {
-  const [query, setQuery] = useState('');
-  const [count, setCount] = useState(0);
-
-  // TODO: useMemo でフィルタ計算をキャッシュする
-  const filtered = items; // ここを修正
-
-  return (
-    <div>
-      <input
-        placeholder="絞り込み..."
-        value={query}
-        onChange={e => setQuery(e.target.value)}
-      />
-      <button onClick={() => setCount(c => c + 1)}>カウント: {count}</button>
-      <ul>
-        {filtered.map(item => <li key={item}>{item}</li>)}
-      </ul>
-    </div>
-  );
-}`,
-      expectedKeywords: ['useMemo', 'filter', 'query', 'items'],
-      explanation: 'useMemoでフィルタ計算をキャッシュすると、queryが変わらない限り再計算されません。countの変化による無駄な計算を防げます。',
+const filtered = ____(
+  () => items.filter(item => item.includes(query)),
+  [items, query]
+);`,
+      expectedKeywords: ['useMemo'],
+      explanation: 'useMemoでフィルタ計算をキャッシュすると、queryやitemsが変わらない限り再計算されません。countの変化による無駄な計算を防げます。',
     },
     challengeTask: {
       patterns: [

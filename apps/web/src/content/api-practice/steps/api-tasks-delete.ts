@@ -106,52 +106,17 @@ async function handleDelete(id: string) {
       },
     ],
     testTask: {
-      instruction: `削除ボタンでタスクをリストから除去するコンポーネントを実装してください。
-
-要件:
-- マウント時に GET /tasks でタスク一覧を取得する
-- 各タスクに「削除」ボタンを表示する
-- ボタンのクリックで DELETE /tasks/:id を呼び出す
-- 削除成功後にリストから該当タスクを除去する
-- 削除中はボタンを disabled にする`,
-      starterCode: `import { useEffect, useState } from 'react';
-
-interface Task {
-  id: string;
-  title: string;
-  completed: boolean;
-}
-
-export function TaskList() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    // TODO: GET /tasks でタスク一覧を取得してください
-  }, []);
-
-  async function handleDelete(id: string) {
-    // TODO: DELETE /tasks/:id を呼び出してリストから除去してください
-    // deletingId を使って二重クリックを防いでください
+      instruction: '削除成功後にリストから該当タスクを除外する配列メソッドの空欄を埋めてください。',
+      starterCode: `async function handleDelete(id: string) {
+  setDeletingId(id);
+  try {
+    await fetch(\`/tasks/\${id}\`, { method: 'DELETE' });
+    setTasks(prev => prev.____(t => t.id !== id));
+  } finally {
+    setDeletingId(null);
   }
-
-  return (
-    <ul>
-      {tasks.map((task) => (
-        <li key={task.id}>
-          {task.title}
-          <button
-            onClick={() => void handleDelete(task.id)}
-            disabled={deletingId === task.id}
-          >
-            {deletingId === task.id ? '削除中...' : '削除'}
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
 }`,
-      expectedKeywords: ['DELETE', 'fetch', 'filter', 'setTasks', 'setDeletingId', 'disabled'],
+      expectedKeywords: ['filter'],
       explanation: 'DELETE /tasks/:idを呼び、成功後にfilterで該当タスクを除去します。deletingIdで削除中ボタンをdisabledにします。',
     },
     challengeTask: {

@@ -148,47 +148,24 @@ export function useTasks() {
       },
     ],
     testTask: {
-      instruction: `useTasks フックを使ってタスク一覧を表示するコンポーネントを実装してください。
-
-useTasks フックは既に実装されており、以下を返します:
-- tasks: Task[] — タスク一覧
-- loading: boolean — ローディング中か
-- error: string | null — エラーメッセージ
-- createTask: (title: string) => Promise<void>
-- toggleTask: (task: Task) => Promise<void>
-- deleteTask: (id: string) => Promise<void>
-
-要件:
-- useTasks フックを呼び出してタスク一覧を取得する
-- ローディング中は「読み込み中...」を表示する
-- エラー時は「エラー: {error}」を表示する
-- タスク一覧を表示する（title と completed チェックボックス）`,
+      instruction: 'カスタムフックを呼び出してタスク一覧を取得する空欄を埋めてください。フック名を入力します。',
       starterCode: `import { useTasks } from './useTasks';
 
-interface Task {
-  id: string;
-  title: string;
-  completed: boolean;
-}
-
 export function TaskPage() {
-  // TODO: useTasks フックを呼び出してください
-  const { tasks, loading, error } = { tasks: [], loading: false, error: null };
+  const { tasks, loading, error } = ____();
 
   if (loading) return <p>読み込み中...</p>;
   if (error) return <p>エラー: {error}</p>;
 
   return (
     <ul>
-      {tasks.map((task: Task) => (
-        <li key={task.id}>
-          {/* TODO: チェックボックスと task.title を表示してください */}
-        </li>
+      {tasks.map((task) => (
+        <li key={task.id}>{task.title}</li>
       ))}
     </ul>
   );
 }`,
-      expectedKeywords: ['useTasks', 'tasks', 'loading', 'error', 'map', 'task.title'],
+      expectedKeywords: ['useTasks'],
       explanation: 'useTasksを呼び出すだけでタスク一覧とローディング・エラー状態が取得できます。コンポーネントはUI表示だけに専念できます。',
     },
     challengeTask: {

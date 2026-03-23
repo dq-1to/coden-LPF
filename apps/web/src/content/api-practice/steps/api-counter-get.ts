@@ -134,29 +134,22 @@ useEffect(() => {
       },
     ],
     testTask: {
-      instruction: `GET /counter を呼び出してカウンター値を表示するコンポーネントを実装してください。
-
-要件:
-- useEffect でマウント時に fetch('http://localhost:3001/counter') を呼ぶ
-- ローディング中は「読み込み中...」を表示する
-- データ取得後はカウンター値（value）を表示する
-- エラー時は「エラーが発生しました」を表示する`,
-      starterCode: `import { useEffect, useState } from 'react';
-
-export function CounterDisplay() {
-  const [value, setValue] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // TODO: fetch で /counter を取得し、value をセットしてください
-  }, []);
-
-  if (loading) return <p>読み込み中...</p>;
-  if (error) return <p>{error}</p>;
-  return <p>カウンター: {value}</p>;
-}`,
-      expectedKeywords: ['fetch', 'useEffect', 'setValue', 'setLoading', 'setError', 'json'],
+      instruction: 'useEffect 内でデータを取得する関数の空欄を埋めてください。HTTP リクエストを送る関数名を入力します。',
+      starterCode: `useEffect(() => {
+  async function load() {
+    try {
+      const res = await ____('/counter');
+      const data = await res.json();
+      setValue(data.value);
+    } catch {
+      setError('エラーが発生しました');
+    } finally {
+      setLoading(false);
+    }
+  }
+  void load();
+}, []);`,
+      expectedKeywords: ['fetch'],
       explanation: 'useEffect内でfetchを呼びloading/error/dataの3状態を管理するのがReactのGETデータ取得の基本パターンです。',
     },
     challengeTask: {

@@ -151,41 +151,16 @@ it('テストの説明', async () => {
       },
     ],
     testTask: {
-      instruction: `\`Counter\` コンポーネントに対するテストを完成させてください。
-
-テスト対象コンポーネント（Counter.tsx）の仕様:
-- カウント: {count} を表示する <p> タグ
-- クリックで +1 する "+" ボタン
-- クリックで -1 する "-" ボタン
-
-実装すべきテストケース:
-1. 初期値「カウント: 0」が表示されること
-2. +ボタンをクリックすると「カウント: 1」になること
-3. -ボタンをクリックすると「カウント: -1」になること`,
+      instruction: '「カウント: 0」がDOMに存在することを検証するアサーションの空欄を埋めてください。',
       starterCode: `import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { Counter } from './Counter';
 
-describe('Counter', () => {
-  it('初期値0が表示される', () => {
-    render(<Counter />);
-    // TODO: 「カウント: 0」というテキストがDOMにあることを検証する
-  });
-
-  it('+ボタンをクリックするとカウントが増える', async () => {
-    const user = userEvent.setup();
-    render(<Counter />);
-    // TODO: +ボタンをクリックして「カウント: 1」になることを検証する
-  });
-
-  it('-ボタンをクリックするとカウントが減る', async () => {
-    const user = userEvent.setup();
-    render(<Counter />);
-    // TODO: -ボタンをクリックして「カウント: -1」になることを検証する
-  });
+it('初期値0が表示される', () => {
+  render(<Counter />);
+  expect(screen.getByText('カウント: 0')).____();
 });`,
-      expectedKeywords: ['getByText', 'getByRole', 'toBeInTheDocument', 'user.click'],
-      explanation: 'render→操作→検証の流れでテストを書きます。getByRoleでボタンを取得しuser.clickで操作、toBeInTheDocumentで結果を確認します。',
+      expectedKeywords: ['toBeInTheDocument'],
+      explanation: 'toBeInTheDocument() は要素がDOMに存在することを検証するマッチャーです。screen.getByTextで要素を取得し、expectで検証します。',
     },
     challengeTask: {
       patterns: [

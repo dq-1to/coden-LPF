@@ -163,48 +163,20 @@ if (state.status === 'loading') {
       },
     ],
     testTask: {
-      instruction: `ApiState を使って通信状態に応じた UI を表示するコンポーネントを実装してください。
+      instruction: 'useReducer で状態を更新するために action を送る関数名を空欄に入力してください。',
+      starterCode: `const [state, dispatch] = useReducer(apiReducer, initialState);
 
-要件:
-- useReducer と apiReducer を使って status / data / error を管理する
-- マウント時に GET /tasks でタスク一覧を取得する
-- status === 'loading' のとき「読み込み中...」を表示する
-- status === 'error' のとき「エラー: {error}」と「再試行」ボタンを表示する
-- status === 'success' のときタスク一覧を表示する`,
-      starterCode: `import { useEffect, useReducer } from 'react';
-
-interface Task { id: string; title: string; completed: boolean; }
-type ApiStatus = 'idle' | 'loading' | 'success' | 'error';
-interface ApiState { status: ApiStatus; data: Task[] | null; error: string | null; }
-type Action =
-  | { type: 'FETCH_START' }
-  | { type: 'FETCH_SUCCESS'; payload: Task[] }
-  | { type: 'FETCH_ERROR'; payload: string };
-
-function apiReducer(state: ApiState, action: Action): ApiState {
-  switch (action.type) {
-    case 'FETCH_START': return { ...state, status: 'loading', error: null };
-    case 'FETCH_SUCCESS': return { status: 'success', data: action.payload, error: null };
-    case 'FETCH_ERROR': return { status: 'error', data: null, error: action.payload };
-    default: return state;
+async function load() {
+  ____({ type: 'FETCH_START' });
+  try {
+    const res = await fetch('/tasks');
+    const data = await res.json();
+    dispatch({ type: 'FETCH_SUCCESS', payload: data });
+  } catch (e) {
+    dispatch({ type: 'FETCH_ERROR', payload: (e as Error).message });
   }
-}
-
-export function TaskListWithState() {
-  const [state, dispatch] = useReducer(apiReducer, { status: 'idle', data: null, error: null });
-
-  async function load() {
-    // TODO: FETCH_START をディスパッチしてから fetch してください
-    // 成功時: FETCH_SUCCESS, 失敗時: FETCH_ERROR
-  }
-
-  useEffect(() => { void load(); }, []);
-
-  // TODO: status に応じて loading / error / success UI を表示してください
-
-  return <ul>{state.data?.map((t) => <li key={t.id}>{t.title}</li>)}</ul>;
 }`,
-      expectedKeywords: ['dispatch', 'FETCH_START', 'FETCH_SUCCESS', 'FETCH_ERROR', 'useReducer', 'status'],
+      expectedKeywords: ['dispatch'],
       explanation: 'useReducerとdispatchでFETCH_START/FETCH_SUCCESS/FETCH_ERRORを管理し、statusに応じてloading/error/successのUIを分岐します。',
     },
     challengeTask: {

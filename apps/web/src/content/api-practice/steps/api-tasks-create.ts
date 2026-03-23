@@ -138,60 +138,16 @@ if (!inputValue.trim()) {
       },
     ],
     testTask: {
-      instruction: `フォームからタスクを追加する機能を実装してください。
-
-要件:
-- 入力欄（input）とフォーム送信ボタンを配置する
-- フォームを送信すると POST /tasks を呼び出し、タスクを作成する
-- 作成後、リストに新しいタスクを追加する（スプレッド構文で）
-- 送信後は入力欄を空にする
-- 空入力の場合は送信しない（trim でチェック）`,
-      starterCode: `import { useEffect, useState } from 'react';
-
-interface Task {
-  id: string;
-  title: string;
-  completed: boolean;
-}
-
-export function TaskManager() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [inputValue, setInputValue] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    fetch('http://localhost:3001/tasks')
-      .then(res => res.json())
-      .then(data => setTasks(data));
-  }, []);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
-
-    // TODO: POST /tasks で新しいタスクを作成してください
-    // 作成後: setTasks で追加し、setInputValue('') で入力欄をクリア
-  }
-
-  return (
-    <div>
-      <form onSubmit={(e) => void handleSubmit(e)}>
-        <input
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="タスク名を入力..."
-        />
-        <button type="submit" disabled={submitting}>
-          {submitting ? '追加中...' : '追加'}
-        </button>
-      </form>
-      <ul>
-        {tasks.map(task => <li key={task.id}>{task.title}</li>)}
-      </ul>
-    </div>
-  );
-}`,
-      expectedKeywords: ['POST', 'JSON.stringify', 'Content-Type', 'setTasks', 'prev', 'setInputValue', 'trim'],
+      instruction: 'POST リクエストで新しいタスクを作成する際の HTTP メソッド名を空欄に入力してください。',
+      starterCode: `const res = await fetch('/tasks', {
+  method: '____',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ title: inputValue }),
+});
+const newTask = await res.json();
+setTasks(prev => [...prev, newTask]);
+setInputValue('');`,
+      expectedKeywords: ['POST'],
       explanation: 'POST /tasksにタスクを送信し、レスポンスのnewTaskをスプレッド構文でリストに追加します。送信後は入力欄を空にします。',
     },
     challengeTask: {
