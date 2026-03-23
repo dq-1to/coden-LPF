@@ -170,38 +170,16 @@ function useGood() {
       },
     ],
     testTask: {
-      instruction: `\`useToggle\` カスタムHookを実装してください。
-
-このHookは以下の仕様を満たす必要があります：
-- 引数に初期値（boolean）を受け取る（省略時は \`false\`）
-- 現在の値 \`value\` と、値を反転させる \`toggle\` 関数を返す
-- 呼び出し例: \`const { value, toggle } = useToggle()\`
-
-実装後、\`useToggle\` を使って表示/非表示を切り替えるコンポーネントを作成してください。`,
+      instruction: 'useToggle カスタムHookの toggle 関数を完成させてください。setValue に現在値の反転を渡す1行を埋めてください。',
       starterCode: `import { useState } from 'react';
 
-// TODO: useToggle カスタムHookを実装してください
-// - 引数: initial (boolean, デフォルト false)
-// - 戻り値: { value: boolean, toggle: () => void }
 function useToggle(initial = false) {
-  // TODO: ここに実装を追加してください
-
-}
-
-export function TogglePanel() {
-  // TODO: useToggle を使って isVisible と toggle を受け取ってください
-
-  return (
-    <div>
-      <button onClick={/* TODO: toggle を渡す */}>
-        切り替え
-      </button>
-      {/* TODO: isVisible が true のときだけ <p>表示中！</p> を表示してください */}
-    </div>
-  );
+  const [value, setValue] = useState(initial);
+  const toggle = () => ____;
+  return { value, toggle };
 }`,
-      expectedKeywords: ['useToggle', 'useState', 'toggle', 'return'],
-      explanation: 'useで始まる関数名にしてuseStateを内部で使うことで、カスタムHookとして定義できます。コンポーネントはUIだけに集中できます。',
+      expectedKeywords: ['setValue', '!'],
+      explanation: 'toggle関数ではsetValueにコールバック v => !v を渡すか、setValue(!value) で現在値を反転させます。',
     },
     challengeTask: {
       patterns: [

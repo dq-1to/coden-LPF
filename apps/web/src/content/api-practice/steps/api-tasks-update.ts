@@ -113,49 +113,17 @@ async function handleToggle(task: Task) {
       },
     ],
     testTask: {
-      instruction: `チェックボックスでタスクの完了状態を切り替えるコンポーネントを実装してください。
-
-要件:
-- マウント時に GET /tasks でタスク一覧を取得する
-- 各タスクにチェックボックスを表示し、クリックで completed を反転させる
-- チェックボックスのクリックで PATCH /tasks/:id を呼び出す
-- API レスポンスで該当タスクの状態を更新する`,
-      starterCode: `import { useEffect, useState } from 'react';
-
-interface Task {
-  id: string;
-  title: string;
-  completed: boolean;
-}
-
-export function TaskList() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-
-  useEffect(() => {
-    // TODO: GET /tasks でタスク一覧を取得してください
-  }, []);
-
-  async function handleToggle(task: Task) {
-    // TODO: PATCH /tasks/:id で completed を反転してください
-    // レスポンスで該当タスクを更新してください
-  }
-
-  return (
-    <ul>
-      {tasks.map((task) => (
-        <li key={task.id}>
-          <input
-            type="checkbox"
-            checked={task.completed}
-            onChange={() => void handleToggle(task)}
-          />
-          {task.title}
-        </li>
-      ))}
-    </ul>
-  );
+      instruction: '既存リソースの一部を更新する HTTP メソッド名を空欄に入力してください。',
+      starterCode: `async function handleToggle(task: Task) {
+  const res = await fetch(\`/tasks/\${task.id}\`, {
+    method: '____',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ completed: !task.completed }),
+  });
+  const updated = await res.json();
+  setTasks(prev => prev.map(t => t.id === updated.id ? updated : t));
 }`,
-      expectedKeywords: ['PATCH', 'fetch', 'setTasks', 'map', 'completed', 'handleToggle'],
+      expectedKeywords: ['PATCH'],
       explanation: 'PATCH /tasks/:idにcompletedの反転値を送り、レスポンスでsetTasks+mapを使って該当タスクだけを更新します。',
     },
     challengeTask: {
