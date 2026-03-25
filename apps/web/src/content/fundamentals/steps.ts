@@ -6,6 +6,7 @@ export interface PracticeQuestion {
   answer: string
   hint: string
   explanation?: string
+  choices?: string[]
 }
 
 export interface TestTask {
