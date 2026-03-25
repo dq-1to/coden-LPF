@@ -70,18 +70,52 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
             <p className="text-sm font-medium text-slate-700">
               Q{index + 1}. {question.prompt}
             </p>
-            <input
-              className={`w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint ${isJudged
-                ? isCorrect
-                  ? 'border-emerald-500 bg-emerald-50/50'
-                  : 'border-rose-500 bg-rose-50/50'
-                : 'border-slate-300'
-                }`}
-              placeholder="回答を入力"
-              value={answer}
-              aria-label={`Q${index + 1} 回答欄`}
-              onChange={(event) => handleAnswerChange(question.id, event.target.value)}
-            />
+            {question.choices ? (
+              <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={`Q${index + 1} 選択肢`}>
+                {question.choices.map((choice) => {
+                  const isSelected = answer === choice
+                  const isChoiceCorrect = normalize(choice) === normalize(question.answer)
+                  let btnClass = 'rounded-md border px-3 py-2 text-sm text-left transition-colors'
+                  if (isJudged) {
+                    if (isChoiceCorrect) {
+                      btnClass += ' border-emerald-500 bg-emerald-100 text-emerald-800 font-semibold'
+                    } else if (isSelected && !isChoiceCorrect) {
+                      btnClass += ' border-rose-500 bg-rose-100 text-rose-800'
+                    } else {
+                      btnClass += ' border-slate-200 bg-slate-50 text-slate-400'
+                    }
+                  } else if (isSelected) {
+                    btnClass += ' border-primary-mint bg-primary-mint/10 text-primary-dark font-medium'
+                  } else {
+                    btnClass += ' border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
+                  }
+                  return (
+                    <button
+                      key={choice}
+                      type="button"
+                      className={btnClass}
+                      aria-pressed={isSelected}
+                      onClick={() => handleAnswerChange(question.id, choice)}
+                    >
+                      {choice}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              <input
+                className={`w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint ${isJudged
+                  ? isCorrect
+                    ? 'border-emerald-500 bg-emerald-50/50'
+                    : 'border-rose-500 bg-rose-50/50'
+                  : 'border-slate-300'
+                  }`}
+                placeholder="回答を入力"
+                value={answer}
+                aria-label={`Q${index + 1} 回答欄`}
+                onChange={(event) => handleAnswerChange(question.id, event.target.value)}
+              />
+            )}
             {isJudged ? (
               <p className={`rounded-md px-3 py-1.5 text-sm font-medium ${isCorrect ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
                 {isCorrect ? '正解です。' : '不正解です。もう一度試してください。'}
