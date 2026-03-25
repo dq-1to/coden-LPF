@@ -291,6 +291,18 @@ export function StepPage() {
               />
             ) : null}
 
+            {activeMode === 'read' && modeStatus.read ? (
+              <div className="mt-4 flex justify-center">
+                <button
+                  className="inline-flex items-center gap-2 rounded-xl bg-amber-400 px-6 py-3 text-base font-bold text-slate-950 shadow-sm transition-all duration-200 hover:bg-amber-500 active:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-300/30"
+                  type="button"
+                  onClick={() => setActiveMode('practice')}
+                >
+                  Practice へ進む →
+                </button>
+              </div>
+            ) : null}
+
             {activeMode === 'practice' ? (
               <PracticeMode
                 stepId={step.id}
@@ -299,8 +311,32 @@ export function StepPage() {
               />
             ) : null}
 
+            {activeMode === 'practice' && modeStatus.practice ? (
+              <div className="mt-4 flex justify-center">
+                <button
+                  className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-6 py-3 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-sky-600 active:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400/30"
+                  type="button"
+                  onClick={() => setActiveMode('test')}
+                >
+                  Test へ進む →
+                </button>
+              </div>
+            ) : null}
+
             {activeMode === 'test' ? (
               <TestMode stepId={step.id} task={step.testTask} onComplete={() => void handleModeComplete('test')} />
+            ) : null}
+
+            {activeMode === 'test' && modeStatus.test ? (
+              <div className="mt-4 flex justify-center">
+                <button
+                  className="inline-flex items-center gap-2 rounded-xl bg-violet-500 px-6 py-3 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-violet-600 active:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-400/30"
+                  type="button"
+                  onClick={() => setActiveMode('challenge')}
+                >
+                  Challenge へ進む →
+                </button>
+              </div>
             ) : null}
 
             {activeMode === 'challenge' ? (
