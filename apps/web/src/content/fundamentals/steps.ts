@@ -110,6 +110,7 @@ setter関数（\`setCount\`など）を呼び出すことで、Reactはそのコ
         answer: 'いいえ',
         hint: '通常の変数の変更はReactに検知されません。',
         explanation: 'Reactは通常の変数の変更を追跡しません。再描画が起きるのはuseStateの更新関数（setter）が呼ばれたときだけです。',
+        choices: ['はい', 'いいえ'],
       },
       {
         id: 'q2',
@@ -117,6 +118,7 @@ setter関数（\`setCount\`など）を呼び出すことで、Reactはそのコ
         answer: '現在の状態',
         hint: '`const [count, setCount] = useState(0)` でいうと `count` です。',
         explanation: 'const [count, setCount] = useState(0) の分割代入で、最初の count が現在の値（state）を保持します。',
+        choices: ['現在の状態', 'イベントハンドラ', '更新関数', 'コンポーネント名'],
       },
       {
         id: 'q3',
@@ -124,6 +126,7 @@ setter関数（\`setCount\`など）を呼び出すことで、Reactはそのコ
         answer: '更新関数',
         hint: '状態を更新し、再レンダリングをトリガーするための関数です。（setterとも呼ばれます）',
         explanation: 'setter（setCountなど）を呼び出すとReactに新しい値が渡され、コンポーネントが再レンダリングされます。',
+        choices: ['更新関数', '初期値', '現在の状態', 'コンポーネント参照'],
       },
       {
         id: 'q4',
@@ -138,6 +141,7 @@ setter関数（\`setCount\`など）を呼び出すことで、Reactはそのコ
         answer: 'いいえ',
         hint: 'Hookは常にコンポーネントのトップレベルで呼び出すルールがあります。',
         explanation: 'Reactの「Hookのルール」により、useStateなどのHookはif文・ループ・ネスト関数の中では使えません。常にコンポーネントの最上位で呼び出す必要があります。',
+        choices: ['はい', 'いいえ'],
       },
     ],
     testTask: {
@@ -249,6 +253,7 @@ export function NameInput() {
         answer: 'レンダリング時',
         hint: 'クリックを待たず、描画されるタイミングで即座に実行されてしまいます。',
         explanation: 'handleClick() と書くと「handleClickを呼び出した結果」がonClickに渡されます。関数そのものを渡すにはhandleClickと括弧なしで書きます。',
+        choices: ['レンダリング時', 'クリック時', 'アンマウント時', 'マウント時'],
       },
       {
         id: 'q4',
@@ -356,6 +361,7 @@ function Notifications({ unreadCount }) {
         answer: '三項演算子',
         hint: '`?` と `:` を使う記法です。',
         explanation: '三項演算子は 条件 ? trueのとき : falseのとき の形式です。JSXの中でどちらか一方を表示する切り替えに最もよく使われます。',
+        choices: ['三項演算子', 'typeof演算子', '&&演算子', 'スプレッド演算子'],
       },
       {
         id: 'q2',
@@ -380,10 +386,11 @@ function Notifications({ unreadCount }) {
       },
       {
         id: 'q5',
-        prompt: '`unreadCount > 0 && <p>New Message</p>` というコードにおいて、短絡評価と呼ばれる性質により、左辺が false の場合、右辺はどう評価されますか？（実行される/無視される）',
+        prompt: '`unreadCount > 0 && <p>New Message</p>` というコードにおいて、短絡評価と呼ばれる性質により、左辺が false の場合、右辺はどう評価されますか？',
         answer: '無視される',
         hint: '左辺がfalseであれば、全体もfalseになることが確定するため、右辺の評価はスキップされます。',
         explanation: '&& の短絡評価：左辺がfalseなら全体の結果がfalseで確定するため、右辺は評価されず何も表示されません。',
+        choices: ['無視される', '実行される', 'エラーになる', 'nullが返る'],
       },
     ],
     testTask: {
@@ -473,10 +480,11 @@ export function List() {
       },
       {
         id: 'q3',
-        prompt: 'リストの要素の順番が変化する可能性がある場合、key に配列のインデックス（index）を使用することは推奨されますか？（はい/いいえ）',
+        prompt: 'リストの要素の順番が変化する可能性がある場合、key に配列のインデックス（index）を使用することは推奨されますか？',
         answer: 'いいえ',
         hint: '順番が変わると、データとインデックスの紐付けがずれてしまい、バグの原因になります。',
         explanation: '並び替えや先頭挿入が起きるとindexは変化します。データのIDなど、値が変わらない一意の識別子をkeyに使ってください。',
+        choices: ['はい', 'いいえ'],
       },
       {
         id: 'q4',
@@ -484,6 +492,7 @@ export function List() {
         answer: '兄弟要素間',
         hint: 'Reactは親要素の中での並び順だけを気にします。',
         explanation: 'keyは同じリスト（同じ親要素）の中で一意であれば十分です。異なるリスト間で同じkeyを使っても問題ありません。',
+        choices: ['兄弟要素間', 'アプリケーション全体', '同一ファイル内', '親子要素間'],
       },
       {
         id: 'q5',

@@ -54,6 +54,7 @@ export function Timer() {
                 answer: '副作用',
                 hint: 'Side Effect の日本語訳です。',
                 explanation: '外部APIの呼び出しやDOMの直接操作など、Reactの外部に影響を与える処理を副作用（Side Effect）と呼びます。',
+                choices: ['副作用', 'プロパティ', 'コールバック', 'ライフサイクル'],
             },
             {
                 id: 'q2',
@@ -82,6 +83,7 @@ export function Timer() {
                 answer: 'クリーンアップ関数',
                 hint: 'お掃除（クリーン）を行う関数です。',
                 explanation: 'useEffectのreturnで返す関数はクリーンアップ関数と呼ばれ、コンポーネントが消えるときやeffectが再実行される前に呼ばれます。',
+                choices: ['クリーンアップ関数', 'コールバック関数', 'ミドルウェア関数', 'ファクトリ関数'],
             },
         ],
         testTask: {
@@ -162,6 +164,7 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
                 answer: '制御されたコンポーネント',
                 hint: 'Controlled Componentの日本語訳です。',
                 explanation: 'inputのvalueにstateを渡し、onChangeでstateを更新することで、ReactがUI上の値を完全に管理するパターンです。',
+                choices: ['制御されたコンポーネント', '非制御コンポーネント', '純粋コンポーネント', '高階コンポーネント'],
             },
             {
                 id: 'q2',
@@ -169,6 +172,7 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
                 answer: 'バリデーション',
                 hint: 'validation とも書きます。',
                 explanation: '入力値が正しいか検証する処理です。制御されたコンポーネントならリアルタイムにチェックできます。',
+                choices: ['バリデーション', 'サニタイゼーション', 'シリアライゼーション', 'ノーマライゼーション'],
             },
             {
                 id: 'q3',
@@ -273,6 +277,7 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
                 answer: 'Prop Drilling',
                 hint: 'ドリルで穴を掘る（Drilling）ように深く掘り下げる現象です。',
                 explanation: '階層が深いとき、中間コンポーネントが自分では使わないpropsをただ渡すだけになる問題です。Context APIで解決できます。',
+                choices: ['Prop Drilling', 'State Lifting', 'Event Bubbling', 'Data Binding'],
             },
             {
                 id: 'q2',
@@ -398,6 +403,7 @@ export function CounterApp() {
                 answer: 'Reducer関数',
                 hint: '〇〇〇〇関数。',
                 explanation: 'Reducer関数は (state, action) => newState の形の純粋関数です。同じ入力には必ず同じ結果を返します。',
+                choices: ['Reducer関数', 'Selector関数', 'Middleware関数', 'Factory関数'],
             },
             {
                 id: 'q3',
@@ -419,6 +425,7 @@ export function CounterApp() {
                 answer: 'switch文',
                 hint: 'if-elseの連番よりも、case を使って記述する構文です。',
                 explanation: 'switch(action.type)でcaseごとに処理を分岐します。Reducer関数の標準的なパターンです。',
+                choices: ['switch文', 'for文', 'while文', 'try-catch文'],
             },
         ],
         testTask: {
