@@ -1,8 +1,9 @@
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, Suspense, useEffect, useMemo, useState } from 'react'
 import { Button } from '../../components/Button'
 import type { TestTask } from '../../content/fundamentals/steps'
 import { addToReviewList, removeFromReviewList } from '../../services/reviewListService'
 import { previewByStepId } from './testModePreview'
+import { previewComponentByStepId } from './previews'
 
 interface TestModeProps {
   stepId: string
@@ -110,6 +111,20 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
         <div className="mt-4 rounded-lg border border-emerald-300 bg-emerald-50 p-4">
           <p className="text-sm font-semibold text-emerald-800">{preview.title}</p>
           <p className="mt-1 text-sm text-emerald-700">{preview.description}</p>
+          {previewComponentByStepId[stepId] ? (
+            <div className="mt-3 rounded-md border border-emerald-200 bg-white p-4">
+              <Suspense
+                fallback={
+                  <p className="text-xs text-slate-400">プレビューを読み込み中…</p>
+                }
+              >
+                {(() => {
+                  const PreviewComponent = previewComponentByStepId[stepId]
+                  return <PreviewComponent />
+                })()}
+              </Suspense>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </section>
