@@ -116,6 +116,18 @@ describe('4モードコンテンツ品質検証', () => {
         }
       })
 
+      it('choices がある問題では answer が choices に含まれる', () => {
+        for (const q of step.practiceQuestions) {
+          if (q.choices) {
+            expect(q.choices.length, `${step.id}/${q.id}: choices が空`).toBeGreaterThanOrEqual(2)
+            expect(
+              q.choices.includes(q.answer),
+              `${step.id}/${q.id}: answer "${q.answer}" が choices に含まれない`,
+            ).toBe(true)
+          }
+        }
+      })
+
       it('testTask が instruction / starterCode / expectedKeywords を持つ', () => {
         expect(step.testTask.instruction).toBeTruthy()
         expect(step.testTask.starterCode).toBeTruthy()
