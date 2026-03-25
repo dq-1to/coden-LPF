@@ -146,6 +146,7 @@ function useGood() {
         answer: 'ロジック',
         hint: '各コンポーネントでHookを呼ぶたびに、独立したStateが生成されます。',
         explanation: 'カスタムHookを使う各コンポーネントは独立したStateを持ちます。共有されるのはロジック（関数の定義）だけです。',
+        choices: ['ロジック', 'State', 'Props', 'コンテキスト'],
       },
       {
         id: 'q3',
@@ -160,6 +161,7 @@ function useGood() {
         answer: '実行順序',
         hint: 'ReactはHookの呼び出し順序を追跡して状態を管理します。順序が変わると正しく動作しません。',
         explanation: 'Reactは毎レンダーでHookが同じ順序で呼ばれることを前提に動作します。条件分岐の中でHookを呼ぶと順序が変わりバグになります。',
+        choices: ['実行順序', 'パフォーマンス', 'メモリ使用量', 'セキュリティ'],
       },
       {
         id: 'q5',
@@ -167,6 +169,7 @@ function useGood() {
         answer: '配列とオブジェクト',
         hint: 'useState は配列 [value, setter] を、カスタムHookはオブジェクト { value, setValue } を返すことが多いです。',
         explanation: '配列で返すと分割代入時に任意の名前を付けられ、オブジェクトで返すと名前付きで受け取れます。用途に応じて使い分けます。',
+        choices: ['配列とオブジェクト', '文字列と数値', 'MapとSet', 'PromiseとCallback'],
       },
     ],
     testTask: {

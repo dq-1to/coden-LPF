@@ -99,10 +99,11 @@ async function handleToggle(task: Task) {
       },
       {
         id: 'q4',
-        prompt: 'API レスポンスを待たずに先に UI を更新し、失敗時に元に戻す手法を何と呼びますか？（カタカナ）',
+        prompt: 'API レスポンスを待たずに先に UI を更新し、失敗時に元に戻す手法を何と呼びますか？',
         answer: '楽観的更新',
         hint: '「Optimistic Update」の日本語訳です。',
         explanation: '楽観的更新はAPIのレスポンスを待たずにUIを先に更新します。操作が成功すると仮定して即座に反映し、UXを向上させる手法です。',
+        choices: ['楽観的更新', '悲観的ロック', 'ポーリング', 'デバウンス'],
       },
       {
         id: 'q5',

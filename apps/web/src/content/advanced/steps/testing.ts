@@ -120,6 +120,7 @@ it('テストの説明', async () => {
         answer: 'ユーザーが操作する視点',
         hint: 'RTL は「ユーザーが見る・操作できる要素」を通じてテストします。実装詳細は避けます。',
         explanation: 'ユーザー視点でテストを書くことで、内部実装を変えてもテストが壊れにくくなります。リファクタリングへの安心感が増します。',
+        choices: ['ユーザーが操作する視点', '開発者が実装する視点', 'デザイナーが設計する視点', 'QAが検証する視点'],
       },
       {
         id: 'testing-q2',
@@ -127,13 +128,20 @@ it('テストの説明', async () => {
         answer: 'queryByText',
         hint: 'getByText は見つからないとエラーをthrow します。存在確認（null チェック）には queryByText を使います。',
         explanation: 'queryByTextは要素が見つからないときnullを返すため、「要素が存在しないこと」をexpect(element).toBeNull()で検証できます。',
+        choices: ['queryByText', 'getByText'],
       },
       {
         id: 'testing-q3',
         prompt: 'userEvent でクリックするとき await が必要な理由は何ですか？',
-        answer: 'userEvent の操作は非同期（Promise）で、await なしだと処理完了前にアサーションが実行されるから',
+        answer: 'userEvent の操作は非同期で、await なしだと処理完了前にアサーションが実行されるから',
         hint: 'await を付けないとクリック処理が終わる前に expect() が実行され、テストが不安定になります。',
         explanation: 'userEvent.clickはPromiseを返す非同期関数です。awaitなしだと操作完了前にアサーションが実行され、テストが失敗します。',
+        choices: [
+          'userEvent の操作は非同期で、await なしだと処理完了前にアサーションが実行されるから',
+          'userEvent は同期的だが、Reactの再レンダリングを待つ必要があるから',
+          'テストフレームワークが await を要求する仕様だから',
+          'ブラウザのイベントループをシミュレートするために必要だから',
+        ],
       },
       {
         id: 'testing-q4',

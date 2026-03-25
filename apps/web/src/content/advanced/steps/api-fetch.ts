@@ -162,10 +162,11 @@ return <article><h1>{data.title}</h1></article>;
       },
       {
         id: 'q2',
-        prompt: 'データ取得中の「ローディング状態」を表す isLoading の適切な初期値はどちらですか？（true / false）',
+        prompt: 'データ取得中の「ローディング状態」を表す isLoading の適切な初期値はどちらですか？',
         answer: 'true',
         hint: 'コンポーネントがマウントされたら即座にデータ取得が始まります。最初から取得中と考えましょう。',
         explanation: 'isLoadingの初期値をtrueにすることで、データ取得前に「読み込み中」UIが表示され、未取得のデータをそのまま表示するのを防げます。',
+        choices: ['true', 'false'],
       },
       {
         id: 'q3',
@@ -180,6 +181,7 @@ return <article><h1>{data.title}</h1></article>;
         answer: 'メモリリーク',
         hint: '存在しないコンポーネントの State を更新しようとすることで警告が発生します。AbortController で対策できます。',
         explanation: 'コンポーネントがアンマウントされた後にstateを更新しようとするとメモリリークが発生します。クリーンアップ関数で対処します。',
+        choices: ['メモリリーク', '型エラー', '無限ループ', 'セキュリティ違反'],
       },
       {
         id: 'q5',
