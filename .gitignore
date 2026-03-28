@@ -19,3 +19,6 @@ Thumbs.db
 .vscode/
 .vercel/
 .vercel
+.tmp/
+docs/sessions/
+.playwright-mcp/
