@@ -17,5 +17,8 @@
     "workerDirectory": [
       "apps\\web\\public"
     ]
+  },
+  "devDependencies": {
+    "lefthook": "^2.1.4"
   }
 }
