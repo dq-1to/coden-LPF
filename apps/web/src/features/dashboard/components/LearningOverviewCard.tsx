@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { BookOpen, CheckCircle2, Lock, PenLine } from 'lucide-react'
-import { COURSES, TOTAL_STEP_COUNT, type CourseMeta, type StepMeta } from '@/content/courseData'
+import { getAllCourses, TOTAL_STEP_COUNT, type CourseMeta, type StepMeta } from '@/content/courseData'
 
 const LEVEL_LABEL: Record<CourseMeta['level'], string> = {
   beginner: '初級',
@@ -77,7 +77,7 @@ interface LearningOverviewCardProps {
 export function LearningOverviewCard({ completedCount }: LearningOverviewCardProps) {
   const progressPercent = Math.max(0, Math.min(100, Math.round((completedCount / TOTAL_STEP_COUNT) * 100)))
 
-  const implementedSteps = COURSES.flatMap((c) => c.steps.filter((s) => s.isImplemented))
+  const implementedSteps = getAllCourses().flatMap((c) => c.steps.filter((s) => s.isImplemented))
   const inProgressStep = completedCount < implementedSteps.length ? implementedSteps[completedCount] : null
 
   return (
@@ -110,7 +110,7 @@ export function LearningOverviewCard({ completedCount }: LearningOverviewCardPro
       </div>
 
       <div className="space-y-6">
-        {COURSES.map((course) => {
+        {getAllCourses().map((course) => {
           const hasSomeImplemented = course.steps.some((s) => s.isImplemented)
           return (
             <div key={course.id}>

@@ -1,4 +1,4 @@
-import { COURSES } from '../content/courseData'
+import { getAllSteps, findCourseById } from '../content/courseData'
 import { BADGE_POINT_THRESHOLD_HIGH, BADGE_POINT_THRESHOLD_MID, STREAK_THRESHOLD_BRONZE, STREAK_THRESHOLD_GOLD, STREAK_THRESHOLD_SILVER } from '../shared/constants'
 import { supabase } from '../lib/supabaseClient'
 import { fromSupabaseError } from '../shared/errors'
@@ -26,19 +26,19 @@ export const BADGE_DEFINITIONS = [
 export type BadgeId = (typeof BADGE_DEFINITIONS)[number]['id']
 
 const BADGE_ID_SET = new Set<BadgeId>(BADGE_DEFINITIONS.map((badge) => badge.id))
-// all-complete は全20ステップ完了が条件なので未実装ステップも含む
-const ALL_STEP_IDS = COURSES.flatMap((course) => course.steps.map((step) => step.id))
+// all-complete は全ステップ完了が条件なので未実装ステップも含む
+const ALL_STEP_IDS = getAllSteps().map((step) => step.id)
 const COURSE_COMPLETION_RULES: Array<{ badgeId: BadgeId; stepIds: string[] }> = [
-  { badgeId: 'course-1-complete', stepIds: getCourseStepIds('course-1') },
-  { badgeId: 'course-2-complete', stepIds: getCourseStepIds('course-2') },
-  { badgeId: 'course-3-complete', stepIds: getCourseStepIds('course-3') },
-  { badgeId: 'course-4-complete', stepIds: getCourseStepIds('course-4') },
+  { badgeId: 'course-1-complete', stepIds: getCourseStepIds('react-fundamentals') },
+  { badgeId: 'course-2-complete', stepIds: getCourseStepIds('react-hooks') },
+  { badgeId: 'course-3-complete', stepIds: getCourseStepIds('react-advanced') },
+  { badgeId: 'course-4-complete', stepIds: getCourseStepIds('react-api') },
 ]
 
 function getCourseStepIds(courseId: string): string[] {
   // isImplemented: false のステップはバッジ判定対象外とし、未実装コースの誤解禁を防止する
   return (
-    COURSES.find((course) => course.id === courseId)
+    findCourseById(courseId)
       ?.steps.filter((step) => step.isImplemented)
       .map((step) => step.id) ?? []
   )
