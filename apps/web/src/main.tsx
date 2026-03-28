@@ -11,8 +11,20 @@ import { supabaseConfigError } from './lib/supabaseClient'
 import './styles/globals.css'
 
 // Route-based Code Splitting: 各ページを動的インポートでチャンク分割
+const CodeDoctorPage = lazy(() => import('./pages/CodeDoctorPage').then((m) => ({ default: m.CodeDoctorPage })))
+const CodeReadingPage = lazy(() => import('./pages/CodeReadingPage').then((m) => ({ default: m.CodeReadingPage })))
+const CurriculumPage = lazy(() => import('./pages/CurriculumPage').then((m) => ({ default: m.CurriculumPage })))
+const DailyChallengePage = lazy(() =>
+  import('./pages/DailyChallengePage').then((m) => ({ default: m.DailyChallengePage })),
+)
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })))
+const MiniProjectDetailPage = lazy(() =>
+  import('./pages/MiniProjectDetailPage').then((m) => ({ default: m.MiniProjectDetailPage })),
+)
+const MiniProjectsPage = lazy(() =>
+  import('./pages/MiniProjectsPage').then((m) => ({ default: m.MiniProjectsPage })),
+)
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })))
 const SignUpPage = lazy(() => import('./pages/SignUpPage').then((m) => ({ default: m.SignUpPage })))
@@ -70,6 +82,66 @@ const router = createBrowserRouter([
       <ProtectedRoute>
         <Suspense fallback={<PageLoading />}>
           <ProfilePage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/curriculum',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <CurriculumPage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/daily',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <DailyChallengePage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/practice/code-doctor',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <CodeDoctorPage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/practice/mini-projects',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <MiniProjectsPage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/practice/mini-projects/:projectId',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <MiniProjectDetailPage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/practice/code-reading',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <CodeReadingPage />
         </Suspense>
       </ProtectedRoute>
     ),
