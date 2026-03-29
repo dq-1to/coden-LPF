@@ -3,92 +3,45 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { LearningSidebar } from '../LearningSidebar'
-import type { LearningStepContent } from '@/content/fundamentals/steps'
+import type { CategoryMeta } from '@/content/courseData'
 
 vi.mock('@/contexts/LearningContext', () => ({
   useLearningContext: () => ({
-    completedStepsCount: 1,
+    completedStepIds: new Set(['usestate-basic']),
     isLoadingStats: false,
   }),
 }))
 
-const steps: LearningStepContent[] = [
-  {
-    id: 'usestate-basic',
-    order: 1,
-    title: 'useState基礎',
-    summary: 'summary',
-    readMarkdown: '# read',
-    practiceQuestions: [],
-    testTask: {
-      instruction: 'instruction',
-      starterCode: 'const value = ____;',
-      expectedKeywords: ['value'],
-    },
-    challengeTask: {
-      patterns: [
-        {
-          id: 'pattern-1',
-          prompt: 'challenge',
-          requirements: [],
-          hints: [],
-          expectedKeywords: ['useState'],
-          starterCode: 'const [count, setCount] = useState(0);',
-        },
+const testCategory: CategoryMeta = {
+  id: 'react',
+  title: 'React',
+  description: 'React学習',
+  icon: 'Atom',
+  courses: [
+    {
+      id: 'react-fundamentals',
+      title: 'React基礎',
+      level: 'beginner',
+      requiredPrerequisites: [],
+      recommendedPrerequisites: [],
+      steps: [
+        { id: 'usestate-basic', order: 1, title: 'useState基礎', description: '', isImplemented: true },
+        { id: 'events', order: 2, title: 'イベント処理', description: '', isImplemented: true },
+        { id: 'conditional', order: 3, title: '条件分岐', description: '', isImplemented: true },
       ],
     },
-  },
-  {
-    id: 'events',
-    order: 2,
-    title: 'イベント処理',
-    summary: 'summary',
-    readMarkdown: '# read',
-    practiceQuestions: [],
-    testTask: {
-      instruction: 'instruction',
-      starterCode: 'const value = ____;',
-      expectedKeywords: ['value'],
-    },
-    challengeTask: {
-      patterns: [
-        {
-          id: 'pattern-2',
-          prompt: 'challenge',
-          requirements: [],
-          hints: [],
-          expectedKeywords: ['useState'],
-          starterCode: 'const [count, setCount] = useState(0);',
-        },
+    {
+      id: 'react-hooks',
+      title: 'React応用',
+      level: 'intermediate',
+      requiredPrerequisites: ['react-fundamentals'],
+      recommendedPrerequisites: [],
+      steps: [
+        { id: 'useeffect', order: 5, title: 'useEffect', description: '', isImplemented: true },
       ],
     },
-  },
-  {
-    id: 'conditional',
-    order: 3,
-    title: '条件分岐',
-    summary: 'summary',
-    readMarkdown: '# read',
-    practiceQuestions: [],
-    testTask: {
-      instruction: 'instruction',
-      starterCode: 'const value = ____;',
-      expectedKeywords: ['value'],
-    },
-    challengeTask: {
-      patterns: [
-        {
-          id: 'pattern-3',
-          prompt: 'challenge',
-          requirements: [],
-          hints: [],
-          expectedKeywords: ['useState'],
-          starterCode: 'const [count, setCount] = useState(0);',
-        },
-      ],
-    },
-  },
-]
+  ],
+}
 
 afterEach(() => {
   cleanup()
@@ -100,7 +53,7 @@ describe('LearningSidebar', () => {
 
     render(
       <MemoryRouter>
-        <LearningSidebar courseTitle="React基礎" currentStepId="usestate-basic" steps={[...steps]} />
+        <LearningSidebar category={testCategory} currentStepId="usestate-basic" />
       </MemoryRouter>,
     )
 
@@ -117,13 +70,18 @@ describe('LearningSidebar', () => {
     expect(screen.getByRole('link', { name: /useState基礎/ }).getAttribute('href')).toBe('/step/usestate-basic')
   })
 
-  it('未解放ステップはロック状態で表示する', () => {
+  it('カテゴリ内の複数コースがアコーディオン表示される', () => {
     render(
       <MemoryRouter>
-        <LearningSidebar courseTitle="React基礎" currentStepId="events" steps={[...steps]} />
+        <LearningSidebar category={testCategory} currentStepId="usestate-basic" />
       </MemoryRouter>,
     )
 
-    expect(screen.getAllByText('条件分岐')[0].closest('[aria-disabled="true"]')).toBeTruthy()
+    // 現在のコースのアコーディオンは開いている
+    expect(screen.getByText('React基礎')).toBeTruthy()
+    expect(screen.getByRole('link', { name: /useState基礎/ })).toBeTruthy()
+
+    // 必須前提未完了のコースはロック表示
+    expect(screen.getByText('React応用')).toBeTruthy()
   })
 })
