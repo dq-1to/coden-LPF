@@ -139,7 +139,7 @@ describe('StepPage', () => {
     expect(screen.getByRole('button', { name: 'Read' }).getAttribute('aria-current')).toBe('step')
     expect(screen.getByRole('button', { name: 'Practice' }).getAttribute('aria-current')).toBeNull()
     expect(screen.getByRole('navigation', { name: 'パンくずリスト' }).textContent).toContain('カリキュラム')
-    expect(screen.getByText('Step 1 / 26')).toBeTruthy()
+    expect(screen.getByText('Step 1 / 30')).toBeTruthy()
     expect(screen.getAllByText('React基礎').length).toBeGreaterThan(0)
 
     await user.click(screen.getByRole('button', { name: 'Practice' }))
