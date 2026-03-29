@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Flame, Gem, Menu, X } from 'lucide-react'
-import { getFirstImplementedStep } from '@/content/courseData'
+import { ChevronDown, Flame, Gem, Menu, X } from 'lucide-react'
+import { CATEGORIES } from '@/content/courseData'
 import { useLearningContext } from '@/contexts/LearningContext'
 
 interface AppHeaderProps {
@@ -9,18 +9,32 @@ interface AppHeaderProps {
   onSignOut: () => void
 }
 
+const PRACTICE_LINKS = [
+  { to: '/daily', label: 'デイリーチャレンジ' },
+  { to: '/practice/code-doctor', label: 'コードドクター' },
+  { to: '/practice/mini-projects', label: 'ミニプロジェクト' },
+  { to: '/practice/code-reading', label: 'コードリーディング' },
+] as const
+
 export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
   const { stats } = useLearningContext()
   const location = useLocation()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const firstImplementedStep = getFirstImplementedStep()
-  const learningPath = firstImplementedStep ? `/step/${firstImplementedStep.id}` : '/'
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const closeDrawer = useCallback(() => setIsDrawerOpen(false), [])
 
-  // ページ遷移時にドロワーを閉じる
+  const isCurriculumActive =
+    location.pathname === '/curriculum' ||
+    location.pathname.startsWith('/step') ||
+    location.pathname.startsWith('/daily') ||
+    location.pathname.startsWith('/practice')
+
+  // ページ遷移時にドロワー・ドロップダウンを閉じる
   useEffect(() => {
     closeDrawer()
+    setIsDropdownOpen(false)
   }, [location.pathname, closeDrawer])
 
   // ESCキーでドロワーを閉じる
@@ -43,11 +57,26 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
     return () => { document.body.style.overflow = '' }
   }, [isDrawerOpen])
 
+  // ドロップダウン外クリックで閉じる
+  useEffect(() => {
+    if (!isDropdownOpen) return
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isDropdownOpen])
+
   const navLinkClass = (active: boolean) =>
     `pb-1 ${active ? 'border-b-2 border-primary-mint text-slate-900' : 'text-slate-500 hover:text-slate-700'}`
 
   const drawerLinkClass = (active: boolean) =>
     `block rounded-lg px-3 py-2.5 text-base font-medium transition ${active ? 'bg-secondary-bg text-primary-dark' : 'text-slate-700 hover:bg-slate-50'}`
+
+  const drawerSubLinkClass =
+    'block rounded-lg px-3 py-2 pl-6 text-sm text-slate-600 transition hover:bg-slate-50'
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/90 backdrop-blur">
@@ -66,13 +95,53 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
             >
               ダッシュボード
             </Link>
-            <Link
-              to={learningPath}
-              className={navLinkClass(location.pathname.startsWith('/step'))}
-              aria-current={location.pathname.startsWith('/step') ? 'page' : undefined}
-            >
-              学習を始める
-            </Link>
+
+            {/* カリキュラム ドロップダウン */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                className={`flex items-center gap-1 ${navLinkClass(isCurriculumActive)}`}
+                onClick={() => setIsDropdownOpen((prev) => !prev)}
+                aria-expanded={isDropdownOpen}
+                aria-haspopup="true"
+              >
+                カリキュラム
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isDropdownOpen && (
+                <div className="absolute left-0 top-full mt-2 w-56 rounded-lg border border-slate-200 bg-white py-2 shadow-lg">
+                  <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    学習コース
+                  </div>
+                  {CATEGORIES.map((cat) => (
+                    <Link
+                      key={cat.id}
+                      to={`/curriculum#${cat.id}`}
+                      className="block px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                    >
+                      {cat.title}
+                    </Link>
+                  ))}
+
+                  <div className="my-1.5 border-t border-slate-100" />
+
+                  <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    練習モード
+                  </div>
+                  {PRACTICE_LINKS.map((link) => (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      className="block px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <Link
               to="/profile"
               className={navLinkClass(location.pathname === '/profile')}
@@ -161,13 +230,33 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
               >
                 ダッシュボード
               </Link>
+
               <Link
-                to={learningPath}
-                className={drawerLinkClass(location.pathname.startsWith('/step'))}
-                aria-current={location.pathname.startsWith('/step') ? 'page' : undefined}
+                to="/curriculum"
+                className={drawerLinkClass(isCurriculumActive)}
+                aria-current={location.pathname === '/curriculum' ? 'page' : undefined}
               >
-                学習を始める
+                カリキュラム
               </Link>
+
+              {/* カテゴリ */}
+              <div className="ml-2 border-l border-slate-200 pl-1">
+                {CATEGORIES.map((cat) => (
+                  <Link key={cat.id} to={`/curriculum#${cat.id}`} className={drawerSubLinkClass}>
+                    {cat.title}
+                  </Link>
+                ))}
+              </div>
+
+              {/* 練習モード */}
+              <div className="mb-2 ml-2 border-l border-slate-200 pl-1">
+                {PRACTICE_LINKS.map((link) => (
+                  <Link key={link.to} to={link.to} className={drawerSubLinkClass}>
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+
               <Link
                 to="/profile"
                 className={drawerLinkClass(location.pathname === '/profile')}
