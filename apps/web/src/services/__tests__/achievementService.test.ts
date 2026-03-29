@@ -105,13 +105,15 @@ describe('checkAndUnlockAchievements', () => {
     expect(unlocked).not.toContain('course-4-complete')
   })
 
-  it('全20ステップ完了で all-complete バッジが付与される', async () => {
+  it('全26ステップ完了で all-complete バッジが付与される', async () => {
     const allStepIds = [
       'usestate-basic', 'events', 'conditional', 'lists',
       'useeffect', 'forms', 'usecontext', 'usereducer',
       'custom-hooks', 'api-fetch', 'performance', 'testing',
       'api-counter-get', 'api-counter-post', 'api-tasks-list', 'api-tasks-create',
       'api-tasks-update', 'api-tasks-delete', 'api-custom-hook', 'api-error-loading',
+      'ts-types', 'ts-functions', 'ts-objects',
+      'ts-union-narrowing', 'ts-generics', 'ts-utility-types',
     ]
     mockGetAllStepProgress.mockResolvedValue(allStepIds.map(makeCompletedProgress))
 
