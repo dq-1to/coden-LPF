@@ -105,7 +105,7 @@ describe('checkAndUnlockAchievements', () => {
     expect(unlocked).not.toContain('course-4-complete')
   })
 
-  it('全36ステップ完了で all-complete バッジが付与される', async () => {
+  it('全40ステップ完了で all-complete バッジが付与される', async () => {
     const allStepIds = [
       'usestate-basic', 'events', 'conditional', 'lists',
       'useeffect', 'forms', 'usecontext', 'usereducer',
@@ -117,6 +117,7 @@ describe('checkAndUnlockAchievements', () => {
       'ts-react-props', 'ts-react-state', 'ts-react-hooks', 'ts-react-events',
       'error-boundary', 'suspense-lazy', 'concurrent-features',
       'use-optimistic', 'portals', 'forward-ref',
+      'rhf-zod', 'pagination', 'infinite-scroll', 'auth-flow',
     ]
     mockGetAllStepProgress.mockResolvedValue(allStepIds.map(makeCompletedProgress))
 
