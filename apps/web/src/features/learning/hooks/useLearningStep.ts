@@ -4,6 +4,7 @@ import { fundamentalsSteps, getFundamentalsStep, type LearningMode, type Learnin
 import { getIntermediateStep, intermediateSteps } from '@/content/intermediate/steps'
 import { advancedSteps, getAdvancedStep } from '@/content/advanced/steps'
 import { apiPracticeSteps, getApiPracticeStep } from '@/content/api-practice/steps'
+import { typescriptSteps, getTypescriptStep } from '@/content/typescript/steps'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLearningContext } from '@/contexts/LearningContext'
 import { useAchievementContext } from '@/contexts/AchievementContext'
@@ -54,11 +55,11 @@ export function useLearningStep(stepId: string): UseLearningStepReturn {
   const completedOnceRef = useRef(false)
 
   const stepMeta = findStepById(stepId)
-  const step = getFundamentalsStep(stepId) || getIntermediateStep(stepId) || getAdvancedStep(stepId) || getApiPracticeStep(stepId)
+  const step = getFundamentalsStep(stepId) || getIntermediateStep(stepId) || getAdvancedStep(stepId) || getApiPracticeStep(stepId) || getTypescriptStep(stepId)
   const isUnavailableStep = Boolean(stepMeta && !stepMeta.isImplemented)
 
   const orderedSteps = useMemo(
-    () => [...fundamentalsSteps, ...intermediateSteps, ...advancedSteps, ...apiPracticeSteps].sort((a, b) => a.order - b.order),
+    () => [...fundamentalsSteps, ...intermediateSteps, ...advancedSteps, ...apiPracticeSteps, ...typescriptSteps].sort((a, b) => a.order - b.order),
     [],
   )
 
