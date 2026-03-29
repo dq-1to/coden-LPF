@@ -34,6 +34,7 @@ import { fundamentalsSteps, getFundamentalsStep } from '../fundamentals/steps'
 import { intermediateSteps, getIntermediateStep } from '../intermediate/steps'
 import { advancedSteps, getAdvancedStep } from '../advanced/steps'
 import { apiPracticeSteps, getApiPracticeStep } from '../api-practice/steps'
+import { typescriptSteps, getTypescriptStep } from '../typescript/steps'
 import type { LearningStepContent } from '../fundamentals/steps'
 
 // 全コンテンツを order 順に結合
@@ -42,6 +43,7 @@ const allContentSteps: LearningStepContent[] = [
   ...intermediateSteps,
   ...advancedSteps,
   ...apiPracticeSteps,
+  ...typescriptSteps,
 ].sort((a, b) => a.order - b.order)
 
 // courseData の全ステップ（フラット）
@@ -51,12 +53,12 @@ const allCourseSteps = getAllSteps()
 // 1. courseData 整合性
 // ─────────────────────────────────────────
 describe('courseData 整合性', () => {
-  it('全ステップ数が 20', () => {
-    expect(TOTAL_STEP_COUNT).toBe(20)
+  it('全ステップ数が 26', () => {
+    expect(TOTAL_STEP_COUNT).toBe(26)
   })
 
-  it('実装済みステップ数が 20（全ステップ isImplemented: true）', () => {
-    expect(IMPLEMENTED_STEP_COUNT).toBe(20)
+  it('実装済みステップ数が 26（全ステップ isImplemented: true）', () => {
+    expect(IMPLEMENTED_STEP_COUNT).toBe(26)
   })
 
   it('全ステップが isImplemented: true', () => {
@@ -64,9 +66,9 @@ describe('courseData 整合性', () => {
     expect(unimplemented).toHaveLength(0)
   })
 
-  it('order が 1〜20 の連番で重複なし', () => {
+  it('order が 1〜26 の連番で重複なし', () => {
     const orders = allCourseSteps.map((s) => s.order).sort((a, b) => a - b)
-    expect(orders).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
+    expect(orders).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26])
   })
 
   it('stepId が全ステップで一意', () => {
@@ -80,8 +82,8 @@ describe('courseData 整合性', () => {
 // 2. コンテンツ実装の存在確認
 // ─────────────────────────────────────────
 describe('コンテンツ実装の存在確認', () => {
-  it('全20ステップのコンテンツが実装されている', () => {
-    expect(allContentSteps).toHaveLength(20)
+  it('全26ステップのコンテンツが実装されている', () => {
+    expect(allContentSteps).toHaveLength(26)
   })
 
   it('courseData の全 stepId に対応するコンテンツが存在する', () => {
@@ -90,13 +92,14 @@ describe('コンテンツ実装の存在確認', () => {
     expect(missing).toHaveLength(0)
   })
 
-  it('getFundamentalsStep / getIntermediateStep / getAdvancedStep / getApiPracticeStep が全ステップを解決できる', () => {
+  it('getFundamentalsStep / getIntermediateStep / getAdvancedStep / getApiPracticeStep / getTypescriptStep が全ステップを解決できる', () => {
     for (const step of allCourseSteps) {
       const content =
         getFundamentalsStep(step.id) ??
         getIntermediateStep(step.id) ??
         getAdvancedStep(step.id) ??
-        getApiPracticeStep(step.id)
+        getApiPracticeStep(step.id) ??
+        getTypescriptStep(step.id)
       expect(content, `${step.id} のコンテンツが見つからない`).toBeDefined()
     }
   })
@@ -200,13 +203,20 @@ describe('order と courseData の整合性', () => {
       expect(getApiPracticeStep(meta.id), `${meta.id} が apiPracticeSteps にない`).toBeDefined()
     }
   })
+
+  it('ts-basics: order 21-26 が typescriptSteps に含まれる', () => {
+    const course = findCourseById('ts-basics')!
+    for (const meta of course.steps) {
+      expect(getTypescriptStep(meta.id), `${meta.id} が typescriptSteps にない`).toBeDefined()
+    }
+  })
 })
 
 // ─────────────────────────────────────────
 // 5. ナビゲーション（getNextStep / findStepById）
 // ─────────────────────────────────────────
 describe('ナビゲーション整合性', () => {
-  it('findStepById が全20 stepId を解決できる', () => {
+  it('findStepById が全26 stepId を解決できる', () => {
     for (const step of allCourseSteps) {
       const meta = findStepById(step.id)
       expect(meta, `${step.id} の stepMeta が見つからない`).toBeDefined()
@@ -214,16 +224,16 @@ describe('ナビゲーション整合性', () => {
     }
   })
 
-  it('getNextStep が order 1〜19 のステップに対して次ステップを返す', () => {
-    for (const step of allCourseSteps.slice(0, 19)) {
+  it('getNextStep が order 1〜25 のステップに対して次ステップを返す', () => {
+    for (const step of allCourseSteps.slice(0, 25)) {
       const next = getNextStep(step.id)
       expect(next, `${step.id} の次ステップが undefined`).toBeDefined()
       expect(next!.order).toBe(step.order + 1)
     }
   })
 
-  it('getNextStep が最終ステップ（order 20）に対して undefined を返す', () => {
-    const lastStep = allCourseSteps.find((s) => s.order === 20)!
+  it('getNextStep が最終ステップ（order 26）に対して undefined を返す', () => {
+    const lastStep = allCourseSteps.find((s) => s.order === 26)!
     const next = getNextStep(lastStep.id)
     expect(next).toBeUndefined()
   })
@@ -246,9 +256,9 @@ describe('実績バッジ判定のデータ整合性', () => {
     }
   })
 
-  it('全20ステップの stepId が all-complete 判定に必要な配列に含まれる', () => {
+  it('全26ステップの stepId が all-complete 判定に必要な配列に含まれる', () => {
     const allStepIds = new Set(getAllSteps().map((s) => s.id))
-    expect(allStepIds.size).toBe(20)
+    expect(allStepIds.size).toBe(26)
 
     for (const step of allContentSteps) {
       expect(allStepIds.has(step.id), `${step.id} が getAllSteps() に含まれない`).toBe(true)
@@ -324,6 +334,8 @@ describe('CATEGORIES 3層構造', () => {
   it('findCategoryByStepId が正しいカテゴリを返す', () => {
     expect(findCategoryByStepId('usestate-basic')?.id).toBe('react')
     expect(findCategoryByStepId('api-counter-get')?.id).toBe('react')
+    expect(findCategoryByStepId('ts-types')?.id).toBe('typescript')
+    expect(findCategoryByStepId('ts-utility-types')?.id).toBe('typescript')
   })
 
   it('各カテゴリが id / title / description / icon を持つ', () => {
@@ -340,5 +352,42 @@ describe('CATEGORIES 3層構造', () => {
       expect(Array.isArray(course.requiredPrerequisites)).toBe(true)
       expect(Array.isArray(course.recommendedPrerequisites)).toBe(true)
     }
+  })
+})
+
+// ─────────────────────────────────────────
+// 9. TypeScript カテゴリ固有検証
+// ─────────────────────────────────────────
+describe('TypeScript カテゴリ（typescript）コンテンツ固有検証', () => {
+  it('typescript カテゴリのステップが findCategoryByStepId で解決できる', () => {
+    expect(findCategoryByStepId('ts-types')?.id).toBe('typescript')
+    expect(findCategoryByStepId('ts-functions')?.id).toBe('typescript')
+    expect(findCategoryByStepId('ts-objects')?.id).toBe('typescript')
+    expect(findCategoryByStepId('ts-union-narrowing')?.id).toBe('typescript')
+    expect(findCategoryByStepId('ts-generics')?.id).toBe('typescript')
+    expect(findCategoryByStepId('ts-utility-types')?.id).toBe('typescript')
+  })
+
+  it('ts-basics の全ステップに typescriptSteps コンテンツが存在する', () => {
+    const course = findCourseById('ts-basics')!
+    for (const meta of course.steps) {
+      expect(getTypescriptStep(meta.id), `${meta.id} のコンテンツがない`).toBeDefined()
+    }
+  })
+
+  it('ts-basics の requiredPrerequisites が空（前提コースなし）', () => {
+    const course = findCourseById('ts-basics')!
+    expect(course.requiredPrerequisites).toHaveLength(0)
+  })
+
+  it('ts-basics の全ステップが isImplemented: true', () => {
+    const course = findCourseById('ts-basics')!
+    expect(course.steps).toHaveLength(6)
+    expect(course.steps.every((s) => s.isImplemented)).toBe(true)
+  })
+
+  it('ts-react コースの steps が空（M4スコープ）', () => {
+    const course = findCourseById('ts-react')!
+    expect(course.steps).toHaveLength(0)
   })
 })
