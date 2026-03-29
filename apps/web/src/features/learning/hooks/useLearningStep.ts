@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { COURSES, findStepMeta } from '@/content/courseData'
+import { findStepById, findCourseByStepId } from '@/content/courseData'
 import { fundamentalsSteps, getFundamentalsStep, type LearningMode, type LearningStepContent } from '@/content/fundamentals/steps'
 import { getIntermediateStep, intermediateSteps } from '@/content/intermediate/steps'
 import { advancedSteps, getAdvancedStep } from '@/content/advanced/steps'
@@ -53,7 +53,7 @@ export function useLearningStep(stepId: string): UseLearningStepReturn {
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const completedOnceRef = useRef(false)
 
-  const stepMeta = findStepMeta(stepId)
+  const stepMeta = findStepById(stepId)
   const step = getFundamentalsStep(stepId) || getIntermediateStep(stepId) || getAdvancedStep(stepId) || getApiPracticeStep(stepId)
   const isUnavailableStep = Boolean(stepMeta && !stepMeta.isImplemented)
 
@@ -63,7 +63,7 @@ export function useLearningStep(stepId: string): UseLearningStepReturn {
   )
 
   const currentCourse = useMemo(
-    () => COURSES.find((course) => course.steps.some((s) => s.id === (step?.id || stepId))),
+    () => findCourseByStepId(step?.id || stepId),
     [step?.id, stepId],
   )
 

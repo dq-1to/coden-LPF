@@ -1,17 +1,21 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useAuth } from './AuthContext'
 import { getLearningStats, type LearningStats } from '../services/statsService'
-import { getCompletedStepCount } from '../services/progressService'
+import { getAllStepProgress, isStepCompleted } from '../services/progressService'
 
 interface LearningContextType {
     stats: LearningStats | null
+    completedStepIds: ReadonlySet<string>
     completedStepsCount: number
     isLoadingStats: boolean
     refreshStats: () => Promise<void>
 }
 
+const EMPTY_SET: ReadonlySet<string> = new Set()
+
 const LearningContext = createContext<LearningContextType>({
     stats: null,
+    completedStepIds: EMPTY_SET,
     completedStepsCount: 0,
     isLoadingStats: true,
     refreshStats: async () => { },
@@ -20,24 +24,29 @@ const LearningContext = createContext<LearningContextType>({
 export function LearningProvider({ children }: { children: ReactNode }) {
     const { user } = useAuth()
     const [stats, setStats] = useState<LearningStats | null>(null)
-    const [completedStepsCount, setCompletedStepsCount] = useState(0)
+    const [completedStepIds, setCompletedStepIds] = useState<ReadonlySet<string>>(EMPTY_SET)
     const [isLoadingStats, setIsLoadingStats] = useState(true)
+
+    const completedStepsCount = completedStepIds.size
 
     const refreshStats = useCallback(async () => {
         if (!user) {
             setStats(null)
-            setCompletedStepsCount(0)
+            setCompletedStepIds(EMPTY_SET)
             setIsLoadingStats(false)
             return
         }
 
         try {
-            const [currentStats, count] = await Promise.all([
+            const [currentStats, progresses] = await Promise.all([
                 getLearningStats(user.id),
-                getCompletedStepCount(user.id)
+                getAllStepProgress(user.id),
             ])
             setStats(currentStats)
-            setCompletedStepsCount(count)
+            const ids = new Set(
+                progresses.filter(isStepCompleted).map((p) => p.step_id),
+            )
+            setCompletedStepIds(ids)
         } catch (err) {
             console.error('Failed to load learning stats:', err)
         } finally {
@@ -59,8 +68,8 @@ export function LearningProvider({ children }: { children: ReactNode }) {
     }, [refreshStats])
 
     const value = useMemo(
-        () => ({ stats, completedStepsCount, isLoadingStats, refreshStats }),
-        [stats, completedStepsCount, isLoadingStats, refreshStats],
+        () => ({ stats, completedStepIds, completedStepsCount, isLoadingStats, refreshStats }),
+        [stats, completedStepIds, completedStepsCount, isLoadingStats, refreshStats],
     )
 
     return (

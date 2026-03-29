@@ -21,6 +21,7 @@ vi.mock('@/contexts/AuthContext', () => ({
 
 vi.mock('@/contexts/LearningContext', () => ({
   useLearningContext: () => ({
+    completedStepIds: new Set(['usestate-basic', 'events', 'conditional', 'lists', 'useeffect', 'forms', 'usecontext', 'usereducer', 'custom-hooks', 'api-fetch', 'performance', 'testing', 'api-counter-get', 'api-counter-post', 'api-tasks-list', 'api-tasks-create', 'api-tasks-update', 'api-tasks-delete', 'api-custom-hook', 'api-error-loading']),
     completedStepsCount: 20,
     isLoadingStats: false,
   }),
@@ -137,7 +138,7 @@ describe('StepPage', () => {
 
     expect(screen.getByRole('button', { name: 'Read' }).getAttribute('aria-current')).toBe('step')
     expect(screen.getByRole('button', { name: 'Practice' }).getAttribute('aria-current')).toBeNull()
-    expect(screen.getByRole('navigation', { name: 'パンくずリスト' }).textContent).toContain('ダッシュボード')
+    expect(screen.getByRole('navigation', { name: 'パンくずリスト' }).textContent).toContain('カリキュラム')
     expect(screen.getByText('Step 1 / 20')).toBeTruthy()
     expect(screen.getAllByText('React基礎').length).toBeGreaterThan(0)
 

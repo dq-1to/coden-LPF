@@ -54,6 +54,7 @@ beforeEach(() => {
 
   mockUseLearningContext.mockReturnValue({
     stats: null,
+    completedStepIds: new Set<string>(),
     completedStepsCount: 99,
     isLoadingStats: false,
     refreshStats: vi.fn().mockResolvedValue(undefined),

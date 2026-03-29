@@ -2,7 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestMode } from '../TestMode'
-import { COURSES } from '../../../content/courseData'
+import { getAllCourses } from '../../../content/courseData'
 import type { TestTask } from '../../../content/fundamentals/steps'
 import { previewByStepId } from '../testModePreview'
 
@@ -60,7 +60,7 @@ describe('TestMode', () => {
   })
 
   it('実装済み全ステップにプレビュー定義が存在する', () => {
-    const implementedStepIds = COURSES.flatMap((course) => course.steps)
+    const implementedStepIds = getAllCourses().flatMap((course) => course.steps)
       .filter((step) => step.isImplemented)
       .map((step) => step.id)
 

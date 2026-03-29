@@ -1,24 +1,57 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Atom, BookOpen, FileCode, Puzzle, Stethoscope, Zap } from 'lucide-react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { ErrorBanner } from '../components/ErrorBanner'
-import { getFirstImplementedStep, IMPLEMENTED_STEP_COUNT } from '../content/courseData'
+import { CATEGORIES, type CategoryMeta, getFirstImplementedStep } from '../content/courseData'
 import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { DashboardSidebar } from '../features/dashboard/components/DashboardSidebar'
-import { LearningOverviewCard } from '../features/dashboard/components/LearningOverviewCard'
-import { ReviewListWidget } from '../features/dashboard/components/ReviewListWidget'
 import { WelcomeBanner } from '../features/dashboard/components/WelcomeBanner'
+import { isCourseCompleted } from '../lib/courseLock'
 import { supabaseConfigError } from '../lib/supabaseClient'
 import { getProfile } from '../services/profileService'
 import { getDisplayName } from '../shared/utils/getDisplayName'
 
+const CATEGORY_ICONS: Record<string, typeof Atom> = { Atom, FileCode }
+
+const SKILL_UP_CARDS = [
+  {
+    to: '/daily',
+    icon: Zap,
+    title: 'デイリーチャレンジ',
+    description: '日替わり1問で知識を定着',
+    color: 'text-amber-600 bg-amber-50 border-amber-200',
+  },
+  {
+    to: '/practice/code-doctor',
+    icon: Stethoscope,
+    title: 'コードドクター',
+    description: 'バグ入りコードを修正',
+    color: 'text-rose-600 bg-rose-50 border-rose-200',
+  },
+  {
+    to: '/practice/mini-projects',
+    icon: Puzzle,
+    title: 'ミニプロジェクト',
+    description: '仕様からゼロ実装',
+    color: 'text-violet-600 bg-violet-50 border-violet-200',
+  },
+  {
+    to: '/practice/code-reading',
+    icon: BookOpen,
+    title: 'コードリーディング',
+    description: 'コードを読んで理解度テスト',
+    color: 'text-sky-600 bg-sky-50 border-sky-200',
+  },
+] as const
+
 export function DashboardPage() {
   useDocumentTitle('ダッシュボード')
   const { user, signOut } = useAuth()
-  const { completedStepsCount } = useLearningContext()
+  const { completedStepIds, completedStepsCount } = useLearningContext()
   const navigate = useNavigate()
   const userId = user?.id ?? null
   const [displayName, setDisplayName] = useState<string | null>(null)
@@ -90,13 +123,14 @@ export function DashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
       <AppHeader displayName={greetingName} onSignOut={() => void handleSignOut()} />
 
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
         {supabaseConfigError ? <ConfigErrorView message={supabaseConfigError} /> : null}
         {error ? <ErrorBanner className="mb-4">{error}</ErrorBanner> : null}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <section className="space-y-6 lg:col-span-8">
             <WelcomeBanner displayName={greetingName} />
+
             {completedStepsCount === 0 && firstImplementedStep ? (
               <div className="rounded-2xl border border-primary-mint/30 bg-gradient-to-r from-primary-mint/10 via-white to-primary-mint/5 p-6 shadow-sm">
                 <p className="text-sm font-semibold text-slate-600">はじめての方へ</p>
@@ -109,8 +143,54 @@ export function DashboardPage() {
                 </Link>
               </div>
             ) : null}
-            <LearningOverviewCard completedCount={Math.min(completedStepsCount, IMPLEMENTED_STEP_COUNT)} />
-            <ReviewListWidget />
+
+            {/* カテゴリカード群 */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold text-slate-900">学習コース</h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {CATEGORIES.map((cat) => (
+                  <CategoryCard key={cat.id} category={cat} completedStepIds={completedStepIds} />
+                ))}
+              </div>
+            </div>
+
+            {/* デイリーチャレンジカード */}
+            <Link
+              to="/daily"
+              className="block rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50/50 p-5 shadow-sm transition hover:shadow-md"
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-amber-100 p-2.5">
+                  <Zap className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900">デイリーチャレンジ</h3>
+                  <p className="text-sm text-slate-500">今日の1問に挑戦して知識を定着させましょう</p>
+                </div>
+              </div>
+            </Link>
+
+            {/* スキルアップセクション */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold text-slate-900">スキルアップ</h2>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {SKILL_UP_CARDS.filter((c) => c.to !== '/daily').map((card) => (
+                  <Link
+                    key={card.to}
+                    to={card.to}
+                    className="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md"
+                  >
+                    <div className={`inline-flex rounded-lg border p-2 ${card.color}`}>
+                      <card.icon className="h-4 w-4" />
+                    </div>
+                    <h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-primary-dark">
+                      {card.title}
+                    </h3>
+                    <p className="mt-0.5 text-xs text-slate-500">{card.description}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
           </section>
 
           <section className="lg:col-span-4">
@@ -119,5 +199,59 @@ export function DashboardPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+function CategoryCard({
+  category,
+  completedStepIds,
+}: {
+  category: CategoryMeta
+  completedStepIds: ReadonlySet<string>
+}) {
+  const IconComponent = CATEGORY_ICONS[category.icon] ?? Atom
+  const implementedSteps = category.courses.flatMap((c) => c.steps.filter((s) => s.isImplemented))
+  const completedCount = implementedSteps.filter((s) => completedStepIds.has(s.id)).length
+  const totalCount = implementedSteps.length
+  const completedCourses = category.courses.filter((c) => isCourseCompleted(c.id, completedStepIds)).length
+  const totalCourses = category.courses.length
+  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+
+  return (
+    <Link
+      to={`/curriculum#${category.id}`}
+      className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+    >
+      <div className="flex items-center gap-3">
+        <div className="rounded-lg bg-primary-mint/10 p-2.5">
+          <IconComponent className="h-5 w-5 text-primary-dark" />
+        </div>
+        <div>
+          <h3 className="font-bold text-slate-900 group-hover:text-primary-dark">{category.title}</h3>
+          <p className="text-xs text-slate-500">
+            {totalCourses}コース · {completedCourses}完了
+          </p>
+        </div>
+      </div>
+      {totalCount > 0 && (
+        <div className="mt-3">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-medium text-slate-600">
+              {completedCount}/{totalCount} ステップ
+            </span>
+            <span className="text-slate-400">{progressPercent}%</span>
+          </div>
+          <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full bg-primary-mint transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
+      )}
+      {totalCount === 0 && (
+        <p className="mt-3 text-xs text-slate-400">コンテンツ準備中</p>
+      )}
+    </Link>
   )
 }
