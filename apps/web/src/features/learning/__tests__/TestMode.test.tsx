@@ -60,9 +60,9 @@ describe('TestMode', () => {
   })
 
   it('実装済み全ステップにプレビュー定義が存在する', () => {
-    // TypeScript ステップは純粋関数のため React プレビュー不要（M3スコープ外）
+    // TypeScript ステップ・react-modern ステップは概念学習のため React プレビュー不要
     const reactStepIds = getAllCourses().flatMap((course) => course.steps)
-      .filter((step) => step.isImplemented && findCategoryByStepId(step.id)?.id === 'react')
+      .filter((step) => step.isImplemented && findCategoryByStepId(step.id)?.id === 'react' && step.order <= 20)
       .map((step) => step.id)
 
     expect(reactStepIds).toHaveLength(20)
