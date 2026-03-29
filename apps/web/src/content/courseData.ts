@@ -264,6 +264,43 @@ export const CATEGORIES: CategoryMeta[] = [
           },
         ],
       },
+      {
+        id: 'react-patterns',
+        title: '実務パターン',
+        level: 'advanced',
+        requiredPrerequisites: ['react-hooks'],
+        recommendedPrerequisites: ['react-advanced'],
+        steps: [
+          {
+            id: 'rhf-zod',
+            order: 37,
+            title: 'フォームバリデーション',
+            description: 'React Hook Form + Zod の組み合わせによる型安全なフォームバリデーションパターンを学びます。',
+            isImplemented: true,
+          },
+          {
+            id: 'pagination',
+            order: 38,
+            title: 'ページネーション',
+            description: 'URL連動ページネーションの実装パターン・ページ計算ロジック・useSearchParams による状態管理を学びます。',
+            isImplemented: true,
+          },
+          {
+            id: 'infinite-scroll',
+            order: 39,
+            title: '無限スクロール',
+            description: 'Intersection Observer API を使った無限スクロールの実装・useRef によるセンチネル要素の参照・追加データロードパターンを学びます。',
+            isImplemented: true,
+          },
+          {
+            id: 'auth-flow',
+            order: 40,
+            title: '認証フロー実装',
+            description: 'ログイン/ログアウト/保護ルートの設計パターン・認証状態の Context 管理・トークン管理の考え方を学びます。',
+            isImplemented: true,
+          },
+        ],
+      },
     ],
   },
   {
