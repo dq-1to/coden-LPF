@@ -36,6 +36,7 @@ import { advancedSteps, getAdvancedStep } from '../advanced/steps'
 import { apiPracticeSteps, getApiPracticeStep } from '../api-practice/steps'
 import { typescriptSteps, getTypescriptStep } from '../typescript/steps'
 import { typescriptReactSteps, getTypescriptReactStep } from '../typescript-react/steps'
+import { reactModernSteps, getReactModernStep } from '../react-modern/steps'
 import type { LearningStepContent } from '../fundamentals/steps'
 
 // 全コンテンツを order 順に結合
@@ -46,21 +47,22 @@ const allContentSteps: LearningStepContent[] = [
   ...apiPracticeSteps,
   ...typescriptSteps,
   ...typescriptReactSteps,
+  ...reactModernSteps,
 ].sort((a, b) => a.order - b.order)
 
-// courseData の全ステップ（フラット）
-const allCourseSteps = getAllSteps()
+// courseData の全ステップ（order 昇順）
+const allCourseSteps = getAllSteps().sort((a, b) => a.order - b.order)
 
 // ─────────────────────────────────────────
 // 1. courseData 整合性
 // ─────────────────────────────────────────
 describe('courseData 整合性', () => {
-  it('全ステップ数が 30', () => {
-    expect(TOTAL_STEP_COUNT).toBe(30)
+  it('全ステップ数が 36', () => {
+    expect(TOTAL_STEP_COUNT).toBe(36)
   })
 
-  it('実装済みステップ数が 30（全ステップ isImplemented: true）', () => {
-    expect(IMPLEMENTED_STEP_COUNT).toBe(30)
+  it('実装済みステップ数が 36（全ステップ isImplemented: true）', () => {
+    expect(IMPLEMENTED_STEP_COUNT).toBe(36)
   })
 
   it('全ステップが isImplemented: true', () => {
@@ -68,9 +70,9 @@ describe('courseData 整合性', () => {
     expect(unimplemented).toHaveLength(0)
   })
 
-  it('order が 1〜30 の連番で重複なし', () => {
+  it('order が 1〜36 の連番で重複なし', () => {
     const orders = allCourseSteps.map((s) => s.order).sort((a, b) => a - b)
-    expect(orders).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30])
+    expect(orders).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36])
   })
 
   it('stepId が全ステップで一意', () => {
@@ -84,8 +86,8 @@ describe('courseData 整合性', () => {
 // 2. コンテンツ実装の存在確認
 // ─────────────────────────────────────────
 describe('コンテンツ実装の存在確認', () => {
-  it('全30ステップのコンテンツが実装されている', () => {
-    expect(allContentSteps).toHaveLength(30)
+  it('全36ステップのコンテンツが実装されている', () => {
+    expect(allContentSteps).toHaveLength(36)
   })
 
   it('courseData の全 stepId に対応するコンテンツが存在する', () => {
@@ -94,7 +96,7 @@ describe('コンテンツ実装の存在確認', () => {
     expect(missing).toHaveLength(0)
   })
 
-  it('getFundamentalsStep / getIntermediateStep / getAdvancedStep / getApiPracticeStep / getTypescriptStep / getTypescriptReactStep が全ステップを解決できる', () => {
+  it('getFundamentalsStep / getIntermediateStep / getAdvancedStep / getApiPracticeStep / getTypescriptStep / getTypescriptReactStep / getReactModernStep が全ステップを解決できる', () => {
     for (const step of allCourseSteps) {
       const content =
         getFundamentalsStep(step.id) ??
@@ -102,7 +104,8 @@ describe('コンテンツ実装の存在確認', () => {
         getAdvancedStep(step.id) ??
         getApiPracticeStep(step.id) ??
         getTypescriptStep(step.id) ??
-        getTypescriptReactStep(step.id)
+        getTypescriptReactStep(step.id) ??
+        getReactModernStep(step.id)
       expect(content, `${step.id} のコンテンツが見つからない`).toBeDefined()
     }
   })
@@ -219,7 +222,7 @@ describe('order と courseData の整合性', () => {
 // 5. ナビゲーション（getNextStep / findStepById）
 // ─────────────────────────────────────────
 describe('ナビゲーション整合性', () => {
-  it('findStepById が全30 stepId を解決できる', () => {
+  it('findStepById が全36 stepId を解決できる', () => {
     for (const step of allCourseSteps) {
       const meta = findStepById(step.id)
       expect(meta, `${step.id} の stepMeta が見つからない`).toBeDefined()
@@ -227,16 +230,16 @@ describe('ナビゲーション整合性', () => {
     }
   })
 
-  it('getNextStep が order 1〜29 のステップに対して次ステップを返す', () => {
-    for (const step of allCourseSteps.slice(0, 29)) {
+  it('getNextStep が order 1〜35 のステップに対して次ステップを返す', () => {
+    for (const step of allCourseSteps.slice(0, 35)) {
       const next = getNextStep(step.id)
       expect(next, `${step.id} の次ステップが undefined`).toBeDefined()
       expect(next!.order).toBe(step.order + 1)
     }
   })
 
-  it('getNextStep が最終ステップ（order 30）に対して undefined を返す', () => {
-    const lastStep = allCourseSteps.find((s) => s.order === 30)!
+  it('getNextStep が最終ステップ（order 36）に対して undefined を返す', () => {
+    const lastStep = allCourseSteps.find((s) => s.order === 36)!
     const next = getNextStep(lastStep.id)
     expect(next).toBeUndefined()
   })
@@ -259,9 +262,9 @@ describe('実績バッジ判定のデータ整合性', () => {
     }
   })
 
-  it('全30ステップの stepId が all-complete 判定に必要な配列に含まれる', () => {
+  it('全36ステップの stepId が all-complete 判定に必要な配列に含まれる', () => {
     const allStepIds = new Set(getAllSteps().map((s) => s.id))
-    expect(allStepIds.size).toBe(30)
+    expect(allStepIds.size).toBe(36)
 
     for (const step of allContentSteps) {
       expect(allStepIds.has(step.id), `${step.id} が getAllSteps() に含まれない`).toBe(true)
@@ -306,14 +309,15 @@ describe('API連携コース（react-api）コンテンツ固有検証', () => {
 // 8. CATEGORIES 3層構造の整合性
 // ─────────────────────────────────────────
 describe('CATEGORIES 3層構造', () => {
-  it('react カテゴリに4コースが含まれる', () => {
+  it('react カテゴリに5コースが含まれる', () => {
     const react = findCategoryById('react')!
-    expect(react.courses).toHaveLength(4)
+    expect(react.courses).toHaveLength(5)
     expect(react.courses.map((c) => c.id)).toEqual([
       'react-fundamentals',
       'react-hooks',
       'react-advanced',
       'react-api',
+      'react-modern',
     ])
   })
 
@@ -323,8 +327,8 @@ describe('CATEGORIES 3層構造', () => {
     expect(ts.courses.map((c) => c.id)).toEqual(['ts-basics', 'ts-react'])
   })
 
-  it('getAllCourses が全6コースを返す', () => {
-    expect(getAllCourses()).toHaveLength(6)
+  it('getAllCourses が全7コースを返す', () => {
+    expect(getAllCourses()).toHaveLength(7)
   })
 
   it('findCourseByStepId が正しいコースを返す', () => {
@@ -332,6 +336,8 @@ describe('CATEGORIES 3層構造', () => {
     expect(findCourseByStepId('useeffect')?.id).toBe('react-hooks')
     expect(findCourseByStepId('custom-hooks')?.id).toBe('react-advanced')
     expect(findCourseByStepId('api-counter-get')?.id).toBe('react-api')
+    expect(findCourseByStepId('error-boundary')?.id).toBe('react-modern')
+    expect(findCourseByStepId('forward-ref')?.id).toBe('react-modern')
   })
 
   it('findCategoryByStepId が正しいカテゴリを返す', () => {
@@ -427,5 +433,52 @@ describe('TypeScript × React（ts-react）コンテンツ固有検証', () => {
   it('ts-react-events の expectedKeywords に HTMLInputElement が含まれる', () => {
     const step = getTypescriptReactStep('ts-react-events')!
     expect(step.testTask.expectedKeywords).toContain('HTMLInputElement')
+  })
+})
+
+// ─────────────────────────────────────────
+// 11. React モダンコース固有検証
+// ─────────────────────────────────────────
+describe('React モダン（react-modern）コンテンツ固有検証', () => {
+  it('react-modern ステップが findCategoryByStepId で react カテゴリに解決できる', () => {
+    expect(findCategoryByStepId('error-boundary')?.id).toBe('react')
+    expect(findCategoryByStepId('suspense-lazy')?.id).toBe('react')
+    expect(findCategoryByStepId('concurrent-features')?.id).toBe('react')
+    expect(findCategoryByStepId('use-optimistic')?.id).toBe('react')
+    expect(findCategoryByStepId('portals')?.id).toBe('react')
+    expect(findCategoryByStepId('forward-ref')?.id).toBe('react')
+  })
+
+  it('react-modern の全ステップに reactModernSteps コンテンツが存在する', () => {
+    const course = findCourseById('react-modern')!
+    for (const meta of course.steps) {
+      expect(getReactModernStep(meta.id), `${meta.id} のコンテンツがない`).toBeDefined()
+    }
+  })
+
+  it('react-modern の requiredPrerequisites に react-hooks が含まれる', () => {
+    const course = findCourseById('react-modern')!
+    expect(course.requiredPrerequisites).toContain('react-hooks')
+  })
+
+  it('react-modern の全ステップが isImplemented: true', () => {
+    const course = findCourseById('react-modern')!
+    expect(course.steps).toHaveLength(6)
+    expect(course.steps.every((s) => s.isImplemented)).toBe(true)
+  })
+
+  it('error-boundary の starterCode に ____ が含まれる', () => {
+    const step = getReactModernStep('error-boundary')!
+    expect(step.testTask.starterCode).toContain('____')
+  })
+
+  it('concurrent-features の expectedKeywords に startTransition が含まれる', () => {
+    const step = getReactModernStep('concurrent-features')!
+    expect(step.testTask.expectedKeywords).toContain('startTransition')
+  })
+
+  it('forward-ref の expectedKeywords に forwardRef が含まれる', () => {
+    const step = getReactModernStep('forward-ref')!
+    expect(step.testTask.expectedKeywords).toContain('forwardRef')
   })
 })
