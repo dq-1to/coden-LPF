@@ -213,6 +213,57 @@ export const CATEGORIES: CategoryMeta[] = [
           },
         ],
       },
+      {
+        id: 'react-modern',
+        title: 'React モダン',
+        level: 'advanced',
+        requiredPrerequisites: ['react-hooks'],
+        recommendedPrerequisites: ['react-advanced'],
+        steps: [
+          {
+            id: 'error-boundary',
+            order: 31,
+            title: 'Error Boundary',
+            description: 'クラスコンポーネントを使ったError Boundaryの実装パターン・componentDidCatch・エラー回復UIの設計を学びます。',
+            isImplemented: true,
+          },
+          {
+            id: 'suspense-lazy',
+            order: 32,
+            title: 'Suspense と lazy',
+            description: 'React.lazyによるコード分割・Suspenseのfallback・非同期データ読み込みとの連携パターンを学びます。',
+            isImplemented: true,
+          },
+          {
+            id: 'concurrent-features',
+            order: 33,
+            title: 'Concurrent Features',
+            description: 'useTransition・useDeferredValue・startTransitionを使い、UIの応答性を保ちながら重い更新を非緊急として処理する方法を学びます。',
+            isImplemented: true,
+          },
+          {
+            id: 'use-optimistic',
+            order: 34,
+            title: 'useOptimistic',
+            description: 'useOptimisticを使ってサーバー応答を待たずにUIを先行更新し、非同期処理中も快適な操作感を実現する方法を学びます。',
+            isImplemented: true,
+          },
+          {
+            id: 'portals',
+            order: 35,
+            title: 'Portals',
+            description: 'createPortalでDOM階層の外にコンポーネントをレンダリングする方法・モーダルやツールチップへの応用・イベントバブリングの挙動を学びます。',
+            isImplemented: true,
+          },
+          {
+            id: 'forward-ref',
+            order: 36,
+            title: 'forwardRef と useImperativeHandle',
+            description: 'forwardRefで親コンポーネントへDOM参照を公開する方法・useImperativeHandleで公開APIをカスタマイズするパターンを学びます。',
+            isImplemented: true,
+          },
+        ],
+      },
     ],
   },
   {
@@ -384,7 +435,7 @@ export const IMPLEMENTED_STEP_COUNT = getAllSteps().filter((s) => s.isImplemente
 export const findStepMeta = findStepById
 
 export function getNextStep(currentStepId: string): StepMeta | undefined {
-  const allSteps = getAllSteps()
+  const allSteps = getAllSteps().sort((a, b) => a.order - b.order)
   const currentIndex = allSteps.findIndex((s) => s.id === currentStepId)
   if (currentIndex === -1) return undefined
   return allSteps[currentIndex + 1]
