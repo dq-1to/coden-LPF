@@ -18,7 +18,7 @@ export function PracticeModeNav() {
       </p>
       <ul className="space-y-1">
         {NAV_ITEMS.map(({ path, label, icon: Icon }) => {
-          const isActive = pathname === path
+          const isActive = pathname === path || pathname.startsWith(path + '/')
           return (
             <li key={path}>
               <Link
