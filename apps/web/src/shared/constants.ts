@@ -12,6 +12,11 @@ export const POINTS_CODE_DOCTOR_ADVANCED = 50
 /** ミニプロジェクト完了時に付与されるポイント */
 export const POINTS_MINI_PROJECT_COMPLETE = 100
 
+/** コードリーディング正解時に付与されるポイント */
+export const POINTS_CODE_READING_BASIC = 10
+export const POINTS_CODE_READING_INTERMEDIATE = 20
+export const POINTS_CODE_READING_ADVANCED = 30
+
 /** ポイントバッジの閾値 */
 export const BADGE_POINT_THRESHOLD_MID = 500
 export const BADGE_POINT_THRESHOLD_HIGH = 1000
