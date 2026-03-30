@@ -3,9 +3,9 @@ import { Zap, Stethoscope, FolderOpen, BookOpen } from 'lucide-react'
 
 const NAV_ITEMS = [
   { path: '/daily', label: 'デイリー', icon: Zap },
-  { path: '/code-doctor', label: 'ドクター', icon: Stethoscope },
-  { path: '/mini-projects', label: 'ミニプロ', icon: FolderOpen },
-  { path: '/code-reading', label: 'リーディング', icon: BookOpen },
+  { path: '/practice/code-doctor', label: 'ドクター', icon: Stethoscope },
+  { path: '/practice/mini-projects', label: 'ミニプロ', icon: FolderOpen },
+  { path: '/practice/code-reading', label: 'リーディング', icon: BookOpen },
 ]
 
 export function PracticeModeNav() {
