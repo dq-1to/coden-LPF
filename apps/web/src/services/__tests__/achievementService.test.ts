@@ -47,11 +47,35 @@ function makeCompletedProgress(stepId: string) {
   }
 }
 
+/** 今日から N 日分の連続 daily_challenge_history データを生成 */
+function makeDailyStreakData(days: number) {
+  return Array.from({ length: days }, (_, i) => {
+    const now = new Date()
+    const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000)
+    const d = new Date(jst.toISOString().slice(0, 10) + 'T00:00:00Z')
+    d.setUTCDate(d.getUTCDate() - i)
+    return { challenge_date: d.toISOString().slice(0, 10), completed: true }
+  })
+}
+
+/** テーブル別に異なるデータを返す from モック */
+function mockFromWithTable(overrides: Record<string, unknown[]>) {
+  mockFrom.mockImplementation((tableName: string) => {
+    const data = overrides[tableName] ?? []
+    return {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ data, error: null }),
+      }),
+      insert: vi.fn().mockResolvedValue({ error: null }),
+    } as unknown as ReturnType<typeof supabase.from>
+  })
+}
+
 describe('checkAndUnlockAchievements', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    // デフォルト: 既存バッジなし、INSERT 成功
+    // デフォルト: 既存バッジなし、INSERT 成功、全 DB クエリは空
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockResolvedValue({ data: [], error: null }),
@@ -184,5 +208,171 @@ describe('checkAndUnlockAchievements', () => {
     const unlocked = await checkAndUnlockAchievements('test-user')
 
     expect(unlocked).not.toContain('first-step')
+  })
+
+  // ─── 新コース完了バッジ ───────────────────────────────────
+
+  it('ts-basics の全ステップ完了で ts-basic-complete バッジが付与される', async () => {
+    const stepIds = ['ts-types', 'ts-functions', 'ts-objects', 'ts-union-narrowing', 'ts-generics', 'ts-utility-types']
+    mockGetAllStepProgress.mockResolvedValue(stepIds.map(makeCompletedProgress))
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).toContain('ts-basic-complete')
+  })
+
+  it('ts-react の全ステップ完了で ts-react-complete バッジが付与される', async () => {
+    const stepIds = ['ts-react-props', 'ts-react-state', 'ts-react-hooks', 'ts-react-events']
+    mockGetAllStepProgress.mockResolvedValue(stepIds.map(makeCompletedProgress))
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).toContain('ts-react-complete')
+  })
+
+  it('react-modern の全ステップ完了で react-modern-complete バッジが付与される', async () => {
+    const stepIds = ['error-boundary', 'suspense-lazy', 'concurrent-features', 'use-optimistic', 'portals', 'forward-ref']
+    mockGetAllStepProgress.mockResolvedValue(stepIds.map(makeCompletedProgress))
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).toContain('react-modern-complete')
+  })
+
+  it('react-patterns の全ステップ完了で patterns-complete バッジが付与される', async () => {
+    const stepIds = ['rhf-zod', 'pagination', 'infinite-scroll', 'auth-flow']
+    mockGetAllStepProgress.mockResolvedValue(stepIds.map(makeCompletedProgress))
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).toContain('patterns-complete')
+  })
+
+  // ─── デイリーチャレンジ連続バッジ ────────────────────────
+
+  it('7日連続でデイリーチャレンジ完了で daily-7 バッジが付与される', async () => {
+    mockFromWithTable({ daily_challenge_history: makeDailyStreakData(7) })
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).toContain('daily-7')
+  })
+
+  it('6日連続では daily-7 バッジは付与されない', async () => {
+    mockFromWithTable({ daily_challenge_history: makeDailyStreakData(6) })
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).not.toContain('daily-7')
+  })
+
+  it('30日連続で daily-30 バッジが付与される', async () => {
+    mockFromWithTable({ daily_challenge_history: makeDailyStreakData(30) })
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).toContain('daily-30')
+    expect(unlocked).toContain('daily-7')
+  })
+
+  // ─── コードドクターバッジ ──────────────────────────────────
+
+  it('コードドクター10問完了で doctor-10 バッジが付与される', async () => {
+    const doctorData = Array.from({ length: 10 }, (_, i) => ({
+      problem_id: `cd-beginner-${String(i + 1).padStart(3, '0')}`,
+      completed: true,
+    }))
+    mockFromWithTable({ code_doctor_progress: doctorData })
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).toContain('doctor-10')
+  })
+
+  it('コードドクター9問完了では doctor-10 バッジは付与されない', async () => {
+    const doctorData = Array.from({ length: 9 }, (_, i) => ({
+      problem_id: `cd-beginner-${String(i + 1).padStart(3, '0')}`,
+      completed: true,
+    }))
+    mockFromWithTable({ code_doctor_progress: doctorData })
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).not.toContain('doctor-10')
+  })
+
+  it('コードドクター上級を全問正解で doctor-all-advanced バッジが付与される', async () => {
+    const advancedData = Array.from({ length: 10 }, (_, i) => ({
+      problem_id: `cd-advanced-${String(i + 1).padStart(3, '0')}`,
+      completed: true,
+    }))
+    mockFromWithTable({ code_doctor_progress: advancedData })
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).toContain('doctor-all-advanced')
+  })
+
+  // ─── ミニプロジェクトバッジ ────────────────────────────────
+
+  it('ミニプロジェクトを1つ完了で first-mini-project バッジが付与される', async () => {
+    mockFromWithTable({
+      mini_project_progress: [{ project_id: 'todo-app', status: 'completed' }],
+    })
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).toContain('first-mini-project')
+  })
+
+  it('ミニプロジェクトを5つ完了で mini-project-5 バッジが付与される', async () => {
+    const projectData = ['todo-app', 'counter-extended', 'rock-paper-scissors', 'timer-app', 'markdown-previewer'].map(
+      (id) => ({ project_id: id, status: 'completed' }),
+    )
+    mockFromWithTable({ mini_project_progress: projectData })
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).toContain('mini-project-5')
+    expect(unlocked).toContain('first-mini-project')
+  })
+
+  it('ミニプロジェクトを4つ完了では mini-project-5 バッジは付与されない', async () => {
+    const projectData = ['todo-app', 'counter-extended', 'rock-paper-scissors', 'timer-app'].map(
+      (id) => ({ project_id: id, status: 'completed' }),
+    )
+    mockFromWithTable({ mini_project_progress: projectData })
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).not.toContain('mini-project-5')
+  })
+
+  // ─── コードリーディングバッジ ──────────────────────────────
+
+  it('コードリーディング合計10問正解で reader-10 バッジが付与される', async () => {
+    const readingData = [
+      { correct_count: 3 },
+      { correct_count: 3 },
+      { correct_count: 4 },
+    ]
+    mockFromWithTable({ code_reading_progress: readingData })
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).toContain('reader-10')
+  })
+
+  it('コードリーディング合計9問正解では reader-10 バッジは付与されない', async () => {
+    const readingData = [
+      { correct_count: 3 },
+      { correct_count: 3 },
+      { correct_count: 3 },
+    ]
+    mockFromWithTable({ code_reading_progress: readingData })
+
+    const unlocked = await checkAndUnlockAchievements('test-user')
+
+    expect(unlocked).not.toContain('reader-10')
   })
 })
