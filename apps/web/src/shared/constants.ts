@@ -4,6 +4,11 @@ export const POINTS_PER_MODE_COMPLETE = 10
 /** デイリーチャレンジ正解時に付与されるポイント */
 export const POINTS_DAILY_CORRECT = 20
 
+/** コードドクター正解時に付与されるポイント */
+export const POINTS_CODE_DOCTOR_BEGINNER = 15
+export const POINTS_CODE_DOCTOR_INTERMEDIATE = 30
+export const POINTS_CODE_DOCTOR_ADVANCED = 50
+
 /** ポイントバッジの閾値 */
 export const BADGE_POINT_THRESHOLD_MID = 500
 export const BADGE_POINT_THRESHOLD_HIGH = 1000

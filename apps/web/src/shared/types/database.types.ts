@@ -167,6 +167,39 @@ export type Database = {
         }
         Relationships: []
       }
+      code_doctor_progress: {
+        Row: {
+          id: string
+          user_id: string
+          problem_id: string
+          category: string
+          difficulty: string
+          solved: boolean
+          attempts: number
+          solved_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          problem_id: string
+          category?: string
+          difficulty: string
+          solved?: boolean
+          attempts?: number
+          solved_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          problem_id?: string
+          category?: string
+          difficulty?: string
+          solved?: boolean
+          attempts?: number
+          solved_at?: string | null
+        }
+        Relationships: []
+      }
       step_progress: {
         Row: {
           challenge_done: boolean
