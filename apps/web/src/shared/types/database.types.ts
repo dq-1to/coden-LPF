@@ -137,6 +137,36 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_challenge_history: {
+        Row: {
+          id: string
+          user_id: string
+          challenge_id: string
+          completed: boolean
+          points_earned: number
+          completed_at: string | null
+          challenge_date: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          challenge_id: string
+          completed?: boolean
+          points_earned?: number
+          completed_at?: string | null
+          challenge_date: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          challenge_id?: string
+          completed?: boolean
+          points_earned?: number
+          completed_at?: string | null
+          challenge_date?: string
+        }
+        Relationships: []
+      }
       step_progress: {
         Row: {
           challenge_done: boolean

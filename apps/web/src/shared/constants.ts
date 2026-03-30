@@ -1,6 +1,9 @@
 /** 学習モード（Read/Practice/Test/Challenge）完了時に付与されるポイント */
 export const POINTS_PER_MODE_COMPLETE = 10
 
+/** デイリーチャレンジ正解時に付与されるポイント */
+export const POINTS_DAILY_CORRECT = 20
+
 /** ポイントバッジの閾値 */
 export const BADGE_POINT_THRESHOLD_MID = 500
 export const BADGE_POINT_THRESHOLD_HIGH = 1000
