@@ -200,6 +200,12 @@ export type Database = {
         }
         Relationships: []
       }
+      code_reading_progress: {
+        Row: { id: string; user_id: string; problem_id: string; correct_count: number; total_count: number; completed: boolean; completed_at: string | null }
+        Insert: { id?: string; user_id: string; problem_id: string; correct_count?: number; total_count?: number; completed?: boolean; completed_at?: string | null }
+        Update: { id?: string; user_id?: string; problem_id?: string; correct_count?: number; total_count?: number; completed?: boolean; completed_at?: string | null }
+        Relationships: []
+      }
       mini_project_progress: {
         Row: { id: string; user_id: string; project_id: string; status: string; code: string | null; completed_at: string | null }
         Insert: { id?: string; user_id: string; project_id: string; status?: string; code?: string | null; completed_at?: string | null }
