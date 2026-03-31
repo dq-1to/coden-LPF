@@ -201,11 +201,28 @@ describe('submitDailyAnswer', () => {
     explanation: '解説',
   }
 
+  // streak クエリで返すデータを各テストで上書き可能
+  let currentStreakData: { challenge_date: string; completed: boolean }[] = []
+
+  function makeStreakData(days: number) {
+    return Array.from({ length: days }, (_, i) => {
+      const d = new Date(dateStr + 'T00:00:00Z')
+      d.setUTCDate(d.getUTCDate() - i)
+      return { challenge_date: d.toISOString().slice(0, 10), completed: true }
+    })
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
-    mockFrom.mockReturnValue({
+    currentStreakData = []
+
+    // upsert（保存）と select（streak取得）を同じオブジェクトで対応
+    mockFrom.mockImplementation(() => ({
       upsert: vi.fn().mockResolvedValue({ error: null }),
-    } as unknown as ReturnType<typeof supabase.from>)
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockResolvedValue({ data: currentStreakData, error: null }),
+      }),
+    } as unknown as ReturnType<typeof supabase.from>))
     mockAwardPoints.mockResolvedValue()
   })
 
@@ -237,6 +254,39 @@ describe('submitDailyAnswer', () => {
     const result = await submitDailyAnswer(userId, question, 'setCount', dateStr)
     expect(result.explanation).toBe('解説')
     expect(result.correctAnswer).toBe('setCount')
+  })
+
+  it('7日連続正解でボーナス 50pt が付与される', async () => {
+    currentStreakData = makeStreakData(7)
+
+    await submitDailyAnswer(userId, question, 'setCount', dateStr)
+
+    expect(mockAwardPoints).toHaveBeenCalledWith(userId, 20, 'デイリーチャレンジ正解')
+    expect(mockAwardPoints).toHaveBeenCalledWith(userId, 50, 'デイリー7日連続ボーナス')
+  })
+
+  it('14日連続でも 50pt ボーナスが付与される', async () => {
+    currentStreakData = makeStreakData(14)
+
+    await submitDailyAnswer(userId, question, 'setCount', dateStr)
+
+    expect(mockAwardPoints).toHaveBeenCalledWith(userId, 50, 'デイリー14日連続ボーナス')
+  })
+
+  it('6日連続ではボーナスが付与されない', async () => {
+    currentStreakData = makeStreakData(6)
+
+    await submitDailyAnswer(userId, question, 'setCount', dateStr)
+
+    expect(mockAwardPoints).not.toHaveBeenCalledWith(userId, 50, expect.any(String))
+  })
+
+  it('不正解ではストリーク確認せずボーナスも付与されない', async () => {
+    await submitDailyAnswer(userId, question, 'wrongAnswer', dateStr)
+
+    expect(mockAwardPoints).not.toHaveBeenCalled()
+    // from() は upsert の1回のみ呼ばれる（streak query なし）
+    expect(mockFrom).toHaveBeenCalledTimes(1)
   })
 })
 

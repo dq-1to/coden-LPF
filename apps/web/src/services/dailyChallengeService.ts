@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabaseClient'
 import { fromSupabaseError } from '../shared/errors'
-import { POINTS_DAILY_CORRECT } from '../shared/constants'
+import { POINTS_DAILY_CORRECT, POINTS_DAILY_STREAK_BONUS } from '../shared/constants'
 import { awardPoints } from './pointService'
 import { DAILY_QUESTIONS } from '../content/daily/questions'
 import type {
@@ -94,6 +94,30 @@ export async function getTodayChallenge(
   }
 }
 
+/** 指定日時点でのデイリーチャレンジ連続完了日数を返す（today を起点に遡る） */
+async function getDailyConsecutiveStreak(userId: string, today: string): Promise<number> {
+  const { data, error } = await supabase
+    .from('daily_challenge_history')
+    .select('challenge_date, completed')
+    .eq('user_id', userId)
+
+  if (error) throw fromSupabaseError(error, 'デイリー連続記録の取得に失敗しました')
+
+  const completedDates = new Set(
+    (data ?? []).filter((r) => r.completed).map((r) => r.challenge_date as string),
+  )
+
+  let streak = 0
+  let d = new Date(today + 'T00:00:00Z')
+
+  while (completedDates.has(d.toISOString().slice(0, 10))) {
+    streak++
+    d = new Date(d.getTime() - 24 * 60 * 60 * 1000)
+  }
+
+  return streak
+}
+
 /** デイリーチャレンジの回答を送信する */
 export async function submitDailyAnswer(
   userId: string,
@@ -124,6 +148,12 @@ export async function submitDailyAnswer(
 
   if (isCorrect) {
     await awardPoints(userId, POINTS_DAILY_CORRECT, 'デイリーチャレンジ正解')
+
+    // 7日連続ボーナスチェック（7の倍数日ごとに付与）
+    const streak = await getDailyConsecutiveStreak(userId, dateStr)
+    if (streak > 0 && streak % 7 === 0) {
+      await awardPoints(userId, POINTS_DAILY_STREAK_BONUS, `デイリー${streak}日連続ボーナス`)
+    }
   }
 
   return {
