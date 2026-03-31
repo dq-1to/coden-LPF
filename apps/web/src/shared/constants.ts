@@ -4,6 +4,9 @@ export const POINTS_PER_MODE_COMPLETE = 10
 /** デイリーチャレンジ正解時に付与されるポイント */
 export const POINTS_DAILY_CORRECT = 20
 
+/** デイリーチャレンジ7日連続ボーナスポイント */
+export const POINTS_DAILY_STREAK_BONUS = 50
+
 /** コードドクター正解時に付与されるポイント */
 export const POINTS_CODE_DOCTOR_BEGINNER = 15
 export const POINTS_CODE_DOCTOR_INTERMEDIATE = 30
