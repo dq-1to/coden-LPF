@@ -122,7 +122,7 @@ describe('selectDailyQuestion', () => {
 // ─── DB 関数テスト ───────────────────────────────────────
 
 describe('getTodayChallenge', () => {
-  const userId = 'user-1'
+  const userId = '00000000-0000-0000-0000-000000000001'
   const completedStepIds = new Set(['usestate-basic'])
 
   beforeEach(() => {
@@ -189,7 +189,7 @@ describe('getTodayChallenge', () => {
 })
 
 describe('submitDailyAnswer', () => {
-  const userId = 'user-1'
+  const userId = '00000000-0000-0000-0000-000000000001'
   const dateStr = '2026-03-30'
   const question = {
     id: 'usestate-basic-daily-0',
@@ -291,7 +291,7 @@ describe('submitDailyAnswer', () => {
 })
 
 describe('getWeeklyStatus', () => {
-  const userId = 'user-1'
+  const userId = '00000000-0000-0000-0000-000000000001'
 
   beforeEach(() => {
     vi.clearAllMocks()

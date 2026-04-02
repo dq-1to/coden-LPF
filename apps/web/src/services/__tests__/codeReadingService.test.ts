@@ -91,7 +91,7 @@ describe('getReadingProgressMap', () => {
       }),
     } as unknown as ReturnType<typeof supabase.from>)
 
-    const result = await getReadingProgressMap('user-1')
+    const result = await getReadingProgressMap('00000000-0000-0000-0000-000000000001')
     expect(result.size).toBe(0)
   })
 
@@ -113,7 +113,7 @@ describe('getReadingProgressMap', () => {
       }),
     } as unknown as ReturnType<typeof supabase.from>)
 
-    const result = await getReadingProgressMap('user-1')
+    const result = await getReadingProgressMap('00000000-0000-0000-0000-000000000001')
     expect(result.get('cr-001')?.completed).toBe(true)
     expect(result.get('cr-001')?.correctCount).toBe(3)
   })
@@ -136,7 +136,7 @@ describe('getReadingProgressMap', () => {
       }),
     } as unknown as ReturnType<typeof supabase.from>)
 
-    const result = await getReadingProgressMap('user-1')
+    const result = await getReadingProgressMap('00000000-0000-0000-0000-000000000001')
     expect(result.get('cr-002')?.completed).toBe(false)
     expect(result.get('cr-002')?.correctCount).toBe(2)
   })
@@ -155,7 +155,7 @@ describe('submitReading', () => {
 
   it('全問正解 + 初回完了で allCorrect: true かつ 10 pt を返す', async () => {
     const answers = [1, 2, 0] // 全問正解
-    const result = await submitReading('user-1', sampleProblem, answers, false)
+    const result = await submitReading('00000000-0000-0000-0000-000000000001', sampleProblem, answers, false)
     expect(result.allCorrect).toBe(true)
     expect(result.pointsEarned).toBe(10)
     expect(mockAwardPoints).toHaveBeenCalledWith(10, 'コードリーディング完了（カスタムフック）')
@@ -163,7 +163,7 @@ describe('submitReading', () => {
 
   it('全問正解でも previousCompleted: true の場合はポイントを付与しない', async () => {
     const answers = [1, 2, 0]
-    const result = await submitReading('user-1', sampleProblem, answers, true)
+    const result = await submitReading('00000000-0000-0000-0000-000000000001', sampleProblem, answers, true)
     expect(result.allCorrect).toBe(true)
     expect(result.pointsEarned).toBe(0)
     expect(mockAwardPoints).not.toHaveBeenCalled()
@@ -171,7 +171,7 @@ describe('submitReading', () => {
 
   it('部分正解の場合は allCorrect: false で 0 pt', async () => {
     const answers = [1, 0, 0] // q2 が不正解
-    const result = await submitReading('user-1', sampleProblem, answers, false)
+    const result = await submitReading('00000000-0000-0000-0000-000000000001', sampleProblem, answers, false)
     expect(result.allCorrect).toBe(false)
     expect(result.pointsEarned).toBe(0)
     expect(mockAwardPoints).not.toHaveBeenCalled()
@@ -179,19 +179,19 @@ describe('submitReading', () => {
 
   it('questionResults の長さが問題数と一致する', async () => {
     const answers = [1, 2, 0]
-    const result = await submitReading('user-1', sampleProblem, answers, false)
+    const result = await submitReading('00000000-0000-0000-0000-000000000001', sampleProblem, answers, false)
     expect(result.questionResults).toHaveLength(sampleProblem.questions.length)
   })
 
   it('correctCount が正解数と一致する', async () => {
     const answers = [1, 0, 0] // q1 と q3 が正解、q2 が不正解
-    const result = await submitReading('user-1', sampleProblem, answers, false)
+    const result = await submitReading('00000000-0000-0000-0000-000000000001', sampleProblem, answers, false)
     expect(result.correctCount).toBe(2)
   })
 
   it('questionResults に各設問の isCorrect と explanation が含まれる', async () => {
     const answers = [1, 2, 0]
-    const result = await submitReading('user-1', sampleProblem, answers, false)
+    const result = await submitReading('00000000-0000-0000-0000-000000000001', sampleProblem, answers, false)
     expect(result.questionResults[0]!.isCorrect).toBe(true)
     expect(result.questionResults[0]!.explanation).toBe('解説1')
     expect(result.questionResults[1]!.isCorrect).toBe(true)

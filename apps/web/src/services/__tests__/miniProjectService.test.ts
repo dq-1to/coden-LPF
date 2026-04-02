@@ -113,7 +113,7 @@ describe('getProjectProgressMap', () => {
       }),
     } as unknown as ReturnType<typeof supabase.from>)
 
-    const result = await getProjectProgressMap('user-1')
+    const result = await getProjectProgressMap('00000000-0000-0000-0000-000000000001')
     expect(result.size).toBe(0)
   })
 
@@ -129,7 +129,7 @@ describe('getProjectProgressMap', () => {
       }),
     } as unknown as ReturnType<typeof supabase.from>)
 
-    const result = await getProjectProgressMap('user-1')
+    const result = await getProjectProgressMap('00000000-0000-0000-0000-000000000001')
     expect(result.get('todo-app')?.status).toBe('completed')
     expect(result.get('todo-app')?.completedAt).toBe('2026-03-30T10:00:00Z')
   })
@@ -146,7 +146,7 @@ describe('getProjectProgressMap', () => {
       }),
     } as unknown as ReturnType<typeof supabase.from>)
 
-    const result = await getProjectProgressMap('user-1')
+    const result = await getProjectProgressMap('00000000-0000-0000-0000-000000000001')
     expect(result.get('timer-app')?.status).toBe('in_progress')
     expect(result.get('timer-app')?.code).toBe('partial')
   })
@@ -165,7 +165,7 @@ describe('submitProject', () => {
 
   it('全マイルストーン通過で allPassed: true かつ 100 Pt を返す', async () => {
     const code = 'useState( setTasks( addTask setInput('
-    const result = await submitProject('user-1', sampleProject, code, 'not_started')
+    const result = await submitProject('00000000-0000-0000-0000-000000000001', sampleProject, code, 'not_started')
     expect(result.allPassed).toBe(true)
     expect(result.pointsEarned).toBe(100)
     expect(mockAwardPoints).toHaveBeenCalledWith(100, 'ミニプロジェクト完了（Todo App）')
@@ -173,21 +173,21 @@ describe('submitProject', () => {
 
   it('初回 completed 時のみポイントを付与する（previousStatus: not_started）', async () => {
     const code = 'useState( setTasks( addTask setInput('
-    const result = await submitProject('user-1', sampleProject, code, 'not_started')
+    const result = await submitProject('00000000-0000-0000-0000-000000000001', sampleProject, code, 'not_started')
     expect(result.pointsEarned).toBe(100)
     expect(mockAwardPoints).toHaveBeenCalledTimes(1)
   })
 
   it('既に completed の場合はポイントを付与しない（previousStatus: completed）', async () => {
     const code = 'useState( setTasks( addTask setInput('
-    const result = await submitProject('user-1', sampleProject, code, 'completed')
+    const result = await submitProject('00000000-0000-0000-0000-000000000001', sampleProject, code, 'completed')
     expect(result.pointsEarned).toBe(0)
     expect(mockAwardPoints).not.toHaveBeenCalled()
   })
 
   it('一部通過の場合は 0 Pt で allPassed: false', async () => {
     const code = 'useState( setTasks('
-    const result = await submitProject('user-1', sampleProject, code, 'not_started')
+    const result = await submitProject('00000000-0000-0000-0000-000000000001', sampleProject, code, 'not_started')
     expect(result.allPassed).toBe(false)
     expect(result.pointsEarned).toBe(0)
     expect(mockAwardPoints).not.toHaveBeenCalled()
@@ -195,7 +195,7 @@ describe('submitProject', () => {
 
   it('milestoneResults の長さがマイルストーン数と一致する', async () => {
     const code = 'useState( setTasks('
-    const result = await submitProject('user-1', sampleProject, code, 'not_started')
+    const result = await submitProject('00000000-0000-0000-0000-000000000001', sampleProject, code, 'not_started')
     expect(result.milestoneResults).toHaveLength(sampleProject.milestones.length)
   })
 })
