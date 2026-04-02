@@ -1,9 +1,8 @@
 ﻿import { supabase } from '../lib/supabaseClient'
 import { fromSupabaseError } from '../shared/errors'
+import { MAX_CODE_LENGTH } from '../shared/constants'
 import { assertMaxLength } from '../shared/validation'
 import type { Tables, TablesInsert } from '../shared/types/database.types'
-
-const MAX_CODE_LENGTH = 50_000
 const MAX_SUBMISSION_LIMIT = 100
 
 export type ChallengeSubmission = Pick<

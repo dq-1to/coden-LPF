@@ -88,7 +88,7 @@ describe('getProblemProgressMap', () => {
       }),
     } as unknown as ReturnType<typeof supabase.from>)
 
-    const result = await getProblemProgressMap('user-1')
+    const result = await getProblemProgressMap('00000000-0000-0000-0000-000000000001')
     expect(result.size).toBe(0)
   })
 
@@ -104,7 +104,7 @@ describe('getProblemProgressMap', () => {
       }),
     } as unknown as ReturnType<typeof supabase.from>)
 
-    const result = await getProblemProgressMap('user-1')
+    const result = await getProblemProgressMap('00000000-0000-0000-0000-000000000001')
     expect(result.get('cd-beginner-001')?.solved).toBe(true)
     expect(result.get('cd-beginner-001')?.attempts).toBe(2)
   })
@@ -120,32 +120,32 @@ describe('submitDoctorSolution', () => {
   })
 
   it('正解の場合は passed: true と対応ポイントを返す', async () => {
-    const result = await submitDoctorSolution('user-1', sampleProblem, '<li key={item.id}>{item}</li>')
+    const result = await submitDoctorSolution('00000000-0000-0000-0000-000000000001', sampleProblem, '<li key={item.id}>{item}</li>')
     expect(result.passed).toBe(true)
     expect(result.pointsEarned).toBe(15)
     expect(mockAwardPoints).toHaveBeenCalledWith(15, 'コードドクター正解（beginner）')
   })
 
   it('不正解の場合は passed: false で 0 pt', async () => {
-    const result = await submitDoctorSolution('user-1', sampleProblem, '<li>{item}</li>')
+    const result = await submitDoctorSolution('00000000-0000-0000-0000-000000000001', sampleProblem, '<li>{item}</li>')
     expect(result.passed).toBe(false)
     expect(result.pointsEarned).toBe(0)
     expect(mockAwardPoints).not.toHaveBeenCalled()
   })
 
   it('不足キーワードが missingKeywords に含まれる', async () => {
-    const result = await submitDoctorSolution('user-1', sampleProblem, '<li>{item}</li>')
+    const result = await submitDoctorSolution('00000000-0000-0000-0000-000000000001', sampleProblem, '<li>{item}</li>')
     expect(result.missingKeywords).toContain('key=')
   })
 
   it('正解時に explanation が返される', async () => {
-    const result = await submitDoctorSolution('user-1', sampleProblem, 'key= <li>')
+    const result = await submitDoctorSolution('00000000-0000-0000-0000-000000000001', sampleProblem, 'key= <li>')
     expect(result.explanation).toBe('解説')
   })
 
   it('advanced 問題の正解は 50 pt', async () => {
     const advancedProblem: CodeDoctorProblem = { ...sampleProblem, id: 'cd-advanced-001', difficulty: 'advanced' }
-    const result = await submitDoctorSolution('user-1', advancedProblem, 'key=')
+    const result = await submitDoctorSolution('00000000-0000-0000-0000-000000000001', advancedProblem, 'key=')
     expect(result.pointsEarned).toBe(50)
     expect(mockAwardPoints).toHaveBeenCalledWith(50, 'コードドクター正解（advanced）')
   })

@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabaseClient'
+import { MAX_ANSWER_LENGTH, POINTS_DAILY_CORRECT, POINTS_DAILY_STREAK_BONUS } from '../shared/constants'
 import { fromSupabaseError } from '../shared/errors'
-import { POINTS_DAILY_CORRECT, POINTS_DAILY_STREAK_BONUS } from '../shared/constants'
+import { assertMaxLength, assertUuid } from '../shared/validation'
 import { awardPoints } from './pointService'
 import { DAILY_QUESTIONS } from '../content/daily/questions'
 import type {
@@ -125,6 +126,9 @@ export async function submitDailyAnswer(
   userAnswer: string,
   dateStr: string,
 ): Promise<SubmitResult> {
+  assertUuid(userId, 'userId')
+  assertMaxLength(userAnswer, MAX_ANSWER_LENGTH, 'userAnswer')
+
   const isCorrect = userAnswer.trim().toLowerCase() === question.answer.trim().toLowerCase()
   const pointsEarned = isCorrect ? POINTS_DAILY_CORRECT : 0
 
@@ -136,7 +140,6 @@ export async function submitDailyAnswer(
         challenge_id: question.id,
         completed: true,
         points_earned: pointsEarned,
-        completed_at: new Date().toISOString(),
         challenge_date: dateStr,
       },
       { onConflict: 'user_id,challenge_date' },

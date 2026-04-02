@@ -249,7 +249,7 @@ export function CodeReadingPage() {
                   )}
 
                   {submitError && (
-                    <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                       {submitError}
                     </p>
                   )}
@@ -324,7 +324,7 @@ export function CodeReadingPage() {
                 <Spinner />
               </div>
             ) : error ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+              <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
                 {error}
               </div>
             ) : (

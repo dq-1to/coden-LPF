@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabaseClient'
 import { fromSupabaseError } from '../shared/errors'
+import { assertUuid } from '../shared/validation'
 import {
   POINTS_CODE_READING_BASIC,
   POINTS_CODE_READING_INTERMEDIATE,
@@ -26,6 +27,10 @@ export function getPointsForDifficulty(difficulty: CodeReadingDifficulty): numbe
       return POINTS_CODE_READING_INTERMEDIATE
     case 'advanced':
       return POINTS_CODE_READING_ADVANCED
+    default: {
+      const _exhaustive: never = difficulty
+      throw new Error(`Unknown difficulty: ${_exhaustive}`)
+    }
   }
 }
 
@@ -43,6 +48,7 @@ export function judgeAnswer(
 export async function getReadingProgressMap(
   userId: string,
 ): Promise<Map<string, CodeReadingProgress>> {
+  assertUuid(userId, 'userId')
   const { data, error } = await supabase
     .from('code_reading_progress')
     .select('problem_id, correct_count, total_count, completed, completed_at')
@@ -75,6 +81,7 @@ export async function submitReading(
   answers: number[],
   previousCompleted: boolean,
 ): Promise<SubmitReadingResult> {
+  assertUuid(userId, 'userId')
   const questionResults: QuestionJudgeResult[] = problem.questions.map((q, i) => ({
     questionId: q.id,
     isCorrect: judgeAnswer(answers[i] ?? -1, q),
@@ -85,7 +92,6 @@ export async function submitReading(
 
   const correctCount = questionResults.filter((r) => r.isCorrect).length
   const allCorrect = correctCount === problem.questions.length
-  const completedAt = allCorrect ? new Date().toISOString() : null
 
   const { error } = await supabase.from('code_reading_progress').upsert(
     {
@@ -94,7 +100,6 @@ export async function submitReading(
       correct_count: correctCount,
       total_count: problem.questions.length,
       completed: allCorrect,
-      completed_at: completedAt,
     },
     { onConflict: 'user_id,problem_id', ignoreDuplicates: false },
   )
