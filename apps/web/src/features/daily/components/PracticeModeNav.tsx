@@ -42,8 +42,8 @@ export function PracticeModeNav() {
         </ul>
       </nav>
 
-      {/* モバイル: 水平ピルナビ */}
-      <nav className="mb-2 flex gap-2 overflow-x-auto lg:hidden" aria-label="練習モード">
+      {/* モバイル: 折り返しピルナビ */}
+      <nav className="mb-2 flex flex-wrap gap-2 lg:hidden" aria-label="練習モード">
         {NAV_ITEMS.map(({ path, label, icon: Icon }) => {
           const isActive = pathname === path || pathname.startsWith(path + '/')
           return (
@@ -51,7 +51,7 @@ export function PracticeModeNav() {
               key={path}
               to={path}
               className={[
-                'flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors',
+                'flex flex-1 items-center justify-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors',
                 isActive
                   ? 'bg-amber-500 text-white'
                   : 'border border-slate-200 bg-white text-text-muted hover:border-amber-400 hover:text-amber-600',
