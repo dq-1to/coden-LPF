@@ -153,7 +153,7 @@ export function MiniProjectDetailPage() {
             )}
 
             {submitError && (
-              <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 {submitError}
               </p>
             )}

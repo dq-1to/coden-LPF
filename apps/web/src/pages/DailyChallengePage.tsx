@@ -86,7 +86,7 @@ export function DailyChallengePage() {
                 <Spinner />
               </div>
             ) : error ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+              <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
                 {error}
               </div>
             ) : completedStepIds.size === 0 ? (
