@@ -204,7 +204,7 @@ export function StepPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
       <AppHeader displayName={headerDisplayName} onSignOut={() => void handleSignOut()} />
 
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-6 sm:px-6">
@@ -239,7 +239,7 @@ export function StepPage() {
             </span>
           </div>
           <h1 className="text-3xl font-bold">{step.title}</h1>
-          <p className="text-slate-600">{step.summary}</p>
+          <p className="break-words text-slate-600">{step.summary}</p>
         </section>
 
         <section className="flex flex-col gap-4 lg:flex-row lg:items-start">
