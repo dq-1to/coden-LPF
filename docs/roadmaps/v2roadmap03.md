@@ -514,10 +514,11 @@
 
 レビュー元の推奨に従い、以下の順序で対応する。
 
-1. **Phase A** (即座): 2-1 → 2-2 → 2-3 → 2-4（セキュリティ・型安全性・安定性）
-2. **Phase B** (早期): 3-1 → 3-2 → 3-3 → 3-4 → 3-5（バグ・安定性向上）
-3. **Phase C** (計画的): 4-1 〜 4-12（設計改善・品質向上）
-4. **Phase D** (継続的): 5-1 〜 5-10（品質基盤強化）
+1. **Phase A** (即座): 2-1 → 2-2 → 2-3 → 2-4（セキュリティ・型安全性・安定性）✅ 完了
+2. **Phase B** (早期): 3-1 → 3-2 → 3-3 → 3-4 → 3-5（バグ・安定性向上）✅ 完了
+3. **Phase C** (計画的): 4-1 〜 4-12（設計改善・品質向上）✅ 完了（4-10 テスト一部 → E1 へ）
+4. **Phase D** (継続的): 5-1 〜 5-10（品質基盤強化）✅ 完了（5-6/5-7/5-8 一部 → E2〜E4 へ）
+5. **Phase E** (仕上げ): E1 → E2 → E3 → E4（残課題の完了）
 
 ---
 
@@ -558,7 +559,8 @@
 - [x] バッジ解除が `Promise.all` で並列実行されている
 - [x] 入力バリデーションが各サービスに追加されている
 - [x] `updateModeCompletion` が exhaustive switch になっている
-- [x] Context / Service / Hooks のテストが追加されている
+- [x] Service / Hooks のテストが追加されている
+- [x] Context のテストが追加されている
 - [x] アクセシビリティの不備が修正されている
 - [x] Node.js バージョンが統一されている
 
@@ -569,13 +571,156 @@
 - [x] `user` 状態が `session` からの派生値になっている
 - [x] `setTimeout` のクリーンアップが適切
 - [x] マジックナンバーが定数化されている
-- [x] ESLint ルールが強化されている
-- [x] `tsconfig.json` に追加 strict オプションがある
-- [x] CI パイプラインが改善されている
+- [x] ESLint ルール: `no-explicit-any` / `consistent-type-imports` 追加済み
+- [x] ESLint ルール: `jsx-a11y` プラグイン / `strict` config 導入済み
+- [x] `tsconfig.json`: `forceConsistentCasingInFileNames` / `exactOptionalPropertyTypes` 追加済み
+- [x] `tsconfig.json`: `noUncheckedIndexedAccess` 追加済み
+- [x] CI: `npm audit` 追加済み
+- [x] CI: テストカバレッジ計測 / ジョブ並列化 実施済み
 - [x] Vite ビルドが最適化されている
 - [x] `useDocumentTitle` にリストアがある
+
+### Phase E
+
+- [x] Context テスト追加（AuthContext / LearningContext / AchievementContext）
+- [x] useDocumentTitle テスト追加
+- [x] `eslint-plugin-jsx-a11y` 導入 + `tseslint.configs.strict` 化
+- [x] `noUncheckedIndexedAccess` 導入 + 全箇所修正
+- [x] CI テストカバレッジ計測 + ジョブ並列化
 
 ### 品質ゲート
 
 - [x] `typecheck` / `lint` / `test` / `build` 全通過
 - [x] 既存テスト全 PASS
+
+---
+
+## 6. Phase E: 残課題の仕上げ
+
+Phase A〜D の対応後、全体検証で判明した部分的修正の残りをまとめたフェーズ。
+
+### 対応方針
+
+Phase E は「影響範囲の小さい順」に対応する。E1〜E2 は独立タスクで並列作業可能。E3 は影響範囲が大きいため単独で慎重に。E4・E5 は CI/Lint 設定変更のため E1〜E3 の安定後に行う。
+
+### E1. Context テスト追加
+
+**元イシュー**: 4-10（テストカバレッジの主要ギャップ）
+**対象**: AuthContext / LearningContext / AchievementContext / useDocumentTitle
+
+**現状**: サービスのテスト（pointService, profileService, achievementService 等）は追加済み。しかし Context は認証・状態管理の中核であり、テストが存在しない。useDocumentTitle のテストもない。
+
+**修正方針**:
+1. `apps/web/src/contexts/__tests__/AuthContext.test.tsx` を作成
+   - 初期状態のテスト（isLoading: true, user: null）
+   - signIn 成功/失敗のテスト
+   - signUp の CONFIRM_EMAIL フローのテスト
+   - signOut のテスト
+   - onAuthStateChange による session 更新のテスト
+2. `apps/web/src/contexts/__tests__/LearningContext.test.tsx` を作成
+   - refreshStats の正常系/エラー系
+   - isMountedRef ガードの動作
+3. `apps/web/src/contexts/__tests__/AchievementContext.test.tsx` を作成
+   - refreshAchievements の正常系/エラー系
+   - isMountedRef ガードの動作
+   - newlyUnlockedBadge のトーストキュー動作
+4. `apps/web/src/hooks/__tests__/useDocumentTitle.test.ts` を作成
+   - タイトル設定のテスト
+   - アンマウント時のリストア動作のテスト
+
+**工数**: 中（モック構築が主な作業）
+
+---
+
+### E2. eslint-plugin-jsx-a11y 導入 + strict config 化
+
+**元イシュー**: 5-6（ESLint ルールの強化余地）
+**対象**: `apps/web/eslint.config.js`
+
+**現状**: `no-explicit-any: 'warn'` と `consistent-type-imports: 'error'` は追加済み。`jsx-a11y` プラグインと `tseslint.configs.strict` は未導入。
+
+**修正方針**:
+1. `npm install -D eslint-plugin-jsx-a11y` でプラグインをインストール
+2. `eslint.config.js` に `jsxA11y.flatConfigs.recommended` を追加
+3. `tseslint.configs.recommended` → `tseslint.configs.strict` に変更
+4. `npm run lint` を実行し、新規エラーを確認・修正
+5. `no-explicit-any` を `'warn'` → `'error'` に昇格（strict に含まれるが念のため明示）
+
+**判断ポイント**:
+- strict 化で `@typescript-eslint/no-non-null-assertion` 等が有効になる → 既存コードの `!` アサーションを修正する必要がある
+- jsx-a11y で Phase C の 4-11 で対応済みの a11y 修正が Lint レベルで維持される
+- 新規エラーが多数出る場合、一時的に `'warn'` で導入し段階的に `'error'` へ移行
+
+**工数**: 小〜中（既存エラーの量に依存）
+
+---
+
+### E3. noUncheckedIndexedAccess 導入
+
+**元イシュー**: 5-7（tsconfig.json の追加 strict オプション）
+**対象**: `apps/web/tsconfig.json`
+
+**現状**: `forceConsistentCasingInFileNames` と `exactOptionalPropertyTypes` は追加済み。`noUncheckedIndexedAccess` は影響範囲が大きいため未導入。
+
+**修正方針**:
+1. `tsconfig.json` に `"noUncheckedIndexedAccess": true` を追加
+2. `npm run typecheck` でエラー箇所を全列挙
+3. エラー修正パターン:
+   - 配列の `[0]` アクセス → `[0]!`（存在を確信）or `?? defaultValue`（安全）or `if (item !== undefined)`
+   - `Object.keys` / `Object.entries` のアクセス → 同上
+   - `Map.get()` / `Array.find()` → 既に `| undefined` なので影響少
+4. 全エラー修正後に CI 通過を確認
+
+**判断ポイント**:
+- 影響範囲が最も大きいオプション（配列アクセスの全箇所に影響）
+- 安易に `!` を付けるのではなく、本当に `undefined` になり得る箇所は適切にハンドリングする
+- コンテンツファイル（`content/` 内の配列参照）は特に修正量が多い可能性
+
+**工数**: 大（修正箇所の多さに依存。50〜100箇所の可能性）
+
+---
+
+### E4. CI テストカバレッジ計測 + ジョブ並列化
+
+**元イシュー**: 5-8（CI パイプラインの改善余地）
+**対象**: `.github/workflows/ci.yml`, `apps/web/vite.config.ts`
+
+**現状**: `npm audit` は追加済み。テストカバレッジ計測とジョブ並列化は未実施。
+
+**修正方針**:
+
+#### カバレッジ計測
+1. `npm install -D @vitest/coverage-v8` でカバレッジプロバイダーをインストール
+2. `vite.config.ts` に `test.coverage` 設定を追加:
+   ```ts
+   coverage: {
+     provider: 'v8',
+     reporter: ['text', 'html', 'lcov'],
+     thresholds: { lines: 60, branches: 60, functions: 60, statements: 60 },
+   }
+   ```
+3. CI に `npx vitest run --coverage` ステップと `upload-artifact` を追加
+4. 閾値は現在のカバレッジに合わせて初期設定し、段階的に引き上げ
+
+#### ジョブ並列化
+1. 単一ジョブ → `typecheck-and-lint`（matrix）/ `test` / `build`（needs で依存）に分割
+2. `typecheck` と `lint` は `strategy.matrix.task` で並列実行
+3. `test` は独立ジョブで並列実行
+4. `build` は `needs: [typecheck-and-lint, test]` で後続に配置
+5. 各ジョブに `actions/setup-node` + `npm ci` + `cache` を設定
+
+**工数**: 小〜中
+
+---
+
+### 推奨実行順序
+
+```
+E1 (Context テスト)  ─────────┐
+                              ├── E3 (noUncheckedIndexedAccess) ── E4 (CI 改善)
+E2 (ESLint 強化)     ─────────┘
+```
+
+- E1 / E2 は互いに独立で並列作業可能
+- E3 は E2 の strict 化後に行うとエラーが見やすい
+- E4 は E1〜E3 完了後にカバレッジ閾値を正確に設定可能
