@@ -114,9 +114,9 @@ export function CodeDoctorPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
           <PracticeModeNav />
 
-          <div className="flex min-w-0 flex-1 gap-4">
+          <div className="flex min-w-0 flex-1 flex-col gap-4 lg:flex-row">
             {/* 問題パネル */}
-            <div className="w-72 shrink-0 space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="w-full space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:w-72 lg:shrink-0">
               <button
                 type="button"
                 onClick={handleBack}
