@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Trophy } from 'lucide-react'
 import { BADGE_DEFINITIONS, checkAndUnlockAchievements, getUnlockedAchievements, type BadgeId } from '../services/achievementService'
 import { useAuth } from './AuthContext'
@@ -27,6 +27,14 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
   const [newlyUnlockedBadge, setNewlyUnlockedBadge] = useState<BadgeId | null>(null)
   const [toastQueue, setToastQueue] = useState<BadgeId[]>([])
   const [isChecking, setIsChecking] = useState(false)
+  const isMountedRef = useRef(true)
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   const refreshAchievements = useCallback(async () => {
     if (!userId) {
@@ -41,13 +49,16 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
     try {
       const newlyUnlocked = await checkAndUnlockAchievements(userId)
       const latestUnlocked = await getUnlockedAchievements(userId)
+      if (!isMountedRef.current) return
       setUnlockedBadgeIds(latestUnlocked)
 
       if (newlyUnlocked.length > 0) {
         setToastQueue((prev) => [...prev, ...newlyUnlocked])
       }
     } finally {
-      setIsChecking(false)
+      if (isMountedRef.current) {
+        setIsChecking(false)
+      }
     }
   }, [userId])
 
