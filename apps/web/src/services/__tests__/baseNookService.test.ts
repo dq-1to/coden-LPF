@@ -13,6 +13,24 @@ vi.mock('../../lib/supabaseClient', () => ({
   supabase: { from: vi.fn() },
 }))
 vi.mock('../pointService', () => ({ awardPoints: vi.fn() }))
+vi.mock('../../content/base-nook/topics', () => ({
+  BASE_NOOK_TOPICS: [
+    {
+      id: 'javascript',
+      title: 'JavaScript',
+      summary: '',
+      icon: 'Code',
+      article: '',
+      questions: [
+        { id: 'q-1', text: '', choices: [], correctIndex: 0, explanation: '' },
+        { id: 'q-2', text: '', choices: [], correctIndex: 0, explanation: '' },
+        { id: 'q-3', text: '', choices: [], correctIndex: 0, explanation: '' },
+        { id: 'q-4', text: '', choices: [], correctIndex: 0, explanation: '' },
+        { id: 'q-5', text: '', choices: [], correctIndex: 0, explanation: '' },
+      ],
+    },
+  ],
+}))
 
 const mockFrom = vi.mocked(supabase.from)
 const mockAwardPoints = vi.mocked(awardPoints)
