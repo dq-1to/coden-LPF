@@ -280,7 +280,7 @@ describe('checkAndUnlockAchievements', () => {
   it('コードドクター10問完了で doctor-10 バッジが付与される', async () => {
     const doctorData = Array.from({ length: 10 }, (_, i) => ({
       problem_id: `cd-beginner-${String(i + 1).padStart(3, '0')}`,
-      completed: true,
+      solved: true,
     }))
     mockFromWithTable({ code_doctor_progress: doctorData })
 
@@ -292,7 +292,7 @@ describe('checkAndUnlockAchievements', () => {
   it('コードドクター9問完了では doctor-10 バッジは付与されない', async () => {
     const doctorData = Array.from({ length: 9 }, (_, i) => ({
       problem_id: `cd-beginner-${String(i + 1).padStart(3, '0')}`,
-      completed: true,
+      solved: true,
     }))
     mockFromWithTable({ code_doctor_progress: doctorData })
 
@@ -304,7 +304,7 @@ describe('checkAndUnlockAchievements', () => {
   it('コードドクター上級を全問正解で doctor-all-advanced バッジが付与される', async () => {
     const advancedData = Array.from({ length: 10 }, (_, i) => ({
       problem_id: `cd-advanced-${String(i + 1).padStart(3, '0')}`,
-      completed: true,
+      solved: true,
     }))
     mockFromWithTable({ code_doctor_progress: advancedData })
 

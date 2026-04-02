@@ -107,7 +107,7 @@ export async function submitReading(
   const pointsEarned = isNewlyCompleted ? getPointsForDifficulty(problem.difficulty) : 0
 
   if (isNewlyCompleted) {
-    await awardPoints(userId, pointsEarned, `コードリーディング完了（${problem.title}）`)
+    await awardPoints(pointsEarned, `コードリーディング完了（${problem.title}）`)
   }
 
   return { questionResults, allCorrect, correctCount, pointsEarned }

@@ -158,7 +158,7 @@ describe('submitReading', () => {
     const result = await submitReading('user-1', sampleProblem, answers, false)
     expect(result.allCorrect).toBe(true)
     expect(result.pointsEarned).toBe(10)
-    expect(mockAwardPoints).toHaveBeenCalledWith('user-1', 10, 'コードリーディング完了（カスタムフック）')
+    expect(mockAwardPoints).toHaveBeenCalledWith(10, 'コードリーディング完了（カスタムフック）')
   })
 
   it('全問正解でも previousCompleted: true の場合はポイントを付与しない', async () => {

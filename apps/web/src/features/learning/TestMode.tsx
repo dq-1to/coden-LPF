@@ -1,5 +1,6 @@
 import { Fragment, Suspense, useEffect, useMemo, useState } from 'react'
 import { Button } from '../../components/Button'
+import { ErrorBoundary } from '../../components/ErrorBoundary'
 import type { TestTask } from '../../content/fundamentals/steps'
 import { addToReviewList, removeFromReviewList } from '../../services/reviewListService'
 import { previewByStepId } from './testModePreview'
@@ -113,16 +114,18 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
           <p className="mt-1 text-sm text-emerald-700">{preview.description}</p>
           {previewComponentByStepId[stepId] ? (
             <div className="mt-3 rounded-md border border-emerald-200 bg-white p-4">
-              <Suspense
-                fallback={
-                  <p className="text-xs text-slate-400">プレビューを読み込み中…</p>
-                }
-              >
-                {(() => {
-                  const PreviewComponent = previewComponentByStepId[stepId]
-                  return <PreviewComponent />
-                })()}
-              </Suspense>
+              <ErrorBoundary fallback={<p className="text-sm text-red-600">プレビューの表示中にエラーが発生しました。</p>}>
+                <Suspense
+                  fallback={
+                    <p className="text-xs text-slate-400">プレビューを読み込み中…</p>
+                  }
+                >
+                  {(() => {
+                    const PreviewComponent = previewComponentByStepId[stepId]
+                    return <PreviewComponent />
+                  })()}
+                </Suspense>
+              </ErrorBoundary>
             </div>
           ) : null}
         </div>

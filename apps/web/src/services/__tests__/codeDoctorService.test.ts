@@ -123,7 +123,7 @@ describe('submitDoctorSolution', () => {
     const result = await submitDoctorSolution('user-1', sampleProblem, '<li key={item.id}>{item}</li>')
     expect(result.passed).toBe(true)
     expect(result.pointsEarned).toBe(15)
-    expect(mockAwardPoints).toHaveBeenCalledWith('user-1', 15, 'コードドクター正解（beginner）')
+    expect(mockAwardPoints).toHaveBeenCalledWith(15, 'コードドクター正解（beginner）')
   })
 
   it('不正解の場合は passed: false で 0 pt', async () => {
@@ -147,6 +147,6 @@ describe('submitDoctorSolution', () => {
     const advancedProblem: CodeDoctorProblem = { ...sampleProblem, id: 'cd-advanced-001', difficulty: 'advanced' }
     const result = await submitDoctorSolution('user-1', advancedProblem, 'key=')
     expect(result.pointsEarned).toBe(50)
-    expect(mockAwardPoints).toHaveBeenCalledWith('user-1', 50, 'コードドクター正解（advanced）')
+    expect(mockAwardPoints).toHaveBeenCalledWith(50, 'コードドクター正解（advanced）')
   })
 })

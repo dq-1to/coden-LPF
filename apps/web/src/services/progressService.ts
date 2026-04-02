@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabaseClient'
 import { fromSupabaseError } from '../shared/errors'
-import type { Tables } from '../shared/types/database.types'
+import type { Tables, TablesInsert } from '../shared/types/database.types'
 
 export type ProgressMode = 'read' | 'practice' | 'test' | 'challenge'
 
@@ -24,7 +24,7 @@ export async function getAllStepProgress(userId: string): Promise<StepProgressRo
     throw fromSupabaseError(error, '学習進捗の取得に失敗しました')
   }
 
-  return data as StepProgressRow[]
+  return data
 }
 
 export async function getStepProgress(userId: string, stepId: string): Promise<StepProgressRow | null> {
@@ -43,7 +43,7 @@ export async function getStepProgress(userId: string, stepId: string): Promise<S
 }
 
 export async function upsertProgress(userId: string, stepId: string, patch: ProgressPatch) {
-  const payload: Partial<StepProgressRow> = {
+  const payload: TablesInsert<'step_progress'> = {
     user_id: userId,
     step_id: stepId,
     updated_at: new Date().toISOString(),

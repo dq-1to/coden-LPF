@@ -181,7 +181,7 @@ export function useLearningStep(stepId: string): UseLearningStepReturn {
         }
 
         const reason = `「${step.title}」の${mode}モード完了`
-        await awardPoints(user.id, POINTS_PER_MODE_COMPLETE, reason)
+        await awardPoints(POINTS_PER_MODE_COMPLETE, reason)
         await refreshStats()
         try {
           await refreshAchievements()

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { BookOpen, Check, ChevronRight, Code2, PenLine, Trophy } from 'lucide-react'
 import { ErrorBanner } from '../components/ErrorBanner'
+import { ErrorBoundary } from '../components/ErrorBoundary'
 import { LearningSidebar } from '../components/LearningSidebar'
 import { TOTAL_STEP_COUNT, findCategoryByStepId, findCourseByStepId } from '../content/courseData'
 import { PageSpinner } from '../components/Spinner'
@@ -244,6 +245,7 @@ export function StepPage() {
         <section className="flex flex-col gap-4 lg:flex-row lg:items-start">
           <LearningSidebar category={stepCategory} currentStepId={stepId} />
 
+          <ErrorBoundary>
           <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <nav className="mt-4 border-b border-slate-200 pb-4" aria-label="学習モードステッパー">
               <ol className="flex items-center gap-0">
@@ -387,6 +389,7 @@ export function StepPage() {
               </div>
             ) : null}
           </div>
+          </ErrorBoundary>
         </section>
         {toastMessage ? (
           <div
