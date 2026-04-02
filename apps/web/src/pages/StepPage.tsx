@@ -246,7 +246,7 @@ export function StepPage() {
           <LearningSidebar category={stepCategory} currentStepId={stepId} />
 
           <ErrorBoundary>
-          <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <nav className="mt-4 border-b border-slate-200 pb-4" aria-label="学習モードステッパー">
               <ol className="flex items-center gap-0">
                 {modeButtons.map((mode, index) => {
