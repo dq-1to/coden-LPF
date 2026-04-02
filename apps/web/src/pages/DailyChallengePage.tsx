@@ -71,7 +71,7 @@ export function DailyChallengePage() {
 
   return (
     <PracticePageLayout>
-      <div className="flex gap-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
         <PracticeModeNav />
 
         <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
