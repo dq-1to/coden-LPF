@@ -213,11 +213,11 @@ function CourseAccordion({
         disabled={lockStatus.locked}
         aria-expanded={isOpen}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
           <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${levelColor}`}>
             {levelLabel}
           </span>
-          <span className="font-semibold text-slate-900">{course.title}</span>
+          <span className="min-w-0 font-semibold text-slate-900">{course.title}</span>
           {hasSteps && (
             <span className="text-xs text-slate-400">
               {completedCount}/{implementedSteps.length}
@@ -226,9 +226,12 @@ function CourseAccordion({
           {isCompleted && <span className="text-xs font-semibold text-emerald-600">完了</span>}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {lockStatus.locked && (
-            <span className="text-xs text-slate-400">🔒 {lockStatus.reason}</span>
+            <span className="hidden text-xs text-slate-400 sm:inline">🔒 {lockStatus.reason}</span>
+          )}
+          {lockStatus.locked && (
+            <span className="text-xs text-slate-400 sm:hidden">🔒</span>
           )}
           {!lockStatus.locked && !lockStatus.warning && hasSteps && (
             <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -258,8 +261,8 @@ function CourseAccordion({
                     <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${done ? 'bg-emerald-500 text-white' : 'border border-slate-300 text-slate-400'}`}>
                       {done ? '✓' : step.order}
                     </span>
-                    <span className={done ? 'text-slate-500' : 'text-slate-800'}>{step.title}</span>
-                    <span className="ml-auto text-xs text-slate-400">{step.description}</span>
+                    <span className={`min-w-0 ${done ? 'text-slate-500' : 'text-slate-800'}`}>{step.title}</span>
+                    <span className="ml-auto hidden text-xs text-slate-400 sm:block">{step.description}</span>
                   </Link>
                 </li>
               )
