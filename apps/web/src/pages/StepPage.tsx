@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
-import { BookOpen, Check, Code2, PenLine, Trophy } from 'lucide-react'
+import { BookOpen, Check, ChevronRight, Code2, PenLine, Trophy } from 'lucide-react'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { LearningSidebar } from '../components/LearningSidebar'
 import { TOTAL_STEP_COUNT, findCategoryByStepId, findCourseByStepId } from '../content/courseData'
@@ -207,22 +207,22 @@ export function StepPage() {
       <AppHeader displayName={headerDisplayName} onSignOut={() => void handleSignOut()} />
 
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-6 sm:px-6">
-        <nav className="flex flex-wrap items-center gap-2 text-sm text-slate-500" aria-label="パンくずリスト">
-          <Link className="font-medium text-primary-dark underline" to="/curriculum">
+        <nav className="flex flex-wrap items-center gap-1.5 rounded-lg bg-slate-50 px-4 py-2 text-sm text-slate-500" aria-label="パンくずリスト">
+          <Link className="font-medium text-primary-dark hover:underline" to="/curriculum">
             カリキュラム
           </Link>
           {stepCategory && (
             <>
-              <span aria-hidden="true">/</span>
-              <Link className="font-medium text-primary-dark underline" to={`/curriculum#${stepCategory.id}`}>
+              <ChevronRight className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+              <Link className="font-medium text-primary-dark hover:underline" to={`/curriculum#${stepCategory.id}`}>
                 {stepCategory.title}
               </Link>
             </>
           )}
-          <span aria-hidden="true">/</span>
+          <ChevronRight className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
           <span>{sidebarTitle}</span>
-          <span aria-hidden="true">/</span>
-          <span className="text-slate-700">{step.title}</span>
+          <ChevronRight className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+          <span className="font-medium text-slate-700">{step.title}</span>
         </nav>
 
         <section className="space-y-3">
