@@ -53,6 +53,8 @@ export function useLearningStep(stepId: string): UseLearningStepReturn {
   const { refreshAchievements } = useAchievementContext()
 
   const [modeStatus, setModeStatus] = useState<ModeStatus>(INITIAL_MODE_STATUS)
+  const modeStatusRef = useRef(modeStatus)
+  useEffect(() => { modeStatusRef.current = modeStatus }, [modeStatus])
   const [syncMessage, setSyncMessage] = useState<string | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const completedOnceRef = useRef(false)
@@ -154,9 +156,10 @@ export function useLearningStep(stepId: string): UseLearningStepReturn {
 
   const handleModeComplete = useCallback(
     async (mode: LearningMode) => {
-      if (!step || !user?.id || modeStatus[mode]) return
+      const currentStatus = modeStatusRef.current
+      if (!step || !user?.id || currentStatus[mode]) return
 
-      const wasStepCompleted = modeStatus.read && modeStatus.practice && modeStatus.test && modeStatus.challenge
+      const wasStepCompleted = currentStatus.read && currentStatus.practice && currentStatus.test && currentStatus.challenge
 
       setModeStatus((prev) => ({ ...prev, [mode]: true }))
       setSyncMessage(null)
@@ -194,7 +197,7 @@ export function useLearningStep(stepId: string): UseLearningStepReturn {
         setSyncMessage(message)
       }
     },
-    [modeStatus, refreshStats, refreshAchievements, step, user?.id],
+    [refreshStats, refreshAchievements, step, user?.id],
   )
 
   return {

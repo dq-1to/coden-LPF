@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useAuth } from './AuthContext'
 import { getLearningStats, type LearningStats } from '../services/statsService'
 import { getAllStepProgress, isStepCompleted } from '../services/progressService'
@@ -26,6 +26,14 @@ export function LearningProvider({ children }: { children: ReactNode }) {
     const [stats, setStats] = useState<LearningStats | null>(null)
     const [completedStepIds, setCompletedStepIds] = useState<ReadonlySet<string>>(EMPTY_SET)
     const [isLoadingStats, setIsLoadingStats] = useState(true)
+    const isMountedRef = useRef(true)
+
+    useEffect(() => {
+        isMountedRef.current = true
+        return () => {
+            isMountedRef.current = false
+        }
+    }, [])
 
     const completedStepsCount = completedStepIds.size
 
@@ -42,6 +50,7 @@ export function LearningProvider({ children }: { children: ReactNode }) {
                 getLearningStats(user.id),
                 getAllStepProgress(user.id),
             ])
+            if (!isMountedRef.current) return
             setStats(currentStats)
             const ids = new Set(
                 progresses.filter(isStepCompleted).map((p) => p.step_id),
@@ -50,7 +59,9 @@ export function LearningProvider({ children }: { children: ReactNode }) {
         } catch (err) {
             console.error('Failed to load learning stats:', err)
         } finally {
-            setIsLoadingStats(false)
+            if (isMountedRef.current) {
+                setIsLoadingStats(false)
+            }
         }
     }, [user])
 
