@@ -166,7 +166,7 @@ export function DashboardPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-900">ベースヌック</h3>
-                    <p className="text-sm text-slate-500">基礎がわかると、コードが読める</p>
+                    <p className="text-sm text-slate-500">コードの「なぜ？」がわかる基礎知識</p>
                   </div>
                 </div>
               </Link>
