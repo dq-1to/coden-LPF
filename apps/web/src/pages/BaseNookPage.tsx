@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookOpen } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
@@ -21,25 +21,31 @@ export function BaseNookPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadProgress = useCallback(async () => {
-    if (!user) return
-    try {
-      const [list, profile] = await Promise.all([
-        getAllProgress(user.id),
-        getProfile(user.id),
-      ])
-      setProgressList(list)
-      if (profile) setDisplayName(profile.display_name)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '進捗の取得に失敗しました')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [user])
-
   useEffect(() => {
-    void loadProgress()
-  }, [loadProgress])
+    if (!user) return
+    const userId = user.id
+    let isMounted = true
+
+    async function load() {
+      try {
+        const [list, profile] = await Promise.all([
+          getAllProgress(userId),
+          getProfile(userId),
+        ])
+        if (!isMounted) return
+        setProgressList(list)
+        if (profile) setDisplayName(profile.display_name)
+      } catch (e) {
+        if (!isMounted) return
+        setError(e instanceof Error ? e.message : '進捗の取得に失敗しました')
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+
+    void load()
+    return () => { isMounted = false }
+  }, [user])
 
   const greetingName = useMemo(
     () =>
@@ -67,7 +73,7 @@ export function BaseNookPage() {
         {/* ヘッダー */}
         <div className="mb-8 flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
-            <BookOpen size={24} />
+            <BookOpen size={24} aria-hidden="true" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-text-dark">ベースヌック</h1>
@@ -79,7 +85,7 @@ export function BaseNookPage() {
 
         {/* エラー表示 */}
         {error && (
-          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+          <div role="alert" className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
             {error}
           </div>
         )}
