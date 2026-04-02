@@ -137,6 +137,81 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_challenge_history: {
+        Row: {
+          id: string
+          user_id: string
+          challenge_id: string
+          completed: boolean
+          points_earned: number
+          completed_at: string | null
+          challenge_date: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          challenge_id: string
+          completed?: boolean
+          points_earned?: number
+          completed_at?: string | null
+          challenge_date: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          challenge_id?: string
+          completed?: boolean
+          points_earned?: number
+          completed_at?: string | null
+          challenge_date?: string
+        }
+        Relationships: []
+      }
+      code_doctor_progress: {
+        Row: {
+          id: string
+          user_id: string
+          problem_id: string
+          category: string
+          difficulty: string
+          solved: boolean
+          attempts: number
+          solved_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          problem_id: string
+          category?: string
+          difficulty: string
+          solved?: boolean
+          attempts?: number
+          solved_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          problem_id?: string
+          category?: string
+          difficulty?: string
+          solved?: boolean
+          attempts?: number
+          solved_at?: string | null
+        }
+        Relationships: []
+      }
+      code_reading_progress: {
+        Row: { id: string; user_id: string; problem_id: string; correct_count: number; total_count: number; completed: boolean; completed_at: string | null }
+        Insert: { id?: string; user_id: string; problem_id: string; correct_count?: number; total_count?: number; completed?: boolean; completed_at?: string | null }
+        Update: { id?: string; user_id?: string; problem_id?: string; correct_count?: number; total_count?: number; completed?: boolean; completed_at?: string | null }
+        Relationships: []
+      }
+      mini_project_progress: {
+        Row: { id: string; user_id: string; project_id: string; status: string; code: string | null; completed_at: string | null }
+        Insert: { id?: string; user_id: string; project_id: string; status?: string; code?: string | null; completed_at?: string | null }
+        Update: { id?: string; user_id?: string; project_id?: string; status?: string; code?: string | null; completed_at?: string | null }
+        Relationships: []
+      }
       step_progress: {
         Row: {
           challenge_done: boolean
@@ -178,7 +253,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      award_points_tx: {
+        Args: {
+          p_amount: number
+          p_reason: string
+        }
+        Returns: undefined
+      }
+      record_study_activity: {
+        Args: Record<string, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

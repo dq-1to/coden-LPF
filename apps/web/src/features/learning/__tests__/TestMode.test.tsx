@@ -2,7 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TestMode } from '../TestMode'
-import { COURSES } from '../../../content/courseData'
+import { getAllCourses, findCategoryByStepId } from '../../../content/courseData'
 import type { TestTask } from '../../../content/fundamentals/steps'
 import { previewByStepId } from '../testModePreview'
 
@@ -60,16 +60,17 @@ describe('TestMode', () => {
   })
 
   it('実装済み全ステップにプレビュー定義が存在する', () => {
-    const implementedStepIds = COURSES.flatMap((course) => course.steps)
-      .filter((step) => step.isImplemented)
+    // TypeScript ステップ・react-modern ステップは概念学習のため React プレビュー不要
+    const reactStepIds = getAllCourses().flatMap((course) => course.steps)
+      .filter((step) => step.isImplemented && findCategoryByStepId(step.id)?.id === 'react' && step.order <= 20)
       .map((step) => step.id)
 
-    expect(implementedStepIds).toHaveLength(20)
+    expect(reactStepIds).toHaveLength(20)
 
-    for (const stepId of implementedStepIds) {
+    for (const stepId of reactStepIds) {
       expect(previewByStepId[stepId]).toBeTruthy()
-      expect(previewByStepId[stepId].title.length).toBeGreaterThan(0)
-      expect(previewByStepId[stepId].description.length).toBeGreaterThan(0)
+      expect(previewByStepId[stepId]!.title.length).toBeGreaterThan(0)
+      expect(previewByStepId[stepId]!.description.length).toBeGreaterThan(0)
     }
   })
 

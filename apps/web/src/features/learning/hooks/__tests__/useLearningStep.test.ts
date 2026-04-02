@@ -49,11 +49,12 @@ beforeEach(() => {
     user: mockUser,
     signOut: vi.fn(),
     signIn: vi.fn(),
-    isLoading: false,
+    isLoadingAuth: false,
   } as unknown as ReturnType<typeof useAuth>)
 
   mockUseLearningContext.mockReturnValue({
     stats: null,
+    completedStepIds: new Set<string>(),
     completedStepsCount: 99,
     isLoadingStats: false,
     refreshStats: vi.fn().mockResolvedValue(undefined),

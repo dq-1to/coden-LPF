@@ -1,7 +1,10 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { Button } from '../../components/Button'
 import { ErrorBanner } from '../../components/ErrorBanner'
+import { ErrorBoundary } from '../../components/ErrorBoundary'
 import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
+import { JudgmentResult } from './components/JudgmentResult'
+import { MONACO_EDITOR_HEIGHT } from '../../shared/constants'
 
 const MonacoEditor = lazy(() => import('@monaco-editor/react'))
 
@@ -14,7 +17,9 @@ interface ChallengeModeProps {
 
 function getRandomPattern(task: ChallengeTask): ChallengePattern {
   const randomIndex = Math.floor(Math.random() * task.patterns.length)
-  return task.patterns[randomIndex]
+  const pattern = task.patterns[randomIndex]
+  if (!pattern) throw new Error(`No pattern at index ${randomIndex}`)
+  return pattern
 }
 
 export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: ChallengeModeProps) {
@@ -83,16 +88,18 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
       </ul>
 
       <div className="overflow-hidden rounded-lg border border-slate-300">
-        <Suspense fallback={<div className="bg-slate-900 p-4 text-sm text-slate-100">エディタを読み込み中...</div>}>
-          <MonacoEditor
-            defaultLanguage="typescript"
-            height="320px"
-            theme="vs-dark"
-            value={code}
-            options={{ minimap: { enabled: false }, fontSize: 14 }}
-            onChange={handleCodeChange}
-          />
-        </Suspense>
+        <ErrorBoundary fallback={<div className="bg-slate-900 p-4 text-sm text-red-300">エディタの読み込みに失敗しました。ページを再読み込みしてください。</div>}>
+          <Suspense fallback={<div className="bg-slate-900 p-4 text-sm text-slate-100">エディタを読み込み中...</div>}>
+            <MonacoEditor
+              defaultLanguage="typescript"
+              height={MONACO_EDITOR_HEIGHT}
+              theme="vs-dark"
+              value={code}
+              options={{ minimap: { enabled: false }, fontSize: 14 }}
+              onChange={handleCodeChange}
+            />
+          </Suspense>
+        </ErrorBoundary>
       </div>
 
       <div className="flex flex-col items-start gap-4 pt-4 sm:flex-row sm:items-center">
@@ -101,18 +108,12 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
         </Button>
 
         {checked && (
-          <div
-            className={`animate-fadeIn rounded-xl border px-4 py-3 ${isPassed ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'}`}
-            role="status"
-            aria-live="polite"
-          >
-            <p className={`text-sm font-semibold ${isPassed ? 'text-emerald-800' : 'text-rose-800'}`}>
-              {isPassed ? 'Challengeを完了しました！' : '要件を満たしていません。'}
-            </p>
-            {!isPassed && (
-              <p className="mt-1 text-xs text-rose-700">下記の不足要件を確認して、もう一度挑戦してみましょう。</p>
-            )}
-          </div>
+          <JudgmentResult
+            isPassed={isPassed}
+            passedMessage="Challengeを完了しました！"
+            failedMessage="要件を満たしていません。"
+            failedHint="下記の不足要件を確認して、もう一度挑戦してみましょう。"
+          />
         )}
       </div>
 

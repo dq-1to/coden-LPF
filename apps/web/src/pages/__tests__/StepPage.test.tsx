@@ -21,6 +21,7 @@ vi.mock('@/contexts/AuthContext', () => ({
 
 vi.mock('@/contexts/LearningContext', () => ({
   useLearningContext: () => ({
+    completedStepIds: new Set(['usestate-basic', 'events', 'conditional', 'lists', 'useeffect', 'forms', 'usecontext', 'usereducer', 'custom-hooks', 'api-fetch', 'performance', 'testing', 'api-counter-get', 'api-counter-post', 'api-tasks-list', 'api-tasks-create', 'api-tasks-update', 'api-tasks-delete', 'api-custom-hook', 'api-error-loading']),
     completedStepsCount: 20,
     isLoadingStats: false,
   }),
@@ -137,8 +138,8 @@ describe('StepPage', () => {
 
     expect(screen.getByRole('button', { name: 'Read' }).getAttribute('aria-current')).toBe('step')
     expect(screen.getByRole('button', { name: 'Practice' }).getAttribute('aria-current')).toBeNull()
-    expect(screen.getByRole('navigation', { name: 'パンくずリスト' }).textContent).toContain('ダッシュボード')
-    expect(screen.getByText('Step 1 / 20')).toBeTruthy()
+    expect(screen.getByRole('navigation', { name: 'パンくずリスト' }).textContent).toContain('カリキュラム')
+    expect(screen.getByText('Step 1 / 40')).toBeTruthy()
     expect(screen.getAllByText('React基礎').length).toBeGreaterThan(0)
 
     await user.click(screen.getByRole('button', { name: 'Practice' }))
@@ -178,7 +179,7 @@ describe('StepPage', () => {
       </MemoryRouter>,
     )
 
-    await user.click(screen.getAllByRole('button', { name: 'Challenge' })[0])
+    await user.click(screen.getAllByRole('button', { name: 'Challenge' })[0]!)
 
     expect(screen.getByText('直近の提出履歴')).toBeTruthy()
     expect(screen.getByText('最新の提出')).toBeTruthy()
@@ -256,7 +257,7 @@ describe('StepPage', () => {
       </MemoryRouter>,
     )
 
-    await user.click(screen.getAllByRole('button', { name: 'Challenge' })[0])
+    await user.click(screen.getAllByRole('button', { name: 'Challenge' })[0]!)
 
     learningStepState = {
       ...learningStepState,
@@ -358,7 +359,7 @@ describe('StepPage', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getAllByRole('button', { name: 'Practice' })[0].className).toContain('animate-pulseMint')
+      expect(screen.getAllByRole('button', { name: 'Practice' })[0]!.className).toContain('animate-pulseMint')
     })
   })
 })

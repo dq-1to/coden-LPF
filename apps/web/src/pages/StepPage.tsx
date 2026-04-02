@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
-import { BookOpen, Check, Code2, PenLine, Trophy } from 'lucide-react'
+import { BookOpen, Check, ChevronRight, Code2, PenLine, Trophy } from 'lucide-react'
 import { ErrorBanner } from '../components/ErrorBanner'
+import { ErrorBoundary } from '../components/ErrorBoundary'
 import { LearningSidebar } from '../components/LearningSidebar'
-import { TOTAL_STEP_COUNT } from '../content/courseData'
+import { TOTAL_STEP_COUNT, findCategoryByStepId, findCourseByStepId } from '../content/courseData'
 import { PageSpinner } from '../components/Spinner'
 import type { LearningMode } from '../content/fundamentals/steps'
 import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
+import { getCourseLockStatus } from '../lib/courseLock'
 import { ChallengeMode } from '../features/learning/ChallengeMode'
 import { ChallengeSubmissionHistory } from '../features/learning/ChallengeSubmissionHistory'
 import { PracticeMode } from '../features/learning/PracticeMode'
@@ -63,7 +65,7 @@ const MODE_META: Record<
 export function StepPage() {
   const { stepId = '' } = useParams()
   const { signOut, user } = useAuth()
-  const { completedStepsCount, isLoadingStats } = useLearningContext()
+  const { completedStepIds, isLoadingStats } = useLearningContext()
   const navigate = useNavigate()
   const [activeMode, setActiveMode] = useState<LearningMode>('read')
   const [pulseModes, setPulseModes] = useState<Record<LearningMode, boolean>>({
@@ -93,7 +95,6 @@ export function StepPage() {
     toastMessage,
     nextStep,
     sidebarTitle,
-    sidebarSteps,
     handleModeComplete,
   } = useLearningStep(stepId)
 
@@ -177,7 +178,13 @@ export function StepPage() {
     navigate(`/step/${nextStep.id}`, { replace: true })
   }
 
-  if (isUnavailableStep || (!isLoadingStats && step && step.order > completedStepsCount + 1)) {
+  const stepCourse = findCourseByStepId(stepId)
+  const stepCategory = findCategoryByStepId(stepId)
+  const isCourseLocked = !isLoadingStats && stepCourse
+    ? getCourseLockStatus(stepCourse, completedStepIds).locked
+    : false
+
+  if (isUnavailableStep || isCourseLocked) {
     return <Navigate to="/" replace />
   }
 
@@ -197,18 +204,26 @@ export function StepPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
       <AppHeader displayName={headerDisplayName} onSignOut={() => void handleSignOut()} />
 
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-6 sm:px-6">
-        <nav className="flex flex-wrap items-center gap-2 text-sm text-slate-500" aria-label="パンくずリスト">
-          <Link className="font-medium text-primary-dark underline" to="/">
-            ダッシュボード
+        <nav className="flex flex-wrap items-center gap-1.5 rounded-lg bg-slate-50 px-4 py-2 text-sm text-slate-500" aria-label="パンくずリスト">
+          <Link className="font-medium text-primary-dark hover:underline" to="/curriculum">
+            カリキュラム
           </Link>
-          <span aria-hidden="true">/</span>
+          {stepCategory && (
+            <>
+              <ChevronRight className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+              <Link className="font-medium text-primary-dark hover:underline" to={`/curriculum#${stepCategory.id}`}>
+                {stepCategory.title}
+              </Link>
+            </>
+          )}
+          <ChevronRight className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
           <span>{sidebarTitle}</span>
-          <span aria-hidden="true">/</span>
-          <span className="text-slate-700">{step.title}</span>
+          <ChevronRight className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+          <span className="font-medium text-slate-700">{step.title}</span>
         </nav>
 
         <section className="space-y-3">
@@ -224,13 +239,14 @@ export function StepPage() {
             </span>
           </div>
           <h1 className="text-3xl font-bold">{step.title}</h1>
-          <p className="text-slate-600">{step.summary}</p>
+          <p className="break-words text-slate-600">{step.summary}</p>
         </section>
 
         <section className="flex flex-col gap-4 lg:flex-row lg:items-start">
-          <LearningSidebar courseTitle={sidebarTitle} currentStepId={stepId} steps={sidebarSteps} />
+          <LearningSidebar category={stepCategory} currentStepId={stepId} />
 
-          <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <ErrorBoundary>
+          <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <nav className="mt-4 border-b border-slate-200 pb-4" aria-label="学習モードステッパー">
               <ol className="flex items-center gap-0">
                 {modeButtons.map((mode, index) => {
@@ -238,12 +254,13 @@ export function StepPage() {
                   const isDone = modeStatus[mode.id]
                   const ModeIcon = mode.icon
 
+                  const prevButton = index > 0 ? modeButtons[index - 1] : undefined
                   return (
                     <li key={mode.id} className="flex items-center">
                       {index > 0 ? (
                         <div
                           className={`h-0 w-6 border-t-2 sm:w-10 ${
-                            modeStatus[modeButtons[index - 1].id] ? 'border-primary-mint' : 'border-slate-200'
+                            prevButton && modeStatus[prevButton.id] ? 'border-primary-mint' : 'border-slate-200'
                           }`}
                         />
                       ) : null}
@@ -373,6 +390,7 @@ export function StepPage() {
               </div>
             ) : null}
           </div>
+          </ErrorBoundary>
         </section>
         {toastMessage ? (
           <div

@@ -1,7 +1,10 @@
-import { Fragment, Suspense, useEffect, useMemo, useState } from 'react'
+import { Fragment, Suspense, useMemo, useState } from 'react'
 import { Button } from '../../components/Button'
+import { ErrorBoundary } from '../../components/ErrorBoundary'
 import type { TestTask } from '../../content/fundamentals/steps'
-import { addToReviewList, removeFromReviewList } from '../../services/reviewListService'
+import { JudgmentResult } from './components/JudgmentResult'
+import { useJudgmentAction } from './hooks/useJudgmentAction'
+import { useStepReset } from './hooks/useStepReset'
 import { previewByStepId } from './testModePreview'
 import { previewComponentByStepId } from './previews'
 
@@ -14,13 +17,12 @@ interface TestModeProps {
 export function TestMode({ stepId, task, onComplete }: TestModeProps) {
   const [blankInput, setBlankInput] = useState('')
   const [isJudged, setIsJudged] = useState(false)
-  const [reported, setReported] = useState(false)
+  const { handleResult } = useJudgmentAction(stepId, onComplete)
 
-  useEffect(() => {
+  useStepReset(stepId, () => {
     setBlankInput('')
     setIsJudged(false)
-    setReported(false)
-  }, [stepId])
+  })
 
   const mergedCode = useMemo(() => task.starterCode.replace('____', blankInput), [blankInput, task.starterCode])
   const isPassed = useMemo(
@@ -32,15 +34,7 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
 
   function handleJudge() {
     setIsJudged(true)
-    if (isPassed) {
-      removeFromReviewList(stepId)
-      if (!reported) {
-        onComplete()
-        setReported(true)
-      }
-    } else {
-      addToReviewList(stepId)
-    }
+    handleResult(isPassed)
   }
 
   function handleInputChange(value: string) {
@@ -85,18 +79,12 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
         </Button>
 
         {isJudged && (
-          <div
-            className={`animate-fadeIn rounded-xl border px-4 py-3 ${isPassed ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'}`}
-            role="status"
-            aria-live="polite"
-          >
-            <p className={`text-sm font-semibold ${isPassed ? 'text-emerald-800' : 'text-rose-800'}`}>
-              {isPassed ? 'テスト合格！ ライブプレビューが解禁されました。' : '必要キーワードを満たしていません。'}
-            </p>
-            {!isPassed && (
-              <p className="mt-1 text-xs text-rose-700">コードを見直して、もう一度試してください。</p>
-            )}
-          </div>
+          <JudgmentResult
+            isPassed={isPassed}
+            passedMessage="テスト合格！ ライブプレビューが解禁されました。"
+            failedMessage="必要キーワードを満たしていません。"
+            failedHint="コードを見直して、もう一度試してください。"
+          />
         )}
       </div>
 
@@ -113,16 +101,18 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
           <p className="mt-1 text-sm text-emerald-700">{preview.description}</p>
           {previewComponentByStepId[stepId] ? (
             <div className="mt-3 rounded-md border border-emerald-200 bg-white p-4">
-              <Suspense
-                fallback={
-                  <p className="text-xs text-slate-400">プレビューを読み込み中…</p>
-                }
-              >
-                {(() => {
-                  const PreviewComponent = previewComponentByStepId[stepId]
-                  return <PreviewComponent />
-                })()}
-              </Suspense>
+              <ErrorBoundary fallback={<p className="text-sm text-red-600">プレビューの表示中にエラーが発生しました。</p>}>
+                <Suspense
+                  fallback={
+                    <p className="text-xs text-slate-400">プレビューを読み込み中…</p>
+                  }
+                >
+                  {(() => {
+                    const PreviewComponent = previewComponentByStepId[stepId]
+                    return <PreviewComponent />
+                  })()}
+                </Suspense>
+              </ErrorBoundary>
             </div>
           ) : null}
         </div>

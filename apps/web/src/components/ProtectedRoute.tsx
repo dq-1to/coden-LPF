@@ -4,10 +4,10 @@ import { useAuth } from '../contexts/AuthContext'
 import { PageSpinner } from './Spinner'
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { isLoading, user } = useAuth()
+  const { isLoadingAuth, user } = useAuth()
   const location = useLocation()
 
-  if (isLoading) {
+  if (isLoadingAuth) {
     return <PageSpinner label="認証状態を確認中..." />
   }
 
@@ -19,9 +19,9 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 }
 
 export function GuestRoute({ children }: { children: ReactNode }) {
-  const { isLoading, user } = useAuth()
+  const { isLoadingAuth, user } = useAuth()
 
-  if (isLoading) {
+  if (isLoadingAuth) {
     return <PageSpinner label="認証状態を確認中..." />
   }
 

@@ -9,7 +9,7 @@ export function getDisplayName(user: DisplayNameUser): string {
   }
 
   if (typeof user?.email === 'string' && user.email.length > 0) {
-    return user.email.split('@')[0]
+    return user.email.split('@')[0] ?? user.email
   }
 
   return 'ゲスト'

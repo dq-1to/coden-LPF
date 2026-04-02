@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from 'react'
+import { type FormEvent, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { Button } from '../components/Button'
@@ -29,6 +29,7 @@ export function SignUpPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showConfirmEmail, setShowConfirmEmail] = useState(false)
 
   const isDisabled = useMemo(() => isSubmitting || Boolean(supabaseConfigError), [isSubmitting])
 
@@ -52,6 +53,11 @@ export function SignUpPage() {
     setIsSubmitting(true)
 
     const message = await signUp(normalizedEmail, password)
+    if (message === 'CONFIRM_EMAIL') {
+      setShowConfirmEmail(true)
+      setIsSubmitting(false)
+      return
+    }
     if (message) {
       setError(message)
       setIsSubmitting(false)
@@ -59,6 +65,23 @@ export function SignUpPage() {
     }
 
     navigate('/', { replace: true })
+  }
+
+  if (showConfirmEmail) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50 px-6 py-16">
+        <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm text-center">
+          <h2 className="text-xl font-bold text-slate-800">メールアドレスを確認してください</h2>
+          <p className="text-sm text-slate-600">
+            <span className="font-medium text-slate-800">{email}</span> に確認メールを送信しました。
+          </p>
+          <p className="text-sm text-slate-600">メール内のリンクをクリックして、アカウントの作成を完了してください。</p>
+          <Link className="inline-block text-sm font-medium text-primary-dark underline" to="/login">
+            ログインページへ
+          </Link>
+        </div>
+      </main>
+    )
   }
 
   return (

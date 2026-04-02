@@ -1,12 +1,14 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
-import { Trophy } from 'lucide-react'
-import { BADGE_DEFINITIONS, checkAndUnlockAchievements, getUnlockedAchievements, type BadgeId } from '../services/achievementService'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { checkAndUnlockAchievements, getUnlockedAchievements, type BadgeId } from '../services/achievementService'
 import { useAuth } from './AuthContext'
+import { BADGE_TOAST_DURATION_MS } from '../shared/constants'
 
 interface AchievementContextType {
   unlockedBadgeIds: BadgeId[]
   refreshAchievements: () => Promise<void>
-  isChecking: boolean
+  isLoadingAchievements: boolean
+  newlyUnlockedBadge: BadgeId | null
+  dismissBadgeToast: () => void
 }
 
 const AchievementContext = createContext<AchievementContextType | null>(null)
@@ -26,28 +28,39 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
   const [unlockedBadgeIds, setUnlockedBadgeIds] = useState<BadgeId[]>([])
   const [newlyUnlockedBadge, setNewlyUnlockedBadge] = useState<BadgeId | null>(null)
   const [toastQueue, setToastQueue] = useState<BadgeId[]>([])
-  const [isChecking, setIsChecking] = useState(false)
+  const [isLoadingAchievements, setIsLoadingAchievements] = useState(true)
+  const isMountedRef = useRef(true)
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   const refreshAchievements = useCallback(async () => {
     if (!userId) {
       setUnlockedBadgeIds([])
       setToastQueue([])
       setNewlyUnlockedBadge(null)
-      setIsChecking(false)
+      setIsLoadingAchievements(false)
       return
     }
 
-    setIsChecking(true)
+    setIsLoadingAchievements(true)
     try {
       const newlyUnlocked = await checkAndUnlockAchievements(userId)
       const latestUnlocked = await getUnlockedAchievements(userId)
+      if (!isMountedRef.current) return
       setUnlockedBadgeIds(latestUnlocked)
 
       if (newlyUnlocked.length > 0) {
         setToastQueue((prev) => [...prev, ...newlyUnlocked])
       }
     } finally {
-      setIsChecking(false)
+      if (isMountedRef.current) {
+        setIsLoadingAchievements(false)
+      }
     }
   }, [userId])
 
@@ -63,6 +76,7 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
     }
 
     const [nextBadge, ...rest] = toastQueue
+    if (nextBadge == null) return
     setNewlyUnlockedBadge(nextBadge)
     setToastQueue(rest)
   }, [newlyUnlockedBadge, toastQueue])
@@ -74,31 +88,18 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
 
     const timer = window.setTimeout(() => {
       setNewlyUnlockedBadge(null)
-    }, 4000)
+    }, BADGE_TOAST_DURATION_MS)
 
     return () => window.clearTimeout(timer)
   }, [newlyUnlockedBadge])
 
-  const badgeDef = newlyUnlockedBadge ? BADGE_DEFINITIONS.find((badge) => badge.id === newlyUnlockedBadge) : null
+  const dismissBadgeToast = useCallback(() => {
+    setNewlyUnlockedBadge(null)
+  }, [])
 
   return (
-    <AchievementContext.Provider value={{ unlockedBadgeIds, refreshAchievements, isChecking }}>
+    <AchievementContext.Provider value={{ unlockedBadgeIds, refreshAchievements, isLoadingAchievements, newlyUnlockedBadge, dismissBadgeToast }}>
       {children}
-
-      {badgeDef ? (
-        <div className="fixed bottom-5 right-5 z-50 animate-bounce rounded-xl border-2 border-amber-300 bg-amber-50 px-4 py-3 shadow-xl">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-200 shadow-inner">
-              <Trophy className="h-5 w-5 text-amber-700" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-amber-600">新しいバッジを獲得しました！</p>
-              <p className="font-semibold text-amber-900">{badgeDef.name}</p>
-              <p className="text-xs text-amber-700">{badgeDef.description}</p>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </AchievementContext.Provider>
   )
 }

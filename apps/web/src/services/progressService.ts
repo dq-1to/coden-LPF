@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabaseClient'
 import { fromSupabaseError } from '../shared/errors'
-import type { Tables } from '../shared/types/database.types'
+import type { Tables, TablesInsert } from '../shared/types/database.types'
 
 export type ProgressMode = 'read' | 'practice' | 'test' | 'challenge'
 
@@ -24,7 +24,7 @@ export async function getAllStepProgress(userId: string): Promise<StepProgressRo
     throw fromSupabaseError(error, '学習進捗の取得に失敗しました')
   }
 
-  return data as StepProgressRow[]
+  return data
 }
 
 export async function getStepProgress(userId: string, stepId: string): Promise<StepProgressRow | null> {
@@ -43,10 +43,9 @@ export async function getStepProgress(userId: string, stepId: string): Promise<S
 }
 
 export async function upsertProgress(userId: string, stepId: string, patch: ProgressPatch) {
-  const payload: Partial<StepProgressRow> = {
+  const payload: TablesInsert<'step_progress'> = {
     user_id: userId,
     step_id: stepId,
-    updated_at: new Date().toISOString(),
     ...patch,
   }
 
@@ -61,19 +60,24 @@ export async function upsertProgress(userId: string, stepId: string, patch: Prog
 }
 
 export async function updateModeCompletion(userId: string, stepId: string, mode: ProgressMode) {
-  const patch: ProgressPatch = {}
-
-  if (mode === 'read') {
-    patch.read_done = true
-  }
-  if (mode === 'practice') {
-    patch.practice_done = true
-  }
-  if (mode === 'test') {
-    patch.test_done = true
-  }
-  if (mode === 'challenge') {
-    patch.challenge_done = true
+  let patch: ProgressPatch
+  switch (mode) {
+    case 'read':
+      patch = { read_done: true }
+      break
+    case 'practice':
+      patch = { practice_done: true }
+      break
+    case 'test':
+      patch = { test_done: true }
+      break
+    case 'challenge':
+      patch = { challenge_done: true }
+      break
+    default: {
+      const _exhaustive: never = mode
+      throw new Error(`Unknown mode: ${_exhaustive}`)
+    }
   }
 
   await upsertProgress(userId, stepId, patch)

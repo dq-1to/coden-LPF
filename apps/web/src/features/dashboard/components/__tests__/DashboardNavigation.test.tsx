@@ -1,6 +1,8 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { cleanup } from '@testing-library/react'
 import { AppHeader } from '../AppHeader'
 
 vi.mock('@/contexts/LearningContext', () => ({
@@ -28,16 +30,37 @@ vi.mock('@/services/statsService', () => ({
   getLearningHeatmap: vi.fn().mockResolvedValue([]),
 }))
 
-describe('dashboard navigation placeholders', () => {
-  it('AppHeader の学習導線が最初の実装済みステップを指す', () => {
+afterEach(() => {
+  cleanup()
+})
+
+describe('AppHeader ナビゲーション', () => {
+  it('カリキュラムドロップダウンからカテゴリリンクへ遷移できる', async () => {
+    const user = userEvent.setup()
     render(
       <MemoryRouter>
         <AppHeader displayName="tester" onSignOut={() => undefined} />
       </MemoryRouter>,
     )
 
-    const link = screen.getByRole('link', { name: '学習を始める' })
-    expect(link.getAttribute('href')).toBe('/step/usestate-basic')
+    await user.click(screen.getByRole('button', { name: /カリキュラム/ }))
+
+    const reactLink = screen.getByRole('link', { name: 'React' })
+    expect(reactLink.getAttribute('href')).toBe('/curriculum#react')
   })
 
+  it('ドロップダウンに練習モードリンクが含まれる', async () => {
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter>
+        <AppHeader displayName="tester" onSignOut={() => undefined} />
+      </MemoryRouter>,
+    )
+
+    const nav = screen.getByRole('navigation', { name: 'メインナビゲーション' })
+    await user.click(within(nav).getByRole('button', { name: /カリキュラム/ }))
+
+    expect(screen.getByRole('link', { name: 'デイリーチャレンジ' }).getAttribute('href')).toBe('/daily')
+    expect(screen.getByRole('link', { name: 'コードドクター' }).getAttribute('href')).toBe('/practice/code-doctor')
+  })
 })

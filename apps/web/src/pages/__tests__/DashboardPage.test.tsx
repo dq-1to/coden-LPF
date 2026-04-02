@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DashboardPage } from '../DashboardPage'
-import { addToReviewList, clearReviewList } from '@/services/reviewListService'
 
 const getProfileMock = vi.fn()
 
@@ -18,6 +17,7 @@ vi.mock('@/contexts/AuthContext', () => ({
 
 vi.mock('@/contexts/LearningContext', () => ({
   useLearningContext: () => ({
+    completedStepIds: new Set(['usestate-basic', 'events', 'conditional']),
     completedStepsCount: 3,
   }),
 }))
@@ -28,10 +28,6 @@ vi.mock('@/features/dashboard/components/AppHeader', () => ({
 
 vi.mock('@/features/dashboard/components/DashboardSidebar', () => ({
   DashboardSidebar: () => <aside>sidebar</aside>,
-}))
-
-vi.mock('@/features/dashboard/components/LearningOverviewCard', () => ({
-  LearningOverviewCard: ({ completedCount }: { completedCount: number }) => <div>overview {completedCount}</div>,
 }))
 
 vi.mock('@/features/dashboard/components/WelcomeBanner', () => ({
@@ -48,25 +44,24 @@ vi.mock('@/lib/supabaseClient', () => ({
 
 describe('DashboardPage', () => {
   beforeEach(() => {
-    clearReviewList()
     getProfileMock.mockReset()
     getProfileMock.mockResolvedValue({
       display_name: 'Coden User',
     })
   })
 
-  it('復習リストをダッシュボード導線上に表示する', async () => {
-    addToReviewList('usestate-basic')
-
+  it('カテゴリカードとスキルアップセクションが表示される', async () => {
     render(
       <MemoryRouter>
         <DashboardPage />
       </MemoryRouter>,
     )
 
-    expect(await screen.findByText('復習リスト')).toBeTruthy()
-    expect(screen.getByText('このリストは現在の端末とブラウザにのみ保存されます。')).toBeTruthy()
-    expect(screen.getByRole('link', { name: /useState基礎/i }).getAttribute('href')).toBe('/step/usestate-basic')
+    expect(await screen.findByText('学習コース')).toBeTruthy()
+    expect(screen.getByText('React')).toBeTruthy()
+    expect(screen.getByText('TypeScript')).toBeTruthy()
+    expect(screen.getByText('スキルアップ')).toBeTruthy()
+    expect(screen.getByText('デイリーチャレンジ')).toBeTruthy()
     expect(getProfileMock).toHaveBeenCalledWith('user-1')
   })
 })

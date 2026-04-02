@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabaseClient'
 import { fromSupabaseError } from '../shared/errors'
 import type { Tables } from '../shared/types/database.types'
+import { POINT_MILESTONES } from '../shared/constants'
 
 export type LearningStats = Pick<
   Tables<'learning_stats'>,
@@ -94,27 +95,12 @@ export function applyStudyActivity(stats: LearningStats, now = new Date()): Lear
   return nextStats
 }
 
-export async function recordStudyActivity(userId: string, now = new Date()): Promise<LearningStats> {
-  const currentStats = await getLearningStats(userId)
-  const nextStats = applyStudyActivity(currentStats, now)
-
-  const { error } = await supabase.from('learning_stats').upsert(
-    {
-      user_id: userId,
-      total_points: nextStats.total_points,
-      current_streak: nextStats.current_streak,
-      max_streak: nextStats.max_streak,
-      last_study_date: nextStats.last_study_date,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id', ignoreDuplicates: false },
-  )
+export async function recordStudyActivity(): Promise<void> {
+  const { error } = await supabase.rpc('record_study_activity')
 
   if (error) {
     throw fromSupabaseError(error, '学習記録の保存に失敗しました')
   }
-
-  return nextStats
 }
 
 export async function getLearningHeatmap(userId: string, days = 30): Promise<HeatmapCell[]> {
@@ -152,7 +138,7 @@ export async function getLearningHeatmap(userId: string, days = 30): Promise<Hea
 }
 
 export function calculatePointGoalProgress(totalPoints: number): PointGoalProgress {
-  const milestones = [500, 1000, 1500, 2000]
+  const milestones = [...POINT_MILESTONES]
   const safePoints = Math.max(0, totalPoints)
 
   let nextThreshold = Math.ceil((safePoints + 1) / 500) * 500

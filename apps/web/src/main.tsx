@@ -5,14 +5,28 @@ import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
 import { LearningProvider } from './contexts/LearningContext'
 import { AchievementProvider } from './contexts/AchievementContext'
+import { AchievementToast } from './components/AchievementToast'
 import { ConfigErrorView } from './components/ConfigErrorView'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { PageSpinner } from './components/Spinner'
 import { supabaseConfigError } from './lib/supabaseClient'
 import './styles/globals.css'
 
 // Route-based Code Splitting: 各ページを動的インポートでチャンク分割
+const CodeDoctorPage = lazy(() => import('./pages/CodeDoctorPage').then((m) => ({ default: m.CodeDoctorPage })))
+const CodeReadingPage = lazy(() => import('./pages/CodeReadingPage').then((m) => ({ default: m.CodeReadingPage })))
+const CurriculumPage = lazy(() => import('./pages/CurriculumPage').then((m) => ({ default: m.CurriculumPage })))
+const DailyChallengePage = lazy(() =>
+  import('./pages/DailyChallengePage').then((m) => ({ default: m.DailyChallengePage })),
+)
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })))
+const MiniProjectDetailPage = lazy(() =>
+  import('./pages/MiniProjectDetailPage').then((m) => ({ default: m.MiniProjectDetailPage })),
+)
+const MiniProjectsPage = lazy(() =>
+  import('./pages/MiniProjectsPage').then((m) => ({ default: m.MiniProjectsPage })),
+)
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })))
 const SignUpPage = lazy(() => import('./pages/SignUpPage').then((m) => ({ default: m.SignUpPage })))
@@ -75,6 +89,66 @@ const router = createBrowserRouter([
     ),
   },
   {
+    path: '/curriculum',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <CurriculumPage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/daily',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <DailyChallengePage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/practice/code-doctor',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <CodeDoctorPage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/practice/mini-projects',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <MiniProjectsPage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/practice/mini-projects/:projectId',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <MiniProjectDetailPage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/practice/code-reading',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <CodeReadingPage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: '*',
     element: (
       <Suspense fallback={<PageLoading />}>
@@ -91,7 +165,8 @@ async function startApp() {
     await worker.start({ onUnhandledRequest: 'bypass' })
   }
 
-  const rootElement = document.getElementById('root')!
+  const rootElement = document.getElementById('root')
+  if (!rootElement) throw new Error('Root element not found')
   const root = ReactDOM.createRoot(rootElement)
 
   if (supabaseConfigError) {
@@ -105,13 +180,16 @@ async function startApp() {
   } else {
     root.render(
       <React.StrictMode>
-        <AuthProvider>
-          <LearningProvider>
-            <AchievementProvider>
-              <RouterProvider router={router} />
-            </AchievementProvider>
-          </LearningProvider>
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <LearningProvider>
+              <AchievementProvider>
+                <AchievementToast />
+                <RouterProvider router={router} />
+              </AchievementProvider>
+            </LearningProvider>
+          </AuthProvider>
+        </ErrorBoundary>
       </React.StrictMode>,
     )
   }

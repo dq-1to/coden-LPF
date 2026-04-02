@@ -19,7 +19,7 @@ export function ProfilePage() {
   useDocumentTitle('プロフィール')
   const { user, signOut } = useAuth()
   const { stats, completedStepsCount } = useLearningContext()
-  const { unlockedBadgeIds, isChecking } = useAchievementContext()
+  const { unlockedBadgeIds, isLoadingAchievements } = useAchievementContext()
   const navigate = useNavigate()
   const userId = user?.id ?? null
 
@@ -202,7 +202,7 @@ export function ProfilePage() {
               {unlockedBadgeIds.length} / {BADGE_DEFINITIONS.length} 獲得
             </span>
           </div>
-          {isChecking ? <p className="mb-3 text-xs text-text-light">バッジ状態を更新中...</p> : null}
+          {isLoadingAchievements ? <p className="mb-3 text-xs text-text-light">バッジ状態を更新中...</p> : null}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {BADGE_DEFINITIONS.map((badge) => {
               const unlocked = unlockedBadgeIds.includes(badge.id)
