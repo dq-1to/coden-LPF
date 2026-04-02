@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabaseClient'
+import { MAX_CODE_LENGTH, POINTS_MINI_PROJECT_COMPLETE } from '../shared/constants'
 import { fromSupabaseError } from '../shared/errors'
-import { POINTS_MINI_PROJECT_COMPLETE } from '../shared/constants'
+import { assertMaxLength, assertUuid } from '../shared/validation'
 import { awardPoints } from './pointService'
 import type {
   MiniProject,
@@ -45,6 +46,7 @@ export function calcStatus(results: MilestoneJudgeResult[]): MiniProjectStatus {
 export async function getProjectProgressMap(
   userId: string,
 ): Promise<Map<string, MiniProjectProgress>> {
+  assertUuid(userId, 'userId')
   const { data, error } = await supabase
     .from('mini_project_progress')
     .select('project_id, status, code, completed_at')
@@ -73,6 +75,8 @@ export async function submitProject(
   code: string,
   previousStatus: MiniProjectStatus,
 ): Promise<SubmitProjectResult> {
+  assertUuid(userId, 'userId')
+  assertMaxLength(code, MAX_CODE_LENGTH, 'code')
   const milestoneResults = judgeProject(code, project)
   const allPassed = milestoneResults.every((r) => r.passed)
   const newStatus = calcStatus(milestoneResults)

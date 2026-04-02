@@ -1,10 +1,12 @@
 import { supabase } from '../lib/supabaseClient'
-import { fromSupabaseError } from '../shared/errors'
 import {
+  MAX_CODE_LENGTH,
   POINTS_CODE_DOCTOR_BEGINNER,
   POINTS_CODE_DOCTOR_INTERMEDIATE,
   POINTS_CODE_DOCTOR_ADVANCED,
 } from '../shared/constants'
+import { fromSupabaseError } from '../shared/errors'
+import { assertMaxLength, assertUuid } from '../shared/validation'
 import { awardPoints } from './pointService'
 import type { CodeDoctorProblem, CodeDoctorProgress, SubmitDoctorResult } from '../content/code-doctor/types'
 
@@ -46,6 +48,7 @@ export function judgeCode(
 export async function getProblemProgressMap(
   userId: string,
 ): Promise<Map<string, CodeDoctorProgress>> {
+  assertUuid(userId, 'userId')
   const { data, error } = await supabase
     .from('code_doctor_progress')
     .select('problem_id, solved, attempts, solved_at')
@@ -73,6 +76,9 @@ export async function submitDoctorSolution(
   problem: CodeDoctorProblem,
   code: string,
 ): Promise<SubmitDoctorResult> {
+  assertUuid(userId, 'userId')
+  assertMaxLength(code, MAX_CODE_LENGTH, 'code')
+
   const { passed, missingKeywords, foundNgKeywords } = judgeCode(code, problem)
   const pointsEarned = passed ? getPointsForDifficulty(problem.difficulty) : 0
 

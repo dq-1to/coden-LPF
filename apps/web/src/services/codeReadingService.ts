@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabaseClient'
 import { fromSupabaseError } from '../shared/errors'
+import { assertUuid } from '../shared/validation'
 import {
   POINTS_CODE_READING_BASIC,
   POINTS_CODE_READING_INTERMEDIATE,
@@ -43,6 +44,7 @@ export function judgeAnswer(
 export async function getReadingProgressMap(
   userId: string,
 ): Promise<Map<string, CodeReadingProgress>> {
+  assertUuid(userId, 'userId')
   const { data, error } = await supabase
     .from('code_reading_progress')
     .select('problem_id, correct_count, total_count, completed, completed_at')
@@ -75,6 +77,7 @@ export async function submitReading(
   answers: number[],
   previousCompleted: boolean,
 ): Promise<SubmitReadingResult> {
+  assertUuid(userId, 'userId')
   const questionResults: QuestionJudgeResult[] = problem.questions.map((q, i) => ({
     questionId: q.id,
     isCorrect: judgeAnswer(answers[i] ?? -1, q),
