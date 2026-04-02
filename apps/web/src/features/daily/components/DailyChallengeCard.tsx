@@ -27,10 +27,10 @@ export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallen
   const formattedDate = dateStr.replace(/-/g, '/')
 
   return (
-    <div className="rounded-xl border border-border bg-bg-surface p-6 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
-        <span className="text-sm text-text-muted">📅 {formattedDate}</span>
-        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mb-5 flex items-center justify-between">
+        <span className="text-sm font-medium text-slate-500">{formattedDate}</span>
+        <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-0.5 text-xs font-semibold text-amber-700">
           {question.type === 'blank' ? '穴埋め' : '選択式'}
         </span>
       </div>
@@ -50,7 +50,7 @@ export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallen
                 if (e.key === 'Enter') void handleSubmit()
               }}
               placeholder="答えを入力..."
-              className="mb-4 w-full rounded-lg border border-border bg-bg-base px-4 py-2 text-sm text-text-dark placeholder-text-muted focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
+              className="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-text-dark placeholder-slate-400 transition-colors focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
             />
           ) : (
             <div className="mb-4 space-y-2">
@@ -58,10 +58,10 @@ export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallen
                 <label
                   key={choice}
                   className={[
-                    'flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors',
+                    'flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition-all',
                     answer === choice
-                      ? 'border-amber-400 bg-amber-50 text-amber-700'
-                      : 'border-border bg-bg-base text-text-dark hover:border-amber-200 hover:bg-amber-50/50',
+                      ? 'border-amber-400 bg-amber-50 text-amber-700 shadow-sm'
+                      : 'border-slate-200 bg-white text-text-dark hover:border-amber-200 hover:bg-amber-50/30',
                   ].join(' ')}
                 >
                   <input
@@ -88,14 +88,14 @@ export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallen
             </button>
             <button
               onClick={() => setShowHint((v) => !v)}
-              className="text-sm text-text-muted underline hover:text-text-dark"
+              className="text-sm text-slate-500 transition-colors hover:text-amber-600"
             >
               {showHint ? 'ヒントを隠す' : 'ヒントを見る'}
             </button>
           </div>
 
           {showHint && (
-            <p className="mt-3 rounded-lg bg-blue-50 px-4 py-2 text-sm text-blue-700">
+            <p className="mt-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">
               💡 {question.hint}
             </p>
           )}
@@ -105,10 +105,10 @@ export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallen
       {result && (
         <div
           className={[
-            'rounded-xl border p-5',
+            'rounded-2xl border p-5',
             result.isCorrect
-              ? 'border-green-200 bg-green-50'
-              : 'border-red-200 bg-red-50',
+              ? 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/50'
+              : 'border-rose-200 bg-gradient-to-br from-rose-50 to-rose-100/50',
           ].join(' ')}
         >
           <div className="mb-2 flex items-center gap-2">
@@ -116,20 +116,20 @@ export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallen
             <span
               className={[
                 'text-base font-bold',
-                result.isCorrect ? 'text-green-700' : 'text-red-700',
+                result.isCorrect ? 'text-emerald-700' : 'text-rose-700',
               ].join(' ')}
             >
               {result.isCorrect ? '正解！' : '不正解'}
             </span>
             {result.isCorrect && (
-              <span className="ml-auto text-sm font-semibold text-amber-600">
+              <span className="ml-auto rounded-full border border-amber-200 bg-amber-50 px-3 py-0.5 text-sm font-semibold text-amber-700">
                 +{result.pointsEarned} Pt
               </span>
             )}
           </div>
           {!result.isCorrect && (
             <p className="mb-2 text-sm text-text-dark">
-              正解: <span className="font-mono font-semibold text-red-700">{result.correctAnswer}</span>
+              正解: <span className="font-mono font-semibold text-rose-700">{result.correctAnswer}</span>
             </p>
           )}
           <p className="text-sm leading-relaxed text-text-dark">{result.explanation}</p>
