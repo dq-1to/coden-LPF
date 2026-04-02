@@ -21,6 +21,10 @@ export function getPointsForDifficulty(difficulty: CodeDoctorProblem['difficulty
       return POINTS_CODE_DOCTOR_INTERMEDIATE
     case 'advanced':
       return POINTS_CODE_DOCTOR_ADVANCED
+    default: {
+      const _exhaustive: never = difficulty
+      throw new Error(`Unknown difficulty: ${_exhaustive}`)
+    }
   }
 }
 

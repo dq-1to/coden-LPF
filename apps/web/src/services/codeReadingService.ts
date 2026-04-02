@@ -27,6 +27,10 @@ export function getPointsForDifficulty(difficulty: CodeReadingDifficulty): numbe
       return POINTS_CODE_READING_INTERMEDIATE
     case 'advanced':
       return POINTS_CODE_READING_ADVANCED
+    default: {
+      const _exhaustive: never = difficulty
+      throw new Error(`Unknown difficulty: ${_exhaustive}`)
+    }
   }
 }
 
