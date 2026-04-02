@@ -31,6 +31,8 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
     location.pathname.startsWith('/daily') ||
     location.pathname.startsWith('/practice')
 
+  const isBaseNookActive = location.pathname.startsWith('/base-nook')
+
   // ページ遷移時にドロワー・ドロップダウンを閉じる
   useEffect(() => {
     closeDrawer()
@@ -142,6 +144,14 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
                 </div>
               )}
             </div>
+
+            <Link
+              to="/base-nook"
+              className={navLinkClass(isBaseNookActive)}
+              aria-current={isBaseNookActive ? 'page' : undefined}
+            >
+              Base Nook
+            </Link>
 
             <Link
               to="/profile"
@@ -258,6 +268,14 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
                 </Link>
               ))}
             </div>
+
+            <Link
+              to="/base-nook"
+              className={drawerLinkClass(isBaseNookActive)}
+              aria-current={isBaseNookActive ? 'page' : undefined}
+            >
+              Base Nook
+            </Link>
 
             <Link
               to="/profile"

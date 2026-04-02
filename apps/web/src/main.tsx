@@ -27,6 +27,10 @@ const MiniProjectDetailPage = lazy(() =>
 const MiniProjectsPage = lazy(() =>
   import('./pages/MiniProjectsPage').then((m) => ({ default: m.MiniProjectsPage })),
 )
+const BaseNookPage = lazy(() => import('./pages/BaseNookPage').then((m) => ({ default: m.BaseNookPage })))
+const BaseNookTopicPage = lazy(() =>
+  import('./pages/BaseNookTopicPage').then((m) => ({ default: m.BaseNookTopicPage })),
+)
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })))
 const SignUpPage = lazy(() => import('./pages/SignUpPage').then((m) => ({ default: m.SignUpPage })))
@@ -134,6 +138,26 @@ const router = createBrowserRouter([
       <ProtectedRoute>
         <Suspense fallback={<PageLoading />}>
           <MiniProjectDetailPage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/base-nook',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <BaseNookPage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/base-nook/:topicId',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <BaseNookTopicPage />
         </Suspense>
       </ProtectedRoute>
     ),
