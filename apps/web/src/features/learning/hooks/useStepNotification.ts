@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { LearningStepContent } from '@/content/fundamentals/steps'
+import { STEP_TOAST_DURATION_MS } from '@/shared/constants'
 
 export interface UseStepNotificationReturn {
   toastMessage: string | null
@@ -38,7 +39,7 @@ export function useStepNotification(
 
     const timeoutId = window.setTimeout(() => {
       setToastMessage(null)
-    }, 3500)
+    }, STEP_TOAST_DURATION_MS)
 
     return () => {
       window.clearTimeout(timeoutId)

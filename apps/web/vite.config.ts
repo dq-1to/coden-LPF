@@ -20,6 +20,7 @@ export default defineConfig({
     },
   },
   build: {
+    target: 'ES2020',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -28,6 +29,7 @@ export default defineConfig({
           'vendor-monaco': ['@monaco-editor/react'],
           'vendor-markdown': ['react-markdown', 'remark-gfm'],
           'vendor-prism': ['prismjs'],
+          'vendor-icons': ['lucide-react'],
         },
       },
     },

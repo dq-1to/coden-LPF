@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabaseClient'
 import { fromSupabaseError } from '../shared/errors'
 import type { Tables } from '../shared/types/database.types'
+import { POINT_MILESTONES } from '../shared/constants'
 
 export type LearningStats = Pick<
   Tables<'learning_stats'>,
@@ -137,7 +138,7 @@ export async function getLearningHeatmap(userId: string, days = 30): Promise<Hea
 }
 
 export function calculatePointGoalProgress(totalPoints: number): PointGoalProgress {
-  const milestones = [500, 1000, 1500, 2000]
+  const milestones = [...POINT_MILESTONES]
   const safePoints = Math.max(0, totalPoints)
 
   let nextThreshold = Math.ceil((safePoints + 1) / 500) * 500

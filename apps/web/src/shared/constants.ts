@@ -28,3 +28,18 @@ export const BADGE_POINT_THRESHOLD_HIGH = 1000
 export const STREAK_THRESHOLD_BRONZE = 3
 export const STREAK_THRESHOLD_SILVER = 7
 export const STREAK_THRESHOLD_GOLD = 30
+
+/** バッジトースト表示時間（ms） */
+export const BADGE_TOAST_DURATION_MS = 4000
+
+/** ステップ完了トースト表示時間（ms） */
+export const STEP_TOAST_DURATION_MS = 3500
+
+/** コピー完了フィードバック表示時間（ms） */
+export const COPY_FEEDBACK_DURATION_MS = 2000
+
+/** Monaco Editor のデフォルト高さ */
+export const MONACO_EDITOR_HEIGHT = '320px'
+
+/** ポイント目標のマイルストーン */
+export const POINT_MILESTONES = [500, 1000, 1500, 2000] as const

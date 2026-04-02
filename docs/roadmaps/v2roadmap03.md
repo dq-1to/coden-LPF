@@ -564,18 +564,18 @@
 
 ### Phase D
 
-- [ ] `JSON.parse` にランタイム検証がある
-- [ ] `isLoading` 命名が統一されている
-- [ ] `user` 状態が `session` からの派生値になっている
-- [ ] `setTimeout` のクリーンアップが適切
-- [ ] マジックナンバーが定数化されている
-- [ ] ESLint ルールが強化されている
-- [ ] `tsconfig.json` に追加 strict オプションがある
-- [ ] CI パイプラインが改善されている
-- [ ] Vite ビルドが最適化されている
-- [ ] `useDocumentTitle` にリストアがある
+- [x] `JSON.parse` にランタイム検証がある
+- [x] `isLoading` 命名が統一されている
+- [x] `user` 状態が `session` からの派生値になっている
+- [x] `setTimeout` のクリーンアップが適切
+- [x] マジックナンバーが定数化されている
+- [x] ESLint ルールが強化されている
+- [x] `tsconfig.json` に追加 strict オプションがある
+- [x] CI パイプラインが改善されている
+- [x] Vite ビルドが最適化されている
+- [x] `useDocumentTitle` にリストアがある
 
 ### 品質ゲート
 
-- [ ] `typecheck` / `lint` / `test` / `build` 全通過
-- [ ] 既存テスト全 PASS
+- [x] `typecheck` / `lint` / `test` / `build` 全通過
+- [x] 既存テスト全 PASS

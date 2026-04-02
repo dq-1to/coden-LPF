@@ -4,6 +4,7 @@ import { ErrorBanner } from '../../components/ErrorBanner'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
 import { JudgmentResult } from './components/JudgmentResult'
+import { MONACO_EDITOR_HEIGHT } from '../../shared/constants'
 
 const MonacoEditor = lazy(() => import('@monaco-editor/react'))
 
@@ -89,7 +90,7 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
           <Suspense fallback={<div className="bg-slate-900 p-4 text-sm text-slate-100">エディタを読み込み中...</div>}>
             <MonacoEditor
               defaultLanguage="typescript"
-              height="320px"
+              height={MONACO_EDITOR_HEIGHT}
               theme="vs-dark"
               value={code}
               options={{ minimap: { enabled: false }, fontSize: 14 }}

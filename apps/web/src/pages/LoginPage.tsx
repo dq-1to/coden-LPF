@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from 'react'
+import { type FormEvent, useMemo, useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { Button } from '../components/Button'
