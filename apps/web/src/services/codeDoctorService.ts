@@ -94,7 +94,6 @@ export async function submitDoctorSolution(
 
   if (passed) {
     await awardPoints(
-      userId,
       pointsEarned,
       `コードドクター正解（${problem.difficulty}）`,
     )

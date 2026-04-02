@@ -6,6 +6,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { LearningProvider } from './contexts/LearningContext'
 import { AchievementProvider } from './contexts/AchievementContext'
 import { ConfigErrorView } from './components/ConfigErrorView'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { PageSpinner } from './components/Spinner'
 import { supabaseConfigError } from './lib/supabaseClient'
 import './styles/globals.css'
@@ -177,13 +178,15 @@ async function startApp() {
   } else {
     root.render(
       <React.StrictMode>
-        <AuthProvider>
-          <LearningProvider>
-            <AchievementProvider>
-              <RouterProvider router={router} />
-            </AchievementProvider>
-          </LearningProvider>
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <LearningProvider>
+              <AchievementProvider>
+                <RouterProvider router={router} />
+              </AchievementProvider>
+            </LearningProvider>
+          </AuthProvider>
+        </ErrorBoundary>
       </React.StrictMode>,
     )
   }

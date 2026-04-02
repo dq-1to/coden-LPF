@@ -147,12 +147,12 @@ export async function submitDailyAnswer(
   }
 
   if (isCorrect) {
-    await awardPoints(userId, POINTS_DAILY_CORRECT, 'デイリーチャレンジ正解')
+    await awardPoints(POINTS_DAILY_CORRECT, 'デイリーチャレンジ正解')
 
     // 7日連続ボーナスチェック（7の倍数日ごとに付与）
     const streak = await getDailyConsecutiveStreak(userId, dateStr)
     if (streak > 0 && streak % 7 === 0) {
-      await awardPoints(userId, POINTS_DAILY_STREAK_BONUS, `デイリー${streak}日連続ボーナス`)
+      await awardPoints(POINTS_DAILY_STREAK_BONUS, `デイリー${streak}日連続ボーナス`)
     }
   }
 

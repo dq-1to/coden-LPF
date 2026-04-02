@@ -97,7 +97,7 @@ export async function submitProject(
   const pointsEarned = isNewlyCompleted ? POINTS_MINI_PROJECT_COMPLETE : 0
 
   if (isNewlyCompleted) {
-    await awardPoints(userId, POINTS_MINI_PROJECT_COMPLETE, `ミニプロジェクト完了（${project.title}）`)
+    await awardPoints(POINTS_MINI_PROJECT_COMPLETE, `ミニプロジェクト完了（${project.title}）`)
   }
 
   return { milestoneResults, allPassed, pointsEarned, newStatus }

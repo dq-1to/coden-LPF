@@ -168,7 +168,7 @@ describe('submitProject', () => {
     const result = await submitProject('user-1', sampleProject, code, 'not_started')
     expect(result.allPassed).toBe(true)
     expect(result.pointsEarned).toBe(100)
-    expect(mockAwardPoints).toHaveBeenCalledWith('user-1', 100, 'ミニプロジェクト完了（Todo App）')
+    expect(mockAwardPoints).toHaveBeenCalledWith(100, 'ミニプロジェクト完了（Todo App）')
   })
 
   it('初回 completed 時のみポイントを付与する（previousStatus: not_started）', async () => {

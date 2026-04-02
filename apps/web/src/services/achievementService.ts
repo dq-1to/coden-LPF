@@ -109,12 +109,12 @@ export async function getCodeDoctorStats(
 ): Promise<{ totalCompleted: number; advancedCompleted: number }> {
   const { data, error } = await supabase
     .from('code_doctor_progress')
-    .select('problem_id, completed')
+    .select('problem_id, solved')
     .eq('user_id', userId)
 
   if (error) throw fromSupabaseError(error, 'コードドクター進捗の取得に失敗しました')
 
-  const completedRows = (data ?? []).filter((r) => r.completed)
+  const completedRows = (data ?? []).filter((r) => r.solved)
   const advancedIds = new Set(
     CODE_DOCTOR_PROBLEMS.filter((p) => p.difficulty === 'advanced').map((p) => p.id),
   )

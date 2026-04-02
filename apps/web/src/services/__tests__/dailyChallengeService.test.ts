@@ -230,7 +230,7 @@ describe('submitDailyAnswer', () => {
     const result = await submitDailyAnswer(userId, question, 'setCount', dateStr)
     expect(result.isCorrect).toBe(true)
     expect(result.pointsEarned).toBe(20)
-    expect(mockAwardPoints).toHaveBeenCalledWith(userId, 20, 'デイリーチャレンジ正解')
+    expect(mockAwardPoints).toHaveBeenCalledWith(20, 'デイリーチャレンジ正解')
   })
 
   it('不正解の場合は isCorrect: false と 0pt を返す', async () => {
@@ -261,8 +261,8 @@ describe('submitDailyAnswer', () => {
 
     await submitDailyAnswer(userId, question, 'setCount', dateStr)
 
-    expect(mockAwardPoints).toHaveBeenCalledWith(userId, 20, 'デイリーチャレンジ正解')
-    expect(mockAwardPoints).toHaveBeenCalledWith(userId, 50, 'デイリー7日連続ボーナス')
+    expect(mockAwardPoints).toHaveBeenCalledWith(20, 'デイリーチャレンジ正解')
+    expect(mockAwardPoints).toHaveBeenCalledWith(50, 'デイリー7日連続ボーナス')
   })
 
   it('14日連続でも 50pt ボーナスが付与される', async () => {
@@ -270,7 +270,7 @@ describe('submitDailyAnswer', () => {
 
     await submitDailyAnswer(userId, question, 'setCount', dateStr)
 
-    expect(mockAwardPoints).toHaveBeenCalledWith(userId, 50, 'デイリー14日連続ボーナス')
+    expect(mockAwardPoints).toHaveBeenCalledWith(50, 'デイリー14日連続ボーナス')
   })
 
   it('6日連続ではボーナスが付与されない', async () => {
@@ -278,7 +278,7 @@ describe('submitDailyAnswer', () => {
 
     await submitDailyAnswer(userId, question, 'setCount', dateStr)
 
-    expect(mockAwardPoints).not.toHaveBeenCalledWith(userId, 50, expect.any(String))
+    expect(mockAwardPoints).not.toHaveBeenCalledWith(50, expect.any(String))
   })
 
   it('不正解ではストリーク確認せずボーナスも付与されない', async () => {
