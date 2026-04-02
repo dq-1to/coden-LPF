@@ -85,7 +85,6 @@ export async function submitReading(
 
   const correctCount = questionResults.filter((r) => r.isCorrect).length
   const allCorrect = correctCount === problem.questions.length
-  const completedAt = allCorrect ? new Date().toISOString() : null
 
   const { error } = await supabase.from('code_reading_progress').upsert(
     {
@@ -94,7 +93,6 @@ export async function submitReading(
       correct_count: correctCount,
       total_count: problem.questions.length,
       completed: allCorrect,
-      completed_at: completedAt,
     },
     { onConflict: 'user_id,problem_id', ignoreDuplicates: false },
   )

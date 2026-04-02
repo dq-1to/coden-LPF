@@ -136,7 +136,6 @@ export async function submitDailyAnswer(
         challenge_id: question.id,
         completed: true,
         points_earned: pointsEarned,
-        completed_at: new Date().toISOString(),
         challenge_date: dateStr,
       },
       { onConflict: 'user_id,challenge_date' },

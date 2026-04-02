@@ -83,7 +83,6 @@ export async function submitDoctorSolution(
       category: problem.category,
       difficulty: problem.difficulty,
       solved: passed,
-      solved_at: passed ? new Date().toISOString() : null,
     },
     { onConflict: 'user_id,problem_id', ignoreDuplicates: false },
   )

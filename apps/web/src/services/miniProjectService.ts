@@ -76,7 +76,6 @@ export async function submitProject(
   const milestoneResults = judgeProject(code, project)
   const allPassed = milestoneResults.every((r) => r.passed)
   const newStatus = calcStatus(milestoneResults)
-  const completedAt = allPassed ? new Date().toISOString() : null
 
   const { error } = await supabase.from('mini_project_progress').upsert(
     {
@@ -84,7 +83,6 @@ export async function submitProject(
       project_id: project.id,
       status: newStatus,
       code,
-      completed_at: completedAt,
     },
     { onConflict: 'user_id,project_id', ignoreDuplicates: false },
   )
