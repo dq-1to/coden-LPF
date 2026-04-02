@@ -35,6 +35,33 @@ export type Database = {
         }
         Relationships: []
       }
+      base_nook_progress: {
+        Row: {
+          answered_at: string
+          correct: boolean
+          id: string
+          question_id: string
+          topic_id: string
+          user_id: string
+        }
+        Insert: {
+          answered_at?: string
+          correct?: boolean
+          id?: string
+          question_id: string
+          topic_id: string
+          user_id: string
+        }
+        Update: {
+          answered_at?: string
+          correct?: boolean
+          id?: string
+          question_id?: string
+          topic_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       challenge_submissions: {
         Row: {
           code: string

@@ -20,6 +20,9 @@ export const POINTS_CODE_READING_BASIC = 10
 export const POINTS_CODE_READING_INTERMEDIATE = 20
 export const POINTS_CODE_READING_ADVANCED = 30
 
+/** Base Nook クイズ正答時に付与されるポイント */
+export const POINTS_BASE_NOOK_CORRECT = 5
+
 /** ポイントバッジの閾値 */
 export const BADGE_POINT_THRESHOLD_MID = 500
 export const BADGE_POINT_THRESHOLD_HIGH = 1000
