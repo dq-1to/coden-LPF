@@ -179,7 +179,7 @@ describe('StepPage', () => {
       </MemoryRouter>,
     )
 
-    await user.click(screen.getAllByRole('button', { name: 'Challenge' })[0])
+    await user.click(screen.getAllByRole('button', { name: 'Challenge' })[0]!)
 
     expect(screen.getByText('直近の提出履歴')).toBeTruthy()
     expect(screen.getByText('最新の提出')).toBeTruthy()
@@ -257,7 +257,7 @@ describe('StepPage', () => {
       </MemoryRouter>,
     )
 
-    await user.click(screen.getAllByRole('button', { name: 'Challenge' })[0])
+    await user.click(screen.getAllByRole('button', { name: 'Challenge' })[0]!)
 
     learningStepState = {
       ...learningStepState,
@@ -359,7 +359,7 @@ describe('StepPage', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getAllByRole('button', { name: 'Practice' })[0].className).toContain('animate-pulseMint')
+      expect(screen.getAllByRole('button', { name: 'Practice' })[0]!.className).toContain('animate-pulseMint')
     })
   })
 })

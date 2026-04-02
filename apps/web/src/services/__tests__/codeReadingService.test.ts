@@ -192,9 +192,9 @@ describe('submitReading', () => {
   it('questionResults に各設問の isCorrect と explanation が含まれる', async () => {
     const answers = [1, 2, 0]
     const result = await submitReading('user-1', sampleProblem, answers, false)
-    expect(result.questionResults[0].isCorrect).toBe(true)
-    expect(result.questionResults[0].explanation).toBe('解説1')
-    expect(result.questionResults[1].isCorrect).toBe(true)
-    expect(result.questionResults[2].isCorrect).toBe(true)
+    expect(result.questionResults[0]!.isCorrect).toBe(true)
+    expect(result.questionResults[0]!.explanation).toBe('解説1')
+    expect(result.questionResults[1]!.isCorrect).toBe(true)
+    expect(result.questionResults[2]!.isCorrect).toBe(true)
   })
 })

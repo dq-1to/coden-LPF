@@ -224,8 +224,9 @@ export async function checkAndUnlockAchievements(userId: string): Promise<BadgeI
 
   const newlyUnlocked: BadgeId[] = []
   results.forEach((result, index) => {
-    if (result.status === 'fulfilled' && result.value) {
-      newlyUnlocked.push(candidates[index])
+    const badgeId = candidates[index]
+    if (result.status === 'fulfilled' && result.value && badgeId) {
+      newlyUnlocked.push(badgeId)
     }
   })
 

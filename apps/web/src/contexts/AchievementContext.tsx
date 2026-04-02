@@ -76,6 +76,7 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
     }
 
     const [nextBadge, ...rest] = toastQueue
+    if (nextBadge == null) return
     setNewlyUnlockedBadge(nextBadge)
     setToastQueue(rest)
   }, [newlyUnlockedBadge, toastQueue])

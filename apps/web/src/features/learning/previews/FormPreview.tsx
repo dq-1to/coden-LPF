@@ -34,21 +34,25 @@ export default function FormPreview() {
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <div>
-        <label className="block text-xs font-medium text-slate-600">名前</label>
-        <input
-          className="mt-1 w-full rounded border border-slate-300 px-2 py-1 text-sm"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+        <label className="block text-xs font-medium text-slate-600">
+          名前
+          <input
+            className="mt-1 w-full rounded border border-slate-300 px-2 py-1 text-sm"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </label>
       </div>
       <div>
-        <label className="block text-xs font-medium text-slate-600">メール</label>
-        <input
-          className="mt-1 w-full rounded border border-slate-300 px-2 py-1 text-sm"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        <label className="block text-xs font-medium text-slate-600">
+          メール
+          <input
+            className="mt-1 w-full rounded border border-slate-300 px-2 py-1 text-sm"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </label>
       </div>
       <button
         type="submit"

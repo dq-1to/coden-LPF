@@ -69,8 +69,8 @@ describe('TestMode', () => {
 
     for (const stepId of reactStepIds) {
       expect(previewByStepId[stepId]).toBeTruthy()
-      expect(previewByStepId[stepId].title.length).toBeGreaterThan(0)
-      expect(previewByStepId[stepId].description.length).toBeGreaterThan(0)
+      expect(previewByStepId[stepId]!.title.length).toBeGreaterThan(0)
+      expect(previewByStepId[stepId]!.description.length).toBeGreaterThan(0)
     }
   })
 

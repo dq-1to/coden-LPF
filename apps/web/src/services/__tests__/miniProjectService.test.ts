@@ -49,15 +49,15 @@ describe('judgeProject', () => {
     const code = 'useState( setTasks( addTask setInput('
     const results = judgeProject(code, sampleProject)
     expect(results).toHaveLength(2)
-    expect(results[0].passed).toBe(true)
-    expect(results[1].passed).toBe(true)
+    expect(results[0]!.passed).toBe(true)
+    expect(results[1]!.passed).toBe(true)
   })
 
   it('一部マイルストーンのキーワードのみ含む場合は部分的に passed', () => {
     const code = 'useState( setTasks('
     const results = judgeProject(code, sampleProject)
-    expect(results[0].passed).toBe(true)
-    expect(results[1].passed).toBe(false)
+    expect(results[0]!.passed).toBe(true)
+    expect(results[1]!.passed).toBe(false)
   })
 
   it('キーワードを含まないコードは全 passed: false', () => {
@@ -69,7 +69,7 @@ describe('judgeProject', () => {
   it('大文字小文字を区別しない', () => {
     const code = 'USESTATE( SETTASKS('
     const results = judgeProject(code, sampleProject)
-    expect(results[0].passed).toBe(true)
+    expect(results[0]!.passed).toBe(true)
   })
 })
 

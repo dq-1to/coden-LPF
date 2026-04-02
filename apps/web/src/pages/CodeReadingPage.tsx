@@ -129,6 +129,7 @@ export function CodeReadingPage() {
   // ─── 設問ビュー ─────────────────────────────────────────
   if (selectedProblem) {
     const currentQuestion = selectedProblem.questions[currentQuestionIndex]
+    if (!currentQuestion) return null
     const isCurrentCorrect = hasAnswered && selectedAnswer !== null
       ? judgeAnswer(selectedAnswer, currentQuestion)
       : null

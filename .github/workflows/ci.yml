@@ -44,7 +44,7 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci
-      - run: npm run test
+      - run: npm run test:coverage
         working-directory: apps/web
 
   build:

@@ -165,7 +165,8 @@ async function startApp() {
     await worker.start({ onUnhandledRequest: 'bypass' })
   }
 
-  const rootElement = document.getElementById('root')!
+  const rootElement = document.getElementById('root')
+  if (!rootElement) throw new Error('Root element not found')
   const root = ReactDOM.createRoot(rootElement)
 
   if (supabaseConfigError) {
