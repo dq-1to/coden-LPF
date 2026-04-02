@@ -70,7 +70,7 @@ export function BaseNookPage() {
             <BookOpen size={24} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-text-dark">Base Nook</h1>
+            <h1 className="text-2xl font-bold text-text-dark">ベースヌック</h1>
             <p className="text-sm text-slate-500">
               基礎がわかると、コードが読める
             </p>

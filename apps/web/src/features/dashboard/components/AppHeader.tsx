@@ -150,7 +150,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
               className={navLinkClass(isBaseNookActive)}
               aria-current={isBaseNookActive ? 'page' : undefined}
             >
-              Base Nook
+              ベースヌック
             </Link>
 
             <Link
@@ -274,7 +274,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
               className={drawerLinkClass(isBaseNookActive)}
               aria-current={isBaseNookActive ? 'page' : undefined}
             >
-              Base Nook
+              ベースヌック
             </Link>
 
             <Link
