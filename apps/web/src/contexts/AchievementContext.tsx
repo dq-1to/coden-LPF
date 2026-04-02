@@ -1,11 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { checkAndUnlockAchievements, getUnlockedAchievements, type BadgeId } from '../services/achievementService'
 import { useAuth } from './AuthContext'
+import { BADGE_TOAST_DURATION_MS } from '../shared/constants'
 
 interface AchievementContextType {
   unlockedBadgeIds: BadgeId[]
   refreshAchievements: () => Promise<void>
-  isChecking: boolean
+  isLoadingAchievements: boolean
   newlyUnlockedBadge: BadgeId | null
   dismissBadgeToast: () => void
 }
@@ -27,7 +28,7 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
   const [unlockedBadgeIds, setUnlockedBadgeIds] = useState<BadgeId[]>([])
   const [newlyUnlockedBadge, setNewlyUnlockedBadge] = useState<BadgeId | null>(null)
   const [toastQueue, setToastQueue] = useState<BadgeId[]>([])
-  const [isChecking, setIsChecking] = useState(false)
+  const [isLoadingAchievements, setIsLoadingAchievements] = useState(true)
   const isMountedRef = useRef(true)
 
   useEffect(() => {
@@ -42,11 +43,11 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
       setUnlockedBadgeIds([])
       setToastQueue([])
       setNewlyUnlockedBadge(null)
-      setIsChecking(false)
+      setIsLoadingAchievements(false)
       return
     }
 
-    setIsChecking(true)
+    setIsLoadingAchievements(true)
     try {
       const newlyUnlocked = await checkAndUnlockAchievements(userId)
       const latestUnlocked = await getUnlockedAchievements(userId)
@@ -58,7 +59,7 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
       }
     } finally {
       if (isMountedRef.current) {
-        setIsChecking(false)
+        setIsLoadingAchievements(false)
       }
     }
   }, [userId])
@@ -86,7 +87,7 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
 
     const timer = window.setTimeout(() => {
       setNewlyUnlockedBadge(null)
-    }, 4000)
+    }, BADGE_TOAST_DURATION_MS)
 
     return () => window.clearTimeout(timer)
   }, [newlyUnlockedBadge])
@@ -96,7 +97,7 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AchievementContext.Provider value={{ unlockedBadgeIds, refreshAchievements, isChecking, newlyUnlockedBadge, dismissBadgeToast }}>
+    <AchievementContext.Provider value={{ unlockedBadgeIds, refreshAchievements, isLoadingAchievements, newlyUnlockedBadge, dismissBadgeToast }}>
       {children}
     </AchievementContext.Provider>
   )

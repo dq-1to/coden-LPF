@@ -6,7 +6,7 @@ import { supabase, supabaseConfigError } from '../lib/supabaseClient'
 interface AuthContextValue {
   user: User | null
   session: Session | null
-  isLoading: boolean
+  isLoadingAuth: boolean
   signIn: (email: string, password: string) => Promise<string | null>
   signUp: (email: string, password: string) => Promise<string | 'CONFIRM_EMAIL' | null>
   signOut: () => Promise<string | null>
@@ -15,13 +15,13 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const user = session?.user ?? null
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true)
 
   useEffect(() => {
     if (supabaseConfigError) {
-      setIsLoading(false)
+      setIsLoadingAuth(false)
       return
     }
 
@@ -36,15 +36,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!isMounted) return
 
         setSession(data.session)
-        setUser(data.session?.user ?? null)
       } catch {
         if (!isMounted) return
 
         setSession(null)
-        setUser(null)
       } finally {
         if (isMounted) {
-          setIsLoading(false)
+          setIsLoadingAuth(false)
         }
       }
 
@@ -52,14 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
         if (!isMounted) return
-
-        if (!nextSession?.user) {
-          setSession(null)
-          setUser(null)
-        } else {
-          setSession(nextSession)
-          setUser(nextSession.user)
-        }
+        setSession(nextSession)
       })
       subscription = sub.subscription
     }
@@ -76,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       session,
-      isLoading,
+      isLoadingAuth,
       signIn: async (email, password) => {
         if (supabaseConfigError) {
           return supabaseConfigError
@@ -101,9 +92,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         // セッションが返ってきた場合（メール確認無効時）
-        if (data.session?.user) {
+        if (data.session) {
           setSession(data.session)
-          setUser(data.session.user)
           return null
         }
 
@@ -119,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return error?.message ?? null
       },
     }),
-    [isLoading, session, user],
+    [isLoadingAuth, session, user],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

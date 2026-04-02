@@ -9,6 +9,7 @@ import 'prismjs/components/prism-jsx'
 import 'prismjs/components/prism-typescript'
 import 'prismjs/components/prism-tsx'
 import 'prismjs/themes/prism-okaidia.css'
+import { COPY_FEEDBACK_DURATION_MS } from '../../shared/constants'
 
 interface ReadModeProps {
   markdown: string
@@ -19,13 +20,24 @@ interface ReadModeProps {
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
 
+  useEffect(() => {
+    if (!copied) return
+
+    const timerId = window.setTimeout(() => {
+      setCopied(false)
+    }, COPY_FEEDBACK_DURATION_MS)
+
+    return () => {
+      window.clearTimeout(timerId)
+    }
+  }, [copied])
+
   const handleCopy = useCallback(async () => {
     if (!navigator.clipboard) return
 
     try {
       await navigator.clipboard.writeText(text)
       setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
     } catch {
       // コピー失敗時は何もしない
     }

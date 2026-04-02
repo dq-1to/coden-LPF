@@ -20,7 +20,8 @@ export function getReviewList(): string[] {
 
   try {
     const json = localStorage.getItem(REVIEW_LIST_STORAGE_KEY)
-    return json ? (JSON.parse(json) as string[]) : []
+    const parsed: unknown = json ? JSON.parse(json) : []
+    return Array.isArray(parsed) && parsed.every(item => typeof item === 'string') ? parsed : []
   } catch {
     return []
   }
