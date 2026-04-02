@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabaseClient'
 import { fromSupabaseError } from '../shared/errors'
+import { assertMaxLength } from '../shared/validation'
 import type { Tables } from '../shared/types/database.types'
 
 export type ProfileRecord = Tables<'profiles'>
@@ -19,8 +20,13 @@ export async function getProfile(userId: string): Promise<ProfileRecord | null> 
   return data
 }
 
+const MAX_DISPLAY_NAME_LENGTH = 50
+
 export async function upsertDisplayName(userId: string, displayName: string | null): Promise<void> {
   const normalizedName = displayName && displayName.trim().length > 0 ? displayName.trim() : null
+  if (normalizedName) {
+    assertMaxLength(normalizedName, MAX_DISPLAY_NAME_LENGTH, 'displayName')
+  }
   const { error } = await supabase.from('profiles').upsert(
     {
       id: userId,
