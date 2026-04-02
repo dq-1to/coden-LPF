@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckCircle, XCircle, RotateCcw, PartyPopper } from 'lucide-react'
+import { CheckCircle, ClipboardCheck, XCircle, RotateCcw, PartyPopper } from 'lucide-react'
 import type { BaseNookQuestion } from '../../../content/base-nook/types'
 
 interface QuizViewProps {
@@ -19,6 +19,8 @@ interface AnswerState {
 export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared }: QuizViewProps) {
   const [answers, setAnswers] = useState<Map<string, AnswerState>>(new Map())
   const [submitting, setSubmitting] = useState<string | null>(null)
+
+  const answeredCount = [...answers.values()].filter((a) => a.submitted).length
 
   const handleSelect = (questionId: string, index: number) => {
     const current = answers.get(questionId)
@@ -54,16 +56,26 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-text-dark">理解度チェック</h2>
-        <button
-          type="button"
-          onClick={handleRefresh}
-          className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
-        >
-          <RotateCcw size={14} />
-          別の3問に挑戦
-        </button>
+      {/* セクション見出し */}
+      <div className="rounded-xl bg-sky-50 px-5 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ClipboardCheck size={20} className="text-sky-600" />
+            <h2 className="text-lg font-bold text-text-dark">理解度チェック</h2>
+          </div>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+          >
+            <RotateCcw size={14} />
+            別の3問に挑戦
+          </button>
+        </div>
+        {/* 進捗インジケーター */}
+        <p className="mt-2 text-sm text-slate-500">
+          {answeredCount}/{questions.length} 回答済み
+        </p>
       </div>
 
       {allCleared && (
@@ -150,11 +162,11 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
                   {submitting === q.id ? '判定中...' : '回答する'}
                 </button>
               ) : (
-                <div className={`rounded-lg px-4 py-3 text-sm ${state.isCorrect ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
-                  <p className="mb-1 font-semibold">
+                <div className={`rounded-lg px-4 py-3.5 text-sm ${state.isCorrect ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                  <p className="mb-1.5 text-base font-bold">
                     {state.isCorrect ? '✅ 正解！' : '❌ 不正解'}
                   </p>
-                  <p>{q.explanation}</p>
+                  <p className="leading-relaxed">{q.explanation}</p>
                 </div>
               )}
             </div>
