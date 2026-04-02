@@ -72,7 +72,7 @@ export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
         {completeButton}
       </div>
 
-      <article className="prose prose-slate max-w-none rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <article className="prose prose-slate max-w-none overflow-x-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
