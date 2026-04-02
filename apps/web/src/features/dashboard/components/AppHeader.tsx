@@ -16,6 +16,11 @@ const PRACTICE_LINKS = [
   { to: '/practice/code-reading', label: 'コードリーディング' },
 ] as const
 
+const TOP_NAV_LINKS = [
+  { to: '/base-nook', label: 'ベースヌック', pathPrefix: '/base-nook' },
+  { to: '/profile', label: 'プロフィール', pathPrefix: '/profile' },
+] as const
+
 export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
   const { stats } = useLearningContext()
   const location = useLocation()
@@ -30,8 +35,6 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
     location.pathname.startsWith('/step') ||
     location.pathname.startsWith('/daily') ||
     location.pathname.startsWith('/practice')
-
-  const isBaseNookActive = location.pathname.startsWith('/base-nook')
 
   // ページ遷移時にドロワー・ドロップダウンを閉じる
   useEffect(() => {
@@ -145,21 +148,19 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
               )}
             </div>
 
-            <Link
-              to="/base-nook"
-              className={navLinkClass(isBaseNookActive)}
-              aria-current={isBaseNookActive ? 'page' : undefined}
-            >
-              ベースヌック
-            </Link>
-
-            <Link
-              to="/profile"
-              className={navLinkClass(location.pathname === '/profile')}
-              aria-current={location.pathname === '/profile' ? 'page' : undefined}
-            >
-              プロフィール
-            </Link>
+            {TOP_NAV_LINKS.map((link) => {
+              const isActive = location.pathname.startsWith(link.pathPrefix)
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={navLinkClass(isActive)}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
           </nav>
         </div>
 
@@ -269,21 +270,19 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
               ))}
             </div>
 
-            <Link
-              to="/base-nook"
-              className={drawerLinkClass(isBaseNookActive)}
-              aria-current={isBaseNookActive ? 'page' : undefined}
-            >
-              ベースヌック
-            </Link>
-
-            <Link
-              to="/profile"
-              className={drawerLinkClass(location.pathname === '/profile')}
-              aria-current={location.pathname === '/profile' ? 'page' : undefined}
-            >
-              プロフィール
-            </Link>
+            {TOP_NAV_LINKS.map((link) => {
+              const isActive = location.pathname.startsWith(link.pathPrefix)
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={drawerLinkClass(isActive)}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
           </div>
 
           {/* ログアウトボタン */}

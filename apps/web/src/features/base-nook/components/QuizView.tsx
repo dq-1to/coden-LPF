@@ -60,7 +60,7 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
       <div className="rounded-xl bg-sky-50 px-5 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ClipboardCheck size={20} className="text-sky-600" />
+            <ClipboardCheck size={20} className="text-sky-600" aria-hidden="true" />
             <h2 className="text-lg font-bold text-text-dark">理解度チェック</h2>
           </div>
           <button
@@ -68,7 +68,7 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
             onClick={handleRefresh}
             className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
           >
-            <RotateCcw size={14} />
+            <RotateCcw size={14} aria-hidden="true" />
             別の3問に挑戦
           </button>
         </div>
@@ -79,8 +79,8 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
       </div>
 
       {allCleared && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
-          <PartyPopper size={18} />
+        <div role="status" aria-live="polite" className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+          <PartyPopper size={18} aria-hidden="true" />
           全問クリア！おめでとうございます！
         </div>
       )}
@@ -107,12 +107,12 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
             </div>
 
             {/* 問題文 */}
-            <p className="mb-4 whitespace-pre-wrap font-medium text-text-dark">
+            <p id={`question-${q.id}`} className="mb-4 whitespace-pre-wrap font-medium text-text-dark">
               {q.text}
             </p>
 
             {/* 選択肢 */}
-            <div className="space-y-2">
+            <div className="space-y-2" role="radiogroup" aria-labelledby={`question-${q.id}`}>
               {q.choices.map((choice, ci) => {
                 const isSelected = state?.selectedIndex === ci
                 const isSubmitted = state?.submitted ?? false
@@ -131,6 +131,8 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
                   <button
                     key={ci}
                     type="button"
+                    role="radio"
+                    aria-checked={isSelected}
                     onClick={() => handleSelect(q.id, ci)}
                     disabled={isSubmitted}
                     className={`flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm transition-colors disabled:cursor-default ${choiceClass}`}
@@ -140,10 +142,10 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
                     </span>
                     <span>{choice.label}</span>
                     {isSubmitted && isCorrectChoice && (
-                      <CheckCircle size={16} className="ml-auto shrink-0 text-emerald-500" />
+                      <CheckCircle size={16} className="ml-auto shrink-0 text-emerald-500" aria-label="正解" />
                     )}
                     {isSubmitted && isSelected && !state?.isCorrect && !isCorrectChoice && (
-                      <XCircle size={16} className="ml-auto shrink-0 text-red-400" />
+                      <XCircle size={16} className="ml-auto shrink-0 text-red-400" aria-label="不正解" />
                     )}
                   </button>
                 )
@@ -162,7 +164,7 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
                   {submitting === q.id ? '判定中...' : '回答する'}
                 </button>
               ) : (
-                <div className={`rounded-lg px-4 py-3.5 text-sm ${state.isCorrect ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                <div role="alert" className={`rounded-lg px-4 py-3.5 text-sm ${state.isCorrect ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
                   <p className="mb-1.5 text-base font-bold">
                     {state.isCorrect ? '✅ 正解！' : '❌ 不正解'}
                   </p>

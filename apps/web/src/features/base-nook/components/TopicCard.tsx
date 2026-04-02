@@ -26,11 +26,11 @@ export function TopicCard({ topic, progress, onClick }: TopicCardProps) {
       {/* ヘッダー: アイコン + 完了バッジ */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-500">
-          <IconComponent size={20} />
+          <IconComponent size={20} aria-hidden="true" />
         </div>
         {isComplete ? (
           <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">
-            <BookOpenCheck size={14} />
+            <BookOpenCheck size={14} aria-hidden="true" />
             全問クリア
           </span>
         ) : correctCount > 0 ? (
@@ -59,7 +59,7 @@ export function TopicCard({ topic, progress, onClick }: TopicCardProps) {
         <div className="flex items-center justify-between text-xs text-slate-400">
           <span>{earnedPt > 0 ? `${earnedPt} pt` : '--'}</span>
           <span className="flex items-center gap-0.5 font-medium text-amber-600 opacity-0 transition-opacity group-hover:opacity-100">
-            学ぶ <ChevronRight size={14} />
+            学ぶ <ChevronRight size={14} aria-hidden="true" />
           </span>
         </div>
       </div>

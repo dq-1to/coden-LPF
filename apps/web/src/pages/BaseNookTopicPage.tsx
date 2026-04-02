@@ -30,27 +30,35 @@ export function BaseNookTopicPage() {
   const [quizQuestions, setQuizQuestions] = useState<BaseNookQuestion[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [displayName, setDisplayName] = useState<string | null>(null)
-
-  const loadData = useCallback(async () => {
-    if (!user || !topic) return
-    try {
-      const [solved, profile] = await Promise.all([
-        getTopicProgress(user.id, topic.id),
-        getProfile(user.id),
-      ])
-      setSolvedIds(solved)
-      if (profile) setDisplayName(profile.display_name)
-      setQuizQuestions(selectQuestions(solved, topic.questions, QUIZ_COUNT))
-    } catch {
-      // エラーは握りつぶし（進捗0で続行）
-    } finally {
-      setIsLoading(false)
-    }
-  }, [user, topic])
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    void loadData()
-  }, [loadData])
+    if (!user || !topic) return
+    const userId = user.id
+    const topicData = topic
+    let isMounted = true
+
+    async function load() {
+      try {
+        const [solved, profile] = await Promise.all([
+          getTopicProgress(userId, topicData.id),
+          getProfile(userId),
+        ])
+        if (!isMounted) return
+        setSolvedIds(solved)
+        if (profile) setDisplayName(profile.display_name)
+        setQuizQuestions(selectQuestions(solved, topicData.questions, QUIZ_COUNT))
+      } catch (e) {
+        if (!isMounted) return
+        setError(e instanceof Error ? e.message : '進捗の取得に失敗しました')
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+
+    void load()
+    return () => { isMounted = false }
+  }, [user, topic])
 
   const greetingName = useMemo(
     () =>
@@ -108,17 +116,23 @@ export function BaseNookTopicPage() {
           to="/base-nook"
           className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-sky-600"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={16} aria-hidden="true" />
           Base Nook に戻る
         </Link>
 
         {/* トピックタイトル */}
         <div className="mb-8 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-sky-600">
-            <BookOpen size={20} />
+            <BookOpen size={20} aria-hidden="true" />
           </div>
           <h1 className="text-2xl font-bold text-text-dark">{topic.title}</h1>
         </div>
+
+        {error && (
+          <div role="alert" className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+            {error}
+          </div>
+        )}
 
         {isLoading ? (
           <div className="flex justify-center py-20">

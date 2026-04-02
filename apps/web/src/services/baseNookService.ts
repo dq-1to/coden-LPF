@@ -1,12 +1,18 @@
 import { supabase } from '../lib/supabaseClient'
 import { fromSupabaseError } from '../shared/errors'
-import { assertUuid } from '../shared/validation'
+import { assertUuid, assertOneOf } from '../shared/validation'
 import { POINTS_BASE_NOOK_CORRECT } from '../shared/constants'
 import { awardPoints } from './pointService'
+import { BASE_NOOK_TOPICS } from '../content/base-nook/topics'
 import type {
   BaseNookQuestion,
   TopicProgressSummary,
 } from '../content/base-nook/types'
+
+const VALID_TOPIC_IDS = new Set(BASE_NOOK_TOPICS.map((t) => t.id))
+const VALID_QUESTION_IDS = new Set(
+  BASE_NOOK_TOPICS.flatMap((t) => t.questions.map((q) => q.id)),
+)
 
 // ─── 純粋関数 ────────────────────────────────────────────
 
@@ -49,6 +55,7 @@ export async function getTopicProgress(
   topicId: string,
 ): Promise<Set<string>> {
   assertUuid(userId, 'userId')
+  assertOneOf(topicId, VALID_TOPIC_IDS, 'topicId')
 
   const { data, error } = await supabase
     .from('base_nook_progress')
@@ -104,6 +111,8 @@ export async function submitAnswer(
   isCorrect: boolean,
 ): Promise<{ pointsAwarded: boolean }> {
   assertUuid(userId, 'userId')
+  assertOneOf(topicId, VALID_TOPIC_IDS, 'topicId')
+  assertOneOf(questionId, VALID_QUESTION_IDS, 'questionId')
 
   // まず既存レコードを確認（初回正答判定用）
   const { data: existing } = await supabase
@@ -122,7 +131,6 @@ export async function submitAnswer(
       topic_id: topicId,
       question_id: questionId,
       correct: isCorrect,
-      answered_at: new Date().toISOString(),
     },
     { onConflict: 'user_id,question_id' },
   )
