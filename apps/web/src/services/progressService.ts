@@ -46,7 +46,6 @@ export async function upsertProgress(userId: string, stepId: string, patch: Prog
   const payload: TablesInsert<'step_progress'> = {
     user_id: userId,
     step_id: stepId,
-    updated_at: new Date().toISOString(),
     ...patch,
   }
 
@@ -61,19 +60,24 @@ export async function upsertProgress(userId: string, stepId: string, patch: Prog
 }
 
 export async function updateModeCompletion(userId: string, stepId: string, mode: ProgressMode) {
-  const patch: ProgressPatch = {}
-
-  if (mode === 'read') {
-    patch.read_done = true
-  }
-  if (mode === 'practice') {
-    patch.practice_done = true
-  }
-  if (mode === 'test') {
-    patch.test_done = true
-  }
-  if (mode === 'challenge') {
-    patch.challenge_done = true
+  let patch: ProgressPatch
+  switch (mode) {
+    case 'read':
+      patch = { read_done: true }
+      break
+    case 'practice':
+      patch = { practice_done: true }
+      break
+    case 'test':
+      patch = { test_done: true }
+      break
+    case 'challenge':
+      patch = { challenge_done: true }
+      break
+    default: {
+      const _exhaustive: never = mode
+      throw new Error(`Unknown mode: ${_exhaustive}`)
+    }
   }
 
   await upsertProgress(userId, stepId, patch)

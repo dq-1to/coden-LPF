@@ -105,7 +105,6 @@ export async function recordStudyActivity(userId: string, now = new Date()): Pro
       current_streak: nextStats.current_streak,
       max_streak: nextStats.max_streak,
       last_study_date: nextStats.last_study_date,
-      updated_at: new Date().toISOString(),
     },
     { onConflict: 'user_id', ignoreDuplicates: false },
   )

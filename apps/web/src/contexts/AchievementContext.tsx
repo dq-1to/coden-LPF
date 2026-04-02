@@ -1,12 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
-import { Trophy } from 'lucide-react'
-import { BADGE_DEFINITIONS, checkAndUnlockAchievements, getUnlockedAchievements, type BadgeId } from '../services/achievementService'
+import { checkAndUnlockAchievements, getUnlockedAchievements, type BadgeId } from '../services/achievementService'
 import { useAuth } from './AuthContext'
 
 interface AchievementContextType {
   unlockedBadgeIds: BadgeId[]
   refreshAchievements: () => Promise<void>
   isChecking: boolean
+  newlyUnlockedBadge: BadgeId | null
+  dismissBadgeToast: () => void
 }
 
 const AchievementContext = createContext<AchievementContextType | null>(null)
@@ -90,26 +91,13 @@ export function AchievementProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(timer)
   }, [newlyUnlockedBadge])
 
-  const badgeDef = newlyUnlockedBadge ? BADGE_DEFINITIONS.find((badge) => badge.id === newlyUnlockedBadge) : null
+  const dismissBadgeToast = useCallback(() => {
+    setNewlyUnlockedBadge(null)
+  }, [])
 
   return (
-    <AchievementContext.Provider value={{ unlockedBadgeIds, refreshAchievements, isChecking }}>
+    <AchievementContext.Provider value={{ unlockedBadgeIds, refreshAchievements, isChecking, newlyUnlockedBadge, dismissBadgeToast }}>
       {children}
-
-      {badgeDef ? (
-        <div className="fixed bottom-5 right-5 z-50 animate-bounce rounded-xl border-2 border-amber-300 bg-amber-50 px-4 py-3 shadow-xl">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-200 shadow-inner">
-              <Trophy className="h-5 w-5 text-amber-700" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-amber-600">新しいバッジを獲得しました！</p>
-              <p className="font-semibold text-amber-900">{badgeDef.name}</p>
-              <p className="text-xs text-amber-700">{badgeDef.description}</p>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </AchievementContext.Provider>
   )
 }
