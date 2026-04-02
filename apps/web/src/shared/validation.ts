@@ -17,3 +17,14 @@ export function assertMaxLength(value: string, max: number, name: string): void 
     throw new Error(`${name} must be at most ${max} characters`)
   }
 }
+
+/** 値が許可リストに含まれることを検証する */
+export function assertOneOf(
+  value: string,
+  allowed: ReadonlySet<string>,
+  name: string,
+): void {
+  if (!allowed.has(value)) {
+    throw new Error(`${name} is not a valid value`)
+  }
+}

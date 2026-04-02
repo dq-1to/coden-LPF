@@ -154,21 +154,37 @@ export function DashboardPage() {
               </div>
             </div>
 
-            {/* デイリーチャレンジカード */}
-            <Link
-              to="/daily"
-              className="block rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50/50 p-5 shadow-sm transition hover:shadow-md"
-            >
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-amber-100 p-2.5">
-                  <Zap className="h-5 w-5 text-amber-600" />
+            {/* ベースヌック & デイリーチャレンジ */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Link
+                to="/base-nook"
+                className="block rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 to-cyan-50/50 p-5 shadow-sm transition hover:shadow-md"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-sky-100 p-2.5">
+                    <BookOpen className="h-5 w-5 text-sky-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900">ベースヌック</h3>
+                    <p className="text-sm text-slate-500">コードの「なぜ？」がわかる基礎知識</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-slate-900">デイリーチャレンジ</h3>
-                  <p className="text-sm text-slate-500">今日の1問に挑戦して知識を定着させましょう</p>
+              </Link>
+              <Link
+                to="/daily"
+                className="block rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50/50 p-5 shadow-sm transition hover:shadow-md"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-amber-100 p-2.5">
+                    <Zap className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900">デイリーチャレンジ</h3>
+                    <p className="text-sm text-slate-500">今日の1問に挑戦して知識を定着させましょう</p>
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </div>
 
             {/* スキルアップセクション */}
             <div className="space-y-4">
