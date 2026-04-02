@@ -12,32 +12,58 @@ export function PracticeModeNav() {
   const { pathname } = useLocation()
 
   return (
-    <nav className="w-44 shrink-0">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-light">
-        練習モード
-      </p>
-      <ul className="space-y-1">
+    <>
+      {/* デスクトップ: サイドバー */}
+      <nav className="hidden w-44 shrink-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:block">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-light">
+          練習モード
+        </p>
+        <ul className="space-y-1">
+          {NAV_ITEMS.map(({ path, label, icon: Icon }) => {
+            const isActive = pathname === path || pathname.startsWith(path + '/')
+            return (
+              <li key={path}>
+                <Link
+                  to={path}
+                  className={[
+                    'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                    isActive
+                      ? 'bg-amber-100 text-amber-700'
+                      : 'text-text-muted hover:bg-bg-surface hover:text-text-dark',
+                  ].join(' ')}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <Icon size={16} />
+                  {label}
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
+
+      {/* モバイル: 水平ピルナビ */}
+      <nav className="mb-2 flex gap-2 overflow-x-auto lg:hidden" aria-label="練習モード">
         {NAV_ITEMS.map(({ path, label, icon: Icon }) => {
           const isActive = pathname === path || pathname.startsWith(path + '/')
           return (
-            <li key={path}>
-              <Link
-                to={path}
-                className={[
-                  'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-amber-100 text-amber-700'
-                    : 'text-text-muted hover:bg-bg-surface hover:text-text-dark',
-                ].join(' ')}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                <Icon size={16} />
-                {label}
-              </Link>
-            </li>
+            <Link
+              key={path}
+              to={path}
+              className={[
+                'flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors',
+                isActive
+                  ? 'bg-amber-500 text-white'
+                  : 'border border-slate-200 bg-white text-text-muted hover:border-amber-400 hover:text-amber-600',
+              ].join(' ')}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              <Icon size={14} />
+              {label}
+            </Link>
           )
         })}
-      </ul>
-    </nav>
+      </nav>
+    </>
   )
 }
