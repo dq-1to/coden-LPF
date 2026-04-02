@@ -4,6 +4,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { getProblemProgressMap, submitDoctorSolution } from '../services/codeDoctorService'
 import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
 import { ProblemCard } from '../features/code-doctor/components/ProblemCard'
+import { PracticePageLayout } from '../components/PracticePageLayout'
 import { Spinner } from '../components/Spinner'
 import { CODE_DOCTOR_PROBLEMS } from '../content/code-doctor/problems'
 import type { CodeDoctorDifficulty, CodeDoctorProblem, CodeDoctorProgress, SubmitDoctorResult } from '../content/code-doctor/types'
@@ -109,13 +110,13 @@ export function CodeDoctorPage() {
   // ─── 問題ビュー ─────────────────────────────────────────
   if (selectedProblem) {
     return (
-      <div className="mx-auto max-w-screen-xl px-4 py-8">
+      <PracticePageLayout>
         <div className="flex gap-6">
           <PracticeModeNav />
 
           <div className="flex min-w-0 flex-1 gap-4">
             {/* 問題パネル */}
-            <div className="w-72 shrink-0 space-y-4">
+            <div className="w-72 shrink-0 space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <button
                 type="button"
                 onClick={handleBack}
@@ -240,65 +241,67 @@ export function CodeDoctorPage() {
             </div>
           </div>
         </div>
-      </div>
+      </PracticePageLayout>
     )
   }
 
   // ─── 一覧ビュー ─────────────────────────────────────────
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <div className="flex gap-8">
+    <PracticePageLayout>
+      <div className="flex gap-6">
         <PracticeModeNav />
 
-        <div className="min-w-0 flex-1 space-y-5">
-          <div>
-            <h1 className="text-2xl font-bold text-text-dark">コードドクター</h1>
-            <p className="mt-1 text-sm text-text-muted">
-              バグ入りコードを修正してデバッグスキルを鍛えましょう
-            </p>
-          </div>
-
-          {/* フィルタ */}
-          <div className="flex gap-2">
-            {FILTER_OPTIONS.map(({ value, label }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setFilter(value)}
-                className={[
-                  'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
-                  filter === value
-                    ? 'bg-amber-500 text-white'
-                    : 'border border-border text-text-muted hover:border-amber-400 hover:text-amber-600',
-                ].join(' ')}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {isLoading ? (
-            <div className="flex justify-center py-16">
-              <Spinner />
+        <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="space-y-5">
+            <div>
+              <h1 className="text-2xl font-bold text-text-dark">コードドクター</h1>
+              <p className="mt-1 text-sm text-text-muted">
+                バグ入りコードを修正してデバッグスキルを鍛えましょう
+              </p>
             </div>
-          ) : error ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-              {error}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredProblems.map((problem) => (
-                <ProblemCard
-                  key={problem.id}
-                  problem={problem}
-                  progress={progressMap.get(problem.id)}
-                  onClick={() => handleSelectProblem(problem)}
-                />
+
+            {/* フィルタ */}
+            <div className="flex gap-2">
+              {FILTER_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setFilter(value)}
+                  className={[
+                    'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
+                    filter === value
+                      ? 'bg-amber-500 text-white'
+                      : 'border border-border text-text-muted hover:border-amber-400 hover:text-amber-600',
+                  ].join(' ')}
+                >
+                  {label}
+                </button>
               ))}
             </div>
-          )}
+
+            {isLoading ? (
+              <div className="flex justify-center py-16">
+                <Spinner />
+              </div>
+            ) : error ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+                {error}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredProblems.map((problem) => (
+                  <ProblemCard
+                    key={problem.id}
+                    problem={problem}
+                    progress={progressMap.get(problem.id)}
+                    onClick={() => handleSelectProblem(problem)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </PracticePageLayout>
   )
 }

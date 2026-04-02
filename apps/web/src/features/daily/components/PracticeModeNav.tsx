@@ -12,7 +12,7 @@ export function PracticeModeNav() {
   const { pathname } = useLocation()
 
   return (
-    <nav className="w-44 shrink-0">
+    <nav className="w-44 shrink-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-light">
         練習モード
       </p>

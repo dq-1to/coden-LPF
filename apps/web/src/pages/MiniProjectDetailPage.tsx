@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { getProjectProgressMap, submitProject } from '../services/miniProjectService'
 import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
+import { PracticePageLayout } from '../components/PracticePageLayout'
 import { Spinner } from '../components/Spinner'
 import { MINI_PROJECTS } from '../content/mini-projects/projects'
 import type { MilestoneJudgeResult, MiniProjectProgress, MiniProjectStatus, SubmitProjectResult } from '../content/mini-projects/types'
@@ -78,13 +79,13 @@ export function MiniProjectDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-screen-xl px-4 py-8">
+    <PracticePageLayout>
       <div className="flex gap-6">
         <PracticeModeNav />
 
         <div className="flex min-w-0 flex-1 gap-4">
           {/* 左パネル */}
-          <div className="w-72 shrink-0 space-y-4">
+          <div className="w-72 shrink-0 space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <Link
               to="/practice/mini-projects"
               className="flex items-center gap-1 text-sm text-text-muted hover:text-text-dark"
@@ -210,6 +211,6 @@ export function MiniProjectDetailPage() {
           </div>
         </div>
       </div>
-    </div>
+    </PracticePageLayout>
   )
 }
