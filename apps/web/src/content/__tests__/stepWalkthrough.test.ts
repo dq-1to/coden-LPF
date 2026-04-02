@@ -293,7 +293,7 @@ describe('API連携コース（react-api）コンテンツ固有検証', () => {
 
   it('api-custom-hook: useCallback が expectedKeywords に含まれる', () => {
     const step = course4Steps.find((s) => s.id === 'api-custom-hook')!
-    expect(step.challengeTask.patterns[0].expectedKeywords).toContain('useCallback')
+    expect(step.challengeTask.patterns[0]!.expectedKeywords).toContain('useCallback')
   })
 
   it('api-error-loading: dispatch が expectedKeywords に含まれる', () => {

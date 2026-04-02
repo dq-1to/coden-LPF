@@ -54,7 +54,9 @@ export const handlers = [
     if (index === -1) {
       return HttpResponse.json({ error: 'Not found' }, { status: 404 })
     }
-    tasks[index] = { ...tasks[index], ...body }
+    const existing = tasks[index]
+    if (!existing) return HttpResponse.json({ error: 'Not found' }, { status: 404 })
+    tasks[index] = { ...existing, ...body }
     return HttpResponse.json(tasks[index])
   }),
 

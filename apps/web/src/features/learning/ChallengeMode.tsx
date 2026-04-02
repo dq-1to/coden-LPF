@@ -17,7 +17,9 @@ interface ChallengeModeProps {
 
 function getRandomPattern(task: ChallengeTask): ChallengePattern {
   const randomIndex = Math.floor(Math.random() * task.patterns.length)
-  return task.patterns[randomIndex]
+  const pattern = task.patterns[randomIndex]
+  if (!pattern) throw new Error(`No pattern at index ${randomIndex}`)
+  return pattern
 }
 
 export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: ChallengeModeProps) {

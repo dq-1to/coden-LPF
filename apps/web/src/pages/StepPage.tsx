@@ -254,12 +254,13 @@ export function StepPage() {
                   const isDone = modeStatus[mode.id]
                   const ModeIcon = mode.icon
 
+                  const prevButton = index > 0 ? modeButtons[index - 1] : undefined
                   return (
                     <li key={mode.id} className="flex items-center">
                       {index > 0 ? (
                         <div
                           className={`h-0 w-6 border-t-2 sm:w-10 ${
-                            modeStatus[modeButtons[index - 1].id] ? 'border-primary-mint' : 'border-slate-200'
+                            prevButton && modeStatus[prevButton.id] ? 'border-primary-mint' : 'border-slate-200'
                           }`}
                         />
                       ) : null}
