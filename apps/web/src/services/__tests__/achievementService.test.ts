@@ -12,10 +12,14 @@ vi.mock('../../lib/supabaseClient', () => ({
   },
 }))
 
-// 外部依存サービスをモック
-vi.mock('../progressService', () => ({
-  getAllStepProgress: vi.fn(),
-}))
+// 外部依存サービスをモック（isStepCompleted は純粋関数なので実装をそのまま使う）
+vi.mock('../progressService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../progressService')>()
+  return {
+    ...actual,
+    getAllStepProgress: vi.fn(),
+  }
+})
 
 vi.mock('../statsService', () => ({
   getLearningStats: vi.fn(),

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CheckCircle2, Flame, Lock, Monitor } from 'lucide-react'
 import { Spinner } from '@/components/Spinner'
+import { useAchievementContext } from '@/contexts/AchievementContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLearningContext } from '@/contexts/LearningContext'
 import {
@@ -27,6 +27,7 @@ function heatmapColor(level: number) {
 export function DashboardSidebar() {
   const { user } = useAuth()
   const { stats } = useLearningContext()
+  const { unlockedBadgeIds } = useAchievementContext()
   const [heatmap, setHeatmap] = useState<HeatmapCell[]>([])
   const [isLoadingHeatmap, setIsLoadingHeatmap] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -110,12 +111,9 @@ export function DashboardSidebar() {
 
           <div>
             <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-light">獲得バッジ</p>
-            <div className="flex items-center justify-between text-xl">
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-emerald-200 bg-emerald-50"><CheckCircle2 className="h-5 w-5 text-emerald-600" /></span>
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-emerald-200 bg-emerald-50"><Flame className="h-5 w-5 text-emerald-600" /></span>
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-emerald-200 bg-emerald-50"><Monitor className="h-5 w-5 text-emerald-600" /></span>
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-slate-100">
-                <Lock className="h-5 w-5 text-slate-400" />
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1">
+                {unlockedBadgeIds.length} 個獲得
               </span>
             </div>
           </div>
@@ -129,7 +127,13 @@ export function DashboardSidebar() {
         </div>
         <div className="flex flex-wrap gap-1.5">
           {heatmapCells.map((cell, index) => (
-            <span key={`${cell.date}-${index}`} className={`h-3 w-3 rounded-sm ${heatmapColor(cell.level)}`} />
+            <span
+              key={`${cell.date}-${index}`}
+              className={`h-3 w-3 rounded-sm ${heatmapColor(cell.level)}`}
+              role="img"
+              aria-label={`${cell.date}: ${cell.count}回学習`}
+              title={`${cell.date}: ${cell.count}回学習`}
+            />
           ))}
         </div>
         <div className="mt-3 flex items-center justify-between">

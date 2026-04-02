@@ -18,6 +18,9 @@
       "apps\\web\\public"
     ]
   },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "devDependencies": {
     "lefthook": "^2.1.4"
   }

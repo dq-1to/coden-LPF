@@ -93,8 +93,9 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
                     <button
                       key={choice}
                       type="button"
+                      role="radio"
                       className={btnClass}
-                      aria-pressed={isSelected}
+                      aria-checked={isSelected}
                       onClick={() => handleAnswerChange(question.id, choice)}
                     >
                       {choice}
