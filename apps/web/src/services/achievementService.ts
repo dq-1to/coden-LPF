@@ -3,7 +3,7 @@ import { BADGE_POINT_THRESHOLD_HIGH, BADGE_POINT_THRESHOLD_MID, STREAK_THRESHOLD
 import { supabase } from '../lib/supabaseClient'
 import { fromSupabaseError } from '../shared/errors'
 import type { Tables } from '../shared/types/database.types'
-import { getAllStepProgress } from './progressService'
+import { getAllStepProgress, isStepCompleted } from './progressService'
 import { getLearningStats } from './statsService'
 import { CODE_DOCTOR_PROBLEMS } from '../content/code-doctor/problems'
 
@@ -64,15 +64,6 @@ function getCourseStepIds(courseId: string): string[] {
 
 function isBadgeId(value: string): value is BadgeId {
   return BADGE_ID_SET.has(value as BadgeId)
-}
-
-function isStepCompleted(progress: {
-  read_done: boolean
-  practice_done: boolean
-  test_done: boolean
-  challenge_done: boolean
-}) {
-  return progress.read_done && progress.practice_done && progress.test_done && progress.challenge_done
 }
 
 // ─── DB ヘルパー関数 ──────────────────────────────────────
@@ -176,7 +167,6 @@ export async function unlockAchievement(userId: string, badgeId: BadgeId): Promi
 }
 
 export async function checkAndUnlockAchievements(userId: string): Promise<BadgeId[]> {
-  const newlyUnlocked: BadgeId[] = []
   const [unlockedBadgeIds, progresses, stats, dailyStreak, doctorStats, miniProjectCount, readingCorrectCount] =
     await Promise.all([
       getUnlockedAchievements(userId),
@@ -190,73 +180,54 @@ export async function checkAndUnlockAchievements(userId: string): Promise<BadgeI
   const unlockedSet = new Set<BadgeId>(unlockedBadgeIds)
   const completedStepIds = new Set(progresses.filter(isStepCompleted).map((progress) => progress.step_id))
 
-  const tryUnlock = async (badgeId: BadgeId) => {
-    if (unlockedSet.has(badgeId)) {
-      return
-    }
-
-    const unlockedNow = await unlockAchievement(userId, badgeId)
-    if (!unlockedNow) {
-      return
-    }
-
-    unlockedSet.add(badgeId)
-    newlyUnlocked.push(badgeId)
+  // 解禁候補を同期的に判定
+  const candidates: BadgeId[] = []
+  const addCandidate = (badgeId: BadgeId) => {
+    if (!unlockedSet.has(badgeId)) candidates.push(badgeId)
   }
 
-  if (completedStepIds.size >= 1) {
-    await tryUnlock('first-step')
-  }
+  if (completedStepIds.size >= 1) addCandidate('first-step')
+  if (progresses.some((progress) => progress.challenge_done)) addCandidate('first-challenge')
 
-  if (progresses.some((progress) => progress.challenge_done)) {
-    await tryUnlock('first-challenge')
-  }
-
-  if (stats.current_streak >= STREAK_THRESHOLD_BRONZE) {
-    await tryUnlock('streak-3')
-  }
-  if (stats.current_streak >= STREAK_THRESHOLD_SILVER) {
-    await tryUnlock('streak-7')
-  }
-  if (stats.current_streak >= STREAK_THRESHOLD_GOLD) {
-    await tryUnlock('streak-30')
-  }
+  if (stats.current_streak >= STREAK_THRESHOLD_BRONZE) addCandidate('streak-3')
+  if (stats.current_streak >= STREAK_THRESHOLD_SILVER) addCandidate('streak-7')
+  if (stats.current_streak >= STREAK_THRESHOLD_GOLD) addCandidate('streak-30')
 
   for (const rule of COURSE_COMPLETION_RULES) {
-    if (rule.stepIds.length === 0) {
-      continue
-    }
-
-    if (rule.stepIds.every((stepId) => completedStepIds.has(stepId))) {
-      await tryUnlock(rule.badgeId)
+    if (rule.stepIds.length > 0 && rule.stepIds.every((stepId) => completedStepIds.has(stepId))) {
+      addCandidate(rule.badgeId)
     }
   }
 
   if (ALL_STEP_IDS.length > 0 && ALL_STEP_IDS.every((stepId) => completedStepIds.has(stepId))) {
-    await tryUnlock('all-complete')
+    addCandidate('all-complete')
   }
 
-  if (stats.total_points >= BADGE_POINT_THRESHOLD_MID) {
-    await tryUnlock('pt-500')
-  }
-  if (stats.total_points >= BADGE_POINT_THRESHOLD_HIGH) {
-    await tryUnlock('pt-1000')
-  }
+  if (stats.total_points >= BADGE_POINT_THRESHOLD_MID) addCandidate('pt-500')
+  if (stats.total_points >= BADGE_POINT_THRESHOLD_HIGH) addCandidate('pt-1000')
 
-  // デイリーチャレンジ連続バッジ
-  if (dailyStreak >= 7) await tryUnlock('daily-7')
-  if (dailyStreak >= 30) await tryUnlock('daily-30')
+  if (dailyStreak >= 7) addCandidate('daily-7')
+  if (dailyStreak >= 30) addCandidate('daily-30')
 
-  // コードドクターバッジ
-  if (doctorStats.totalCompleted >= 10) await tryUnlock('doctor-10')
-  if (doctorStats.advancedCompleted >= ADVANCED_DOCTOR_COUNT) await tryUnlock('doctor-all-advanced')
+  if (doctorStats.totalCompleted >= 10) addCandidate('doctor-10')
+  if (doctorStats.advancedCompleted >= ADVANCED_DOCTOR_COUNT) addCandidate('doctor-all-advanced')
 
-  // ミニプロジェクトバッジ
-  if (miniProjectCount >= 1) await tryUnlock('first-mini-project')
-  if (miniProjectCount >= 5) await tryUnlock('mini-project-5')
+  if (miniProjectCount >= 1) addCandidate('first-mini-project')
+  if (miniProjectCount >= 5) addCandidate('mini-project-5')
 
-  // コードリーディングバッジ
-  if (readingCorrectCount >= 10) await tryUnlock('reader-10')
+  if (readingCorrectCount >= 10) addCandidate('reader-10')
+
+  // 並列で一括解禁
+  const results = await Promise.allSettled(
+    candidates.map((badgeId) => unlockAchievement(userId, badgeId)),
+  )
+
+  const newlyUnlocked: BadgeId[] = []
+  results.forEach((result, index) => {
+    if (result.status === 'fulfilled' && result.value) {
+      newlyUnlocked.push(candidates[index])
+    }
+  })
 
   return newlyUnlocked
 }

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Button } from '../../components/Button'
 import type { PracticeQuestion } from '../../content/fundamentals/steps'
-import { addToReviewList, removeFromReviewList } from '../../services/reviewListService'
+import { useJudgmentAction } from './hooks/useJudgmentAction'
+import { useStepReset } from './hooks/useStepReset'
 
 interface PracticeModeProps {
   stepId: string
@@ -17,15 +18,13 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [hints, setHints] = useState<Record<string, boolean>>({})
   const [isJudged, setIsJudged] = useState(false)
-  const [reported, setReported] = useState(false)
+  const { handleResult } = useJudgmentAction(stepId, onComplete)
 
-  // ステップ切り替え時に状態リセット
-  useEffect(() => {
+  useStepReset(stepId, () => {
     setAnswers({})
     setHints({})
     setIsJudged(false)
-    setReported(false)
-  }, [stepId])
+  })
 
   const isAllCorrect = useMemo(
     () =>
@@ -38,15 +37,7 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
 
   function handleJudge() {
     setIsJudged(true)
-    if (isAllCorrect) {
-      removeFromReviewList(stepId)
-      if (!reported) {
-        onComplete()
-        setReported(true)
-      }
-    } else {
-      addToReviewList(stepId)
-    }
+    handleResult(isAllCorrect)
   }
 
   function handleAnswerChange(questionId: string, value: string) {
@@ -93,8 +84,9 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
                     <button
                       key={choice}
                       type="button"
+                      role="radio"
                       className={btnClass}
-                      aria-pressed={isSelected}
+                      aria-checked={isSelected}
                       onClick={() => handleAnswerChange(question.id, choice)}
                     >
                       {choice}

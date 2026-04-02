@@ -3,6 +3,7 @@ import { Button } from '../../components/Button'
 import { ErrorBanner } from '../../components/ErrorBanner'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
+import { JudgmentResult } from './components/JudgmentResult'
 
 const MonacoEditor = lazy(() => import('@monaco-editor/react'))
 
@@ -104,18 +105,12 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
         </Button>
 
         {checked && (
-          <div
-            className={`animate-fadeIn rounded-xl border px-4 py-3 ${isPassed ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'}`}
-            role="status"
-            aria-live="polite"
-          >
-            <p className={`text-sm font-semibold ${isPassed ? 'text-emerald-800' : 'text-rose-800'}`}>
-              {isPassed ? 'Challengeを完了しました！' : '要件を満たしていません。'}
-            </p>
-            {!isPassed && (
-              <p className="mt-1 text-xs text-rose-700">下記の不足要件を確認して、もう一度挑戦してみましょう。</p>
-            )}
-          </div>
+          <JudgmentResult
+            isPassed={isPassed}
+            passedMessage="Challengeを完了しました！"
+            failedMessage="要件を満たしていません。"
+            failedHint="下記の不足要件を確認して、もう一度挑戦してみましょう。"
+          />
         )}
       </div>
 

@@ -260,6 +260,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      record_study_activity: {
+        Args: Record<string, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

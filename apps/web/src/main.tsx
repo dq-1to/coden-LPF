@@ -5,6 +5,7 @@ import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
 import { LearningProvider } from './contexts/LearningContext'
 import { AchievementProvider } from './contexts/AchievementContext'
+import { AchievementToast } from './components/AchievementToast'
 import { ConfigErrorView } from './components/ConfigErrorView'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { PageSpinner } from './components/Spinner'
@@ -182,6 +183,7 @@ async function startApp() {
           <AuthProvider>
             <LearningProvider>
               <AchievementProvider>
+                <AchievementToast />
                 <RouterProvider router={router} />
               </AchievementProvider>
             </LearningProvider>
