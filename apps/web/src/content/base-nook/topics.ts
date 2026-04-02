@@ -1,7 +1,7 @@
 import type { BaseNookTopic } from './types'
 
 export const BASE_NOOK_TOPICS: BaseNookTopic[] = [
-  // ── 1. JavaScript ──────────────────────────────
+  // ── 1. JavaScript ────────────────────────────────
   {
     id: 'javascript',
     title: 'JavaScriptって何？',
@@ -201,7 +201,7 @@ button.addEventListener("click", () => {
     ],
   },
 
-  // ── 2. JSX ─────────────────────────────────────
+  // ── 2. JSX ───────────────────────────────────────
   {
     id: 'jsx',
     title: 'JSXって何？',
@@ -405,7 +405,7 @@ function Greeting() {
     ],
   },
 
-  // ── 3. DOM ────────────────────────────────────
+  // ── 3. DOM ───────────────────────────────────────
   {
     id: 'dom',
     title: 'DOMって何？',
@@ -598,7 +598,7 @@ el.textContent = "こんばんは";
     ],
   },
 
-  // ── 4. コンポーネント ──────────────────────────
+  // ── 4. コンポーネント ───────────────────────────────────
   {
     id: 'component',
     title: 'コンポーネントって何？',
@@ -801,7 +801,7 @@ function App() {
     ],
   },
 
-  // ── 5. props vs state ─────────────────────────
+  // ── 5. props vs state ────────────────────────────
   {
     id: 'props-vs-state',
     title: 'propsとstateの違い',
@@ -1001,7 +1001,7 @@ function Counter({ label }) {
     ],
   },
 
-  // ── 6. JSON ───────────────────────────────────
+  // ── 6. JSON ──────────────────────────────────────
   {
     id: 'json',
     title: 'JSONって何？',
@@ -1204,7 +1204,7 @@ console.log(parsed.name); // "太郎"
     ],
   },
 
-  // ── 7. API ────────────────────────────────────
+  // ── 7. API ───────────────────────────────────────
   {
     id: 'api',
     title: 'APIって何？',
@@ -1398,6 +1398,1042 @@ console.log(users);
         correctIndex: 0,
         explanation:
           'APIを使えば、天気データや地図表示など、既に誰かが作った機能を自分のアプリから利用でき、すべてを自前で作る必要がなくなります。',
+      },
+    ],
+  },
+
+  // ── 8. HTTPメソッド ──────────────────────────────────
+  {
+    id: 'http-methods',
+    title: 'HTTPメソッドって何？',
+    summary: 'GET/POST/PUT/DELETE の役割',
+    icon: 'Send',
+    article: `## ひとことで言うと
+
+HTTPメソッドは、**「サーバーへの操作の種類」を伝える命令**です。データを取得したいのか、新規作成したいのか、更新・削除したいのかをURLとセットで指定します。
+
+## もう少し詳しく
+
+Webアプリでブラウザからサーバーにリクエストを送るとき、URLだけでは「何をしたいのか」が伝わりません。そこで使われるのがHTTPメソッドです。
+
+お店に電話するときのたとえで考えると、URLが「お店の電話番号」だとすると、HTTPメソッドは「電話の用件（注文・確認・キャンセルなど）」にあたります。
+
+よく使われる4つのメソッドには、それぞれ明確な役割があります。
+
+| メソッド | 役割 | 例 |
+|----------|------|-----|
+| **GET** | データを取得する | 記事の一覧を見る |
+| **POST** | 新しいデータを作成する | コメントを投稿する |
+| **PUT** | データを丸ごと更新する | プロフィールを書き換える |
+| **DELETE** | データを削除する | 記事を削除する |
+
+GETは「読み取り専用」のため、サーバーの状態を変えません（**安全**なメソッド）。一方でPOST・PUT・DELETEはサーバーのデータを変化させます。
+
+また、**冪等性（べきとうせい）** という重要な概念があります。「同じリクエストを何度送っても結果が変わらない」性質のことです。GETとPUTとDELETEは冪等ですが、POSTは冪等ではありません（送るたびに新しいデータが作られる可能性があります）。
+
+## コードで見てみよう
+
+\`\`\`js
+// GET: データを取得する（リクエストボディなし）
+const res = await fetch("/api/posts");
+const posts = await res.json();
+
+// POST: 新しいデータを作成する（リクエストボディあり）
+const res2 = await fetch("/api/posts", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ title: "新しい記事", content: "本文" }),
+});
+\`\`\`
+
+GETはURLを指定するだけでよく、POSTはメソッドと送信するデータ（\`body\`）を指定します。
+
+## まとめ
+
+- HTTPメソッドは **サーバーへの操作の種類を伝える命令**（GET/POST/PUT/DELETE が基本）
+- GETは **データの読み取り専用** でサーバーの状態を変えない
+- POSTは **新規作成**、PUTは **丸ごと更新**、DELETEは **削除** を担当する`,
+    questions: [
+      {
+        id: 'http-methods-q01',
+        text: 'HTTPメソッドの役割として正しいのはどれですか？',
+        choices: [
+          { label: 'ページのデザインを指定する' },
+          { label: 'サーバーへの操作の種類（取得・作成・更新・削除）を伝える' },
+          { label: 'ブラウザの種類を識別する' },
+          { label: 'URLの文字数を制限する' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'HTTPメソッドは、サーバーに「何をしたいのか」を伝えるものです。URLが「どこに」を示すのに対し、メソッドは「何を」の操作種別を示します。',
+      },
+      {
+        id: 'http-methods-q02',
+        text: 'GETメソッドの特徴として正しいのはどれですか？',
+        choices: [
+          { label: '新しいデータを作成する' },
+          { label: 'サーバー上のデータを削除する' },
+          { label: 'データを取得するだけで、サーバーの状態を変えない' },
+          { label: 'リクエストボディが必須である' },
+        ],
+        correctIndex: 2,
+        explanation:
+          'GETはデータの取得専用で、サーバーの状態を変えない「安全」なメソッドです。GETリクエストにはリクエストボディを含めません。',
+      },
+      {
+        id: 'http-methods-q03',
+        text: '新しいコメントをサーバーに投稿するとき、使うべきメソッドはどれですか？',
+        choices: [
+          { label: 'GET' },
+          { label: 'POST' },
+          { label: 'DELETE' },
+          { label: 'HEAD' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'POSTは新しいデータを作成するためのメソッドです。コメントの投稿・ユーザー登録など「初めて作る」操作に使います。',
+      },
+      {
+        id: 'http-methods-q04',
+        text: 'お店への電話にたとえたとき、HTTPメソッドにあたるのはどれですか？',
+        choices: [
+          { label: 'お店の電話番号' },
+          { label: '電話機の種類' },
+          { label: '電話の用件（注文・確認・キャンセルなど）' },
+          { label: '通話時間' },
+        ],
+        correctIndex: 2,
+        explanation:
+          'URLが「どこに（電話番号）」を示すのに対し、HTTPメソッドは「何をしたいか（用件）」を示します。',
+      },
+      {
+        id: 'http-methods-q05',
+        text: '「冪等性（べきとうせい）」の説明として正しいのはどれですか？',
+        choices: [
+          { label: 'リクエストが高速であること' },
+          { label: '同じリクエストを何度送っても結果が変わらない性質' },
+          { label: 'データを暗号化して送る仕組み' },
+          { label: 'サーバーが自動的にデータを圧縮する機能' },
+        ],
+        correctIndex: 1,
+        explanation:
+          '冪等性とは「同じ操作を何度繰り返しても同じ結果になる」性質です。GET・PUT・DELETEは冪等ですが、POSTは冪等ではありません。',
+      },
+      {
+        id: 'http-methods-q06',
+        text: '次のうち、冪等でない（何度送ると結果が変わる可能性がある）メソッドはどれですか？',
+        choices: [
+          { label: 'GET' },
+          { label: 'PUT' },
+          { label: 'DELETE' },
+          { label: 'POST' },
+        ],
+        correctIndex: 3,
+        explanation:
+          'POSTは冪等ではありません。同じPOSTリクエストを複数回送ると、そのたびに新しいデータが作られる可能性があります。GET・PUT・DELETEは冪等です。',
+      },
+      {
+        id: 'http-methods-q07',
+        text: 'PUTメソッドの役割として正しいのはどれですか？',
+        choices: [
+          { label: '新しいデータを作成する' },
+          { label: 'データを丸ごと上書き更新する' },
+          { label: 'データを取得する' },
+          { label: 'データを部分的に削除する' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'PUTはリソース全体を上書き更新するメソッドです。送ったデータでそのリソースが丸ごと置き換わります。部分的な更新はPATCHが担います。',
+      },
+      {
+        id: 'http-methods-q08',
+        text: 'fetch() でGETリクエストを送るとき、method の指定はどうなりますか？',
+        choices: [
+          { label: 'method: "GET" と明示的に書く必要がある' },
+          { label: 'fetch() はデフォルトでGETを使うため、省略できる' },
+          { label: 'method: "READ" と書く' },
+          { label: 'GETはfetch()では使えない' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'fetch() のデフォルトメソッドはGETです。GETリクエストを送る場合はURLだけを渡せばよく、method の指定は省略できます。',
+      },
+      {
+        id: 'http-methods-q09',
+        text: 'fetch() でPOSTリクエストを送るとき、必要な設定はどれですか？',
+        choices: [
+          { label: 'URLのみ指定すればよい' },
+          { label: 'method: "POST" とbody（送信データ）を指定する' },
+          { label: 'ヘッダーは指定できない' },
+          { label: 'POSTリクエストにbodyは含められない' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'POSTリクエストでは method: "POST" を指定し、body に送信するデータを設定します。JSON形式のデータを送るときは Content-Type ヘッダーも指定します。',
+      },
+      {
+        id: 'http-methods-q10',
+        text: 'DELETEメソッドを複数回送った場合、どうなりますか？',
+        choices: [
+          { label: '毎回新しいデータが削除される' },
+          { label: '1回目に削除されてその後は変化なし（冪等）' },
+          { label: '削除したデータが復元される' },
+          { label: 'エラーが発生してどれも削除されない' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'DELETEは冪等なメソッドです。1回目で対象が削除され、2回目以降は「すでに存在しない（または変化なし）」という同じ結果になります。',
+      },
+      {
+        id: 'http-methods-q11',
+        text: 'HTMLのフォーム（<form>）がデフォルトで使えるHTTPメソッドはどれですか？',
+        choices: [
+          { label: 'GET と POST のみ' },
+          { label: 'GET・POST・PUT・DELETE すべて' },
+          { label: 'POST と DELETE のみ' },
+          { label: 'PUT のみ' },
+        ],
+        correctIndex: 0,
+        explanation:
+          'HTMLの <form> 要素がネイティブに送信できるメソッドは GET と POST のみです。PUT や DELETE を使うにはJavaScriptのfetch()などを使う必要があります。',
+      },
+      {
+        id: 'http-methods-q12',
+        text: 'プロフィール情報（名前・メールアドレス・自己紹介など全項目）を書き換えるとき、最も適切なメソッドはどれですか？',
+        choices: [
+          { label: 'GET' },
+          { label: 'POST' },
+          { label: 'PUT' },
+          { label: 'DELETE' },
+        ],
+        correctIndex: 2,
+        explanation:
+          'リソース全体を丸ごと更新するにはPUTが適切です。POSTは新規作成に使います。なお、一部の項目だけ変更したい場合はPATCHを使います。',
+      },
+    ],
+  },
+
+  // ── 9. fetch ─────────────────────────────────────
+  {
+    id: 'fetch',
+    title: 'fetchって何？',
+    summary: 'ブラウザからサーバーへの通信手段',
+    icon: 'Download',
+    article: `## ひとことで言うと
+
+fetchは、**ブラウザからサーバーにデータを取りに行くための組み込み関数**です。URLを指定するだけで、インターネット越しにデータを取得できます。
+
+## もう少し詳しく
+
+Webアプリでは「商品一覧を取得する」「ユーザー情報を読み込む」など、サーバーからデータを取ってくる場面が頻繁にあります。昔はXMLHttpRequest（XHR）という複雑な書き方が必要でしたが、fetchの登場でずっとシンプルになりました。
+
+郵便にたとえると、fetchは「手紙を送ってデータを請求し、返事を受け取る」プロセスです。サーバーへリクエストを送ると、しばらくして**レスポンス（返事）**が届きます。
+
+ここで大切なポイントが「非同期」です。fetchはすぐに結果を返さず、**Promiseというオブジェクトを返します**。データが届くまでほかの処理を続けられる仕組みです。実際のコードでは \`async/await\` を使うと、非同期の処理を順番どおり読めるすっきりした書き方になります。
+
+また、fetchは**ネットワークエラー以外ではエラーにならない**点も注意が必要です。サーバーが「404（ページなし）」や「500（サーバーエラー）」を返してもPromiseは成功扱いになります。そのため \`response.ok\` を確認するエラー処理が必要です。
+
+## コードで見てみよう
+
+\`\`\`js
+async function getUser() {
+  try {
+    const response = await fetch("https://api.example.com/user/1");
+
+    if (!response.ok) {
+      throw new Error(\`エラー: \${response.status}\`);
+    }
+
+    const user = await response.json();
+    console.log(user.name); // "太郎"
+  } catch (error) {
+    console.error("取得失敗:", error);
+  }
+}
+\`\`\`
+
+\`await fetch(url)\` でサーバーにリクエストを送り、\`response.ok\` で成功かどうかを確認します。成功なら \`response.json()\` でJSON本体をJavaScriptオブジェクトに変換します。\`try/catch\` でネットワークエラーも捕捉できます。
+
+## まとめ
+
+- fetchは **URLにリクエストを送りデータを取得する** ブラウザ組み込み関数
+- \`response.ok\` を確認しないと **4xx/5xxエラーを見逃す** ので注意
+- \`async/await\` + \`try/catch\` を組み合わせると **読みやすいエラーハンドリング** ができる`,
+    questions: [
+      {
+        id: 'fetch-q01',
+        text: 'fetch() は何をする関数ですか？',
+        choices: [
+          { label: 'ローカルファイルを読み込む' },
+          { label: 'URLにリクエストを送ってサーバーからデータを取得する' },
+          { label: 'DOMに要素を追加する' },
+          { label: 'JavaScriptファイルを圧縮する' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'fetch() はブラウザに組み込まれた関数で、指定したURLにHTTPリクエストを送り、サーバーからデータを取得します。',
+      },
+      {
+        id: 'fetch-q02',
+        text: 'fetch() が返すものは何ですか？',
+        choices: [
+          { label: 'JSONオブジェクト' },
+          { label: 'HTML文字列' },
+          { label: 'Promise（レスポンスに解決される）' },
+          { label: 'undefined' },
+        ],
+        correctIndex: 2,
+        explanation:
+          'fetch() はすぐにデータを返すのではなく、Promise を返します。Promise はデータが届いたときに解決（resolve）されます。',
+      },
+      {
+        id: 'fetch-q03',
+        text: 'response.json() は何をしていますか？',
+        choices: [
+          { label: 'レスポンスをJSONファイルに保存する' },
+          { label: 'レスポンスのボディをJavaScriptオブジェクトに変換する' },
+          { label: 'JSONを文字列に変換する' },
+          { label: 'サーバーにJSONを送信する' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'response.json() はサーバーから返ってきたJSONテキストをJavaScriptのオブジェクトや配列に変換（パース）するメソッドです。これも Promise を返します。',
+      },
+      {
+        id: 'fetch-q04',
+        text: 'response.ok が false になるのはどのような場合ですか？',
+        choices: [
+          { label: 'インターネットに接続できないとき' },
+          { label: 'サーバーが 400〜599 番台のステータスコードを返したとき' },
+          { label: 'response.json() を呼ばなかったとき' },
+          { label: 'fetchに引数を渡さなかったとき' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'response.ok は HTTPステータスコードが 200〜299 のときだけ true になります。404（未検出）や500（サーバーエラー）のときは false になります。',
+      },
+      {
+        id: 'fetch-q05',
+        text: 'サーバーが404を返した場合、fetch() はどうなりますか？',
+        choices: [
+          { label: 'Promiseがrejectされ、エラーがthrowされる' },
+          { label: 'Promiseは成功（resolve）するが、response.ok が false になる' },
+          { label: '自動的にリトライする' },
+          { label: '何も返ってこない' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'fetch() はネットワーク障害でない限りPromiseをrejectしません。404や500でも成功扱いになるため、response.ok を自分で確認する必要があります。',
+      },
+      {
+        id: 'fetch-q06',
+        text: '次のコードで await が2回使われている理由は何ですか？\n\nconst response = await fetch(url);\nconst data = await response.json();',
+        choices: [
+          { label: 'コードを長くするため' },
+          { label: 'fetch() と response.json() はそれぞれ非同期で動作し、どちらも Promise を返すから' },
+          { label: 'response.json() はfetch()より先に実行する必要があるから' },
+          { label: 'await は1行に1回しか書けないから' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'fetch() とresponse.json() はどちらも Promise を返す非同期操作です。それぞれに await を付けて、完了を待ってから次の行に進みます。',
+      },
+      {
+        id: 'fetch-q07',
+        text: 'try/catch を使うのはなぜですか？',
+        choices: [
+          { label: 'コードを短くするため' },
+          { label: 'ネットワークエラーや throw したエラーをまとめて捕捉するため' },
+          { label: 'fetchを高速化するため' },
+          { label: 'JSONの変換を簡単にするため' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'try/catch を使うと、ネットワーク障害など fetch() が reject するエラーや、response.ok が false のときに throw したエラーを1か所でまとめて処理できます。',
+      },
+      {
+        id: 'fetch-q08',
+        text: 'fetchを使う前に必要なインストール・設定はありますか？',
+        choices: [
+          { label: 'npm でインストールする必要がある' },
+          { label: '<script> タグで外部ライブラリを読み込む必要がある' },
+          { label: 'ブラウザに組み込まれているので、特別な準備は不要' },
+          { label: 'Node.jsのインストールが必要' },
+        ],
+        correctIndex: 2,
+        explanation:
+          'fetch() はすべての主要モダンブラウザに組み込まれているため、追加のインストールなしにそのまま使えます。',
+      },
+      {
+        id: 'fetch-q09',
+        text: 'async 関数の中でしか await は使えません。これが意味することはどれですか？',
+        choices: [
+          { label: 'fetch は async 関数以外では使えない' },
+          { label: 'await fetch() を書く関数には async キーワードが必要' },
+          { label: 'async を書くとfetchが自動的に呼ばれる' },
+          { label: 'async 関数の中では fetch 以外使えない' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'await キーワードは async と宣言された関数の中でのみ使えます。fetch() を await で待つには、その外側の関数を async function として定義する必要があります。',
+      },
+      {
+        id: 'fetch-q10',
+        text: 'fetchが登場する以前に使われていたネットワーク通信の仕組みはどれですか？',
+        choices: [
+          { label: 'JSON.parse()' },
+          { label: 'XMLHttpRequest（XHR）' },
+          { label: 'document.querySelector()' },
+          { label: 'localStorage' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'fetch() が登場する前は XMLHttpRequest（XHR）がブラウザ通信の主な手段でしたが、書き方が複雑でした。fetch() によりシンプルに書けるようになりました。',
+      },
+      {
+        id: 'fetch-q11',
+        text: 'fetch() でデータを取得するとき、サーバーから返ってくるデータの一般的な形式はどれですか？',
+        choices: [
+          { label: 'XML' },
+          { label: 'CSV' },
+          { label: 'JSON' },
+          { label: 'HTML' },
+        ],
+        correctIndex: 2,
+        explanation:
+          '現代のWeb APIではJSON（JavaScript Object Notation）形式でデータを返すのが一般的です。fetch() で取得後、response.json() でJavaScriptオブジェクトに変換できます。',
+      },
+      {
+        id: 'fetch-q12',
+        text: '次のコードの問題点はどれですか？\n\nconst response = await fetch(url);\nconst data = await response.json();\nconsole.log(data);',
+        choices: [
+          { label: 'await を2回使っているのでエラーになる' },
+          { label: 'response.ok のチェックがなく、エラーレスポンスを検知できない' },
+          { label: 'response.json() の前に await は不要' },
+          { label: 'fetch にはオブジェクト型のURLが必要' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'このコードはネットワークエラーは検知できますが、サーバーが404や500を返した場合に気づけません。response.ok を確認して、false なら throw する処理が必要です。',
+      },
+    ],
+  },
+
+  // ── 10. 非同期処理 ─────────────────────────────────────
+  {
+    id: 'async',
+    title: '非同期処理って何？',
+    summary: 'Promise、async/await、なぜ必要か',
+    icon: 'Clock',
+    article: `## ひとことで言うと
+
+非同期処理とは、**時間のかかる作業を「待たずに」次の処理へ進める仕組み**です。Webアプリでサーバーからデータを取得したり、ファイルを読み込んだりする場面で欠かせません。
+
+## もう少し詳しく
+
+まず「同期処理」を理解しましょう。同期処理は料理のレシピのように**1行ずつ順番に実行**します。前の行が終わるまで次には進みません。
+
+非同期処理は「洗濯機を回しながら料理をする」イメージです。洗濯が終わるのを待ちながら何もしないのではなく、洗濯機が動いている間に料理を進めます。Webアプリで「サーバーからデータを取得する」という処理には時間がかかります。もし同期的に処理すると、データが届くまでブラウザ全体が固まってしまいます（UIフリーズ）。非同期処理にすることで、データを待ちながら画面を操作できる状態を保てます。
+
+JavaScriptでは非同期処理を扱う仕組みとして **Promise** があります。Promiseは「いつか結果が届く約束」を表すオブジェクトで、3つの状態を持ちます。
+
+- **pending**（保留中）— まだ結果が出ていない状態
+- **fulfilled**（成功）— 処理が完了し値が届いた状態
+- **rejected**（失敗）— エラーが発生した状態
+
+Promiseをより読みやすく書けるようにしたのが **async/await** です。\`async\` をつけた関数の中で \`await\` を使うと、Promiseが解決するまで処理を一時停止しながら、見た目は同期処理のように読めるコードが書けます。
+
+## コードで見てみよう
+
+\`\`\`js
+// ユーザー情報をAPIから取得する例
+async function fetchUser(userId) {
+  try {
+    const response = await fetch("https://api.example.com/users/" + userId);
+    const user = await response.json();
+    console.log(user.name); // "太郎"
+  } catch (error) {
+    console.error("取得失敗:", error);
+  }
+}
+
+fetchUser(1);
+\`\`\`
+
+\`await\` を使うと「fetchが完了するまで待って、それから次へ」という流れを自然に書けます。エラーは \`try...catch\` で受け取れます。
+
+## まとめ
+
+- 非同期処理は **時間のかかる処理を待たずに次へ進む仕組み**（UIフリーズ防止に必須）
+- **Promise** は「いつか結果が届く約束」で、pending / fulfilled / rejected の3状態を持つ
+- **async/await** はPromiseをより読みやすく書ける構文で、\`try...catch\` でエラーも扱える`,
+    questions: [
+      {
+        id: 'async-q01',
+        text: '非同期処理が必要な主な理由はどれですか？',
+        choices: [
+          { label: 'コードを短く書けるから' },
+          { label: '時間のかかる処理中にUIが固まるのを防ぐため' },
+          { label: 'ブラウザのメモリ使用量を減らすため' },
+          { label: 'HTMLの読み込みを速くするため' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'サーバーからのデータ取得など時間のかかる処理を同期的に行うと、完了するまでブラウザ全体が固まります（UIフリーズ）。非同期処理にすることで、処理を待ちながらも画面を操作できる状態を保てます。',
+      },
+      {
+        id: 'async-q02',
+        text: '同期処理の特徴として正しいのはどれですか？',
+        choices: [
+          { label: '複数の処理を同時に実行する' },
+          { label: '1行ずつ順番に実行し、前の処理が終わるまで次へ進まない' },
+          { label: '処理の順番がランダムに決まる' },
+          { label: '時間のかかる処理をスキップする' },
+        ],
+        correctIndex: 1,
+        explanation:
+          '同期処理は料理のレシピのように1行ずつ順番に実行されます。前の処理が完全に終わるまで次の処理には進みません。',
+      },
+      {
+        id: 'async-q03',
+        text: 'Promiseの状態として存在しないものはどれですか？',
+        choices: [
+          { label: 'pending（保留中）' },
+          { label: 'fulfilled（成功）' },
+          { label: 'rejected（失敗）' },
+          { label: 'suspended（一時停止）' },
+        ],
+        correctIndex: 3,
+        explanation:
+          'Promiseの状態はpending（保留中）・fulfilled（成功）・rejected（失敗）の3つです。「suspended」という状態はPromiseには存在しません。',
+      },
+      {
+        id: 'async-q04',
+        text: 'async関数を呼び出すと、戻り値はどうなりますか？',
+        choices: [
+          { label: '通常の値がそのまま返る' },
+          { label: '必ずPromiseが返る' },
+          { label: 'undefinedが返る' },
+          { label: '配列が返る' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'async関数は常にPromiseを返します。returnした値はPromiseのfulfilled値としてラップされます。',
+      },
+      {
+        id: 'async-q05',
+        text: 'awaitキーワードの役割はどれですか？',
+        choices: [
+          { label: 'Promiseをキャンセルする' },
+          { label: 'Promiseが解決するまで処理を一時停止して結果を取り出す' },
+          { label: 'エラーを無視する' },
+          { label: '複数の処理を並列実行する' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'awaitはPromiseが解決（fulfilled/rejected）するまで関数の実行を一時停止し、解決した値を取り出します。ただしブラウザ全体を止めるわけではなく、その関数内の実行だけを停止します。',
+      },
+      {
+        id: 'async-q06',
+        text: 'awaitはどこで使えますか？',
+        choices: [
+          { label: 'どこでも使える' },
+          { label: 'async関数の中でのみ使える' },
+          { label: 'try...catchの中でのみ使える' },
+          { label: 'グローバルスコープでのみ使える' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'awaitはasync関数（またはモジュールのトップレベル）の中でのみ使えます。通常の関数内で使うとシンタックスエラーになります。',
+      },
+      {
+        id: 'async-q07',
+        text: 'async/awaitとPromiseの関係として正しいのはどれですか？',
+        choices: [
+          { label: 'async/awaitはPromiseとは無関係な別の仕組み' },
+          { label: 'async/awaitはPromiseをより読みやすく書くための構文' },
+          { label: 'async/awaitはPromiseより古い技術' },
+          { label: 'async/awaitを使うとPromiseを使わなくなる' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'async/awaitはPromiseの上に作られた構文です。内部ではPromiseが動いており、より読みやすい形でPromiseの処理を書けます。',
+      },
+      {
+        id: 'async-q08',
+        text: 'async/awaitでエラーをハンドリングするには何を使いますか？',
+        choices: [
+          { label: '.catch()メソッドのみ' },
+          { label: 'throw文のみ' },
+          { label: 'try...catchブロック' },
+          { label: 'if文によるエラーチェック' },
+        ],
+        correctIndex: 2,
+        explanation:
+          'async/awaitでのエラーハンドリングにはtry...catchを使います。awaitしているPromiseがrejectedになるとcatchブロックが実行されます。',
+      },
+      {
+        id: 'async-q09',
+        text: '非同期処理を「洗濯機と料理」にたとえた場合、「洗濯が終わるまで何もしない」のはどちらですか？',
+        choices: [
+          { label: '非同期処理' },
+          { label: '同期処理' },
+          { label: 'どちらでもない' },
+          { label: 'どちらも同じ' },
+        ],
+        correctIndex: 1,
+        explanation:
+          '同期処理は前の処理が終わるまで次へ進まないため、「洗濯が終わるまで何もしない」に相当します。非同期処理は「洗濯中に料理もする」イメージです。',
+      },
+      {
+        id: 'async-q10',
+        text: 'fetchでデータを取得した後、JSONデータをJavaScriptオブジェクトに変換するメソッドはどれですか？',
+        choices: [
+          { label: 'response.text()' },
+          { label: 'response.json()' },
+          { label: 'JSON.parse(response)' },
+          { label: 'response.data()' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'fetchのレスポンスからJSONデータを取り出すにはresponse.json()を使います。このメソッドもPromiseを返すため、awaitで結果を受け取ります。',
+      },
+      {
+        id: 'async-q11',
+        text: 'Promiseがpending（保留中）の状態とはどういう意味ですか？',
+        choices: [
+          { label: 'Promiseが失敗した状態' },
+          { label: 'Promiseがキャンセルされた状態' },
+          { label: 'まだ処理が完了しておらず、成功も失敗もしていない初期状態' },
+          { label: 'Promiseが不要になった状態' },
+        ],
+        correctIndex: 2,
+        explanation:
+          'pendingはPromiseの初期状態で、処理がまだ完了していないことを示します。処理が完了するとfulfilled（成功）またはrejected（失敗）に移行します。',
+      },
+      {
+        id: 'async-q12',
+        text: '次のコードはどのように動作しますか？\n\nasync function getData() {\n  const res = await fetch("/api/data");\n  return res.json();\n}',
+        choices: [
+          { label: 'fetchを同期的に実行してすぐ結果を返す' },
+          { label: 'fetchのPromiseが解決するまで待ち、完了後にres.json()のPromiseを返す' },
+          { label: 'fetchが失敗したときにエラーを返す' },
+          { label: 'fetchを繰り返し実行する' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'awaitによりfetch()のPromiseが解決するまで待ちます。解決後、res.json()（こちらもPromiseを返す）をasync関数のreturnとして返しています。getData()の呼び出し元はawaitまたは.then()で最終的なデータを受け取れます。',
+      },
+    ],
+  },
+
+  // ── 11. npm / パッケージ管理 ─────────────────────────────
+  {
+    id: 'npm',
+    title: 'npm / パッケージ管理って何？',
+    summary: 'ライブラリの共有・管理の仕組み',
+    icon: 'Package',
+    article: `## ひとことで言うと
+
+npmは、**JavaScriptのライブラリ（パッケージ）を簡単に取得・管理できる仕組み**です。世界中の開発者が公開したコードを、コマンド1つで自分のプロジェクトに組み込めます。
+
+## もう少し詳しく
+
+プログラムを作るとき、「日付の計算」「データの検証」「UIコンポーネント」など、よく使う機能を毎回自分で作るのは大変です。npmは、そうした機能を「パッケージ」として共有・再利用できるようにする仕組みです。
+
+たとえるなら、npmはプログラミング用の**アプリストア**です。使いたいライブラリの名前を指定してインストールするだけで、すぐに使えるようになります。
+
+npmの中心には3つの概念があります。
+
+- **npmレジストリ** — パッケージが公開されているデータベース。100万以上のパッケージが登録されています
+- **package.json** — プロジェクトの「設定ファイル」。プロジェクト名・バージョン・依存するパッケージの一覧が記録されます
+- **node_modules** — インストールしたパッケージが実際に格納されるフォルダ。通常Gitには含めません
+
+\`npm install\` を実行すると、package.json の内容をもとにすべての依存パッケージが自動的にダウンロードされます。誰かと共有するときはpackage.jsonだけ渡せばOKです。
+
+## コードで見てみよう
+
+\`\`\`bash
+# プロジェクトを初期化する
+npm init --yes
+
+# パッケージをインストールする
+npm install react
+
+# 開発時のみ使うパッケージをインストールする
+npm install --save-dev vitest
+
+# package.jsonに記録されたパッケージをまとめてインストールする
+npm install
+\`\`\`
+
+\`npm init --yes\` で package.json が作成され、\`npm install パッケージ名\` でライブラリを追加できます。\`--save-dev\` を付けると「開発時のみ必要なパッケージ」として分類されます。
+
+## まとめ
+
+- npmは **JavaScriptパッケージを取得・管理する仕組み**（Node.jsに同梱）
+- **package.json** がプロジェクトの設定とパッケージ一覧を管理する
+- \`npm install\` 1つで **全員が同じ環境を再現** できる`,
+    questions: [
+    {
+        id: 'npm-q01',
+        text: 'npmの主な役割はどれですか？',
+        choices: [
+          { label: 'JavaScriptのバグを自動修正する' },
+          { label: 'JavaScriptのパッケージを取得・管理する' },
+          { label: 'Webページのデザインを整える' },
+          { label: 'サーバーのセキュリティを守る' },
+      ],
+        correctIndex: 1,
+        explanation:
+          'npm（Node Package Manager）はJavaScriptのライブラリ（パッケージ）をインストール・管理するためのツールです。',
+    },
+    {
+        id: 'npm-q02',
+        text: 'package.jsonの役割として正しいのはどれですか？',
+        choices: [
+          { label: 'インストールされたパッケージの実体を格納するフォルダ' },
+          { label: 'プロジェクトの設定と依存パッケージの一覧を記録するファイル' },
+          { label: 'JavaScriptのコードを圧縮するファイル' },
+          { label: 'ブラウザのキャッシュを管理するファイル' },
+      ],
+        correctIndex: 1,
+        explanation:
+          'package.jsonはプロジェクト名・バージョン・依存するパッケージの一覧などを記録する設定ファイルです。',
+    },
+    {
+        id: 'npm-q03',
+        text: 'node_modulesフォルダには何が入っていますか？',
+        choices: [
+          { label: 'プロジェクト独自のソースコード' },
+          { label: 'ブラウザのキャッシュデータ' },
+          { label: 'npmでインストールしたパッケージの実体' },
+          { label: 'package.jsonのバックアップ' },
+      ],
+        correctIndex: 2,
+        explanation:
+          'node_modulesフォルダには npm install で取得したパッケージのコードが格納されます。サイズが大きくなるため、通常Gitには含めません。',
+    },
+    {
+        id: 'npm-q04',
+        text: 'npm init --yes を実行すると何が起きますか？',
+        choices: [
+          { label: 'node_modulesフォルダが作成される' },
+          { label: 'すべてのパッケージが最新版に更新される' },
+          { label: 'デフォルト設定でpackage.jsonが作成される' },
+          { label: 'プロジェクトがnpmに公開される' },
+      ],
+        correctIndex: 2,
+        explanation:
+          'npm init --yes は質問をスキップしてデフォルト値でpackage.jsonを自動生成するコマンドです。',
+    },
+    {
+        id: 'npm-q05',
+        text: '別の開発者からpackage.jsonだけを受け取った場合、同じ環境を再現するにはどうしますか？',
+        choices: [
+          { label: 'パッケージを1つずつ手動でインストールする' },
+          { label: 'npm install を実行する' },
+          { label: 'package.jsonを書き直す' },
+          { label: 'node_modulesフォルダをコピーしてもらう' },
+      ],
+        correctIndex: 1,
+        explanation:
+          'npm install を実行すると、package.jsonに記録された依存パッケージがすべて自動的にダウンロードされます。',
+    },
+    {
+        id: 'npm-q06',
+        text: 'dependencies と devDependencies の違いとして正しいのはどれですか？',
+        choices: [
+          { label: 'dependenciesはバージョン管理用、devDependenciesはデプロイ用' },
+          { label: 'dependenciesは本番でも必要、devDependenciesは開発時のみ必要' },
+          { label: 'どちらも同じ意味で書き方が異なるだけ' },
+          { label: 'devDependenciesの方が優先度が高い' },
+      ],
+        correctIndex: 1,
+        explanation:
+          'dependenciesは本番環境でも使うパッケージ（Reactなど）、devDependenciesは開発・テスト時のみ使うパッケージ（VitestやESLintなど）です。',
+    },
+    {
+        id: 'npm-q07',
+        text: 'npm install --save-dev vitest を実行すると、vitestはpackage.jsonのどこに記録されますか？',
+        choices: [
+          { label: 'dependencies' },
+          { label: 'devDependencies' },
+          { label: 'peerDependencies' },
+          { label: 'scripts' },
+      ],
+        correctIndex: 1,
+        explanation:
+          '--save-dev オプションを付けてインストールすると、devDependencies に記録されます。テストや開発ツールはこちらに分類します。',
+    },
+    {
+        id: 'npm-q08',
+        text: 'npmのたとえとして最も近いのはどれですか？',
+        choices: [
+          { label: 'コードを書くテキストエディタ' },
+          { label: 'プログラミング用のアプリストア' },
+          { label: 'Webページを表示するブラウザ' },
+          { label: 'コードを実行するサーバー' },
+      ],
+        correctIndex: 1,
+        explanation:
+          'npmはアプリストアのように、使いたいパッケージを名前で検索してインストールできます。レジストリには100万以上のパッケージが公開されています。',
+    },
+    {
+        id: 'npm-q09',
+        text: 'node_modulesフォルダを通常Gitに含めない理由はどれですか？',
+        choices: [
+          { label: 'Gitがnode_modulesを認識できないから' },
+          { label: 'フォルダが大きく、package.jsonから再現できるから' },
+          { label: 'セキュリティ上の問題があるから' },
+          { label: 'node_modulesはローカルでしか動かないから' },
+      ],
+        correctIndex: 1,
+        explanation:
+          'node_modulesは非常に大きくなることがあります。package.jsonがあれば npm install で再現できるため、Gitには含めないのが一般的です。',
+    },
+    {
+        id: 'npm-q10',
+        text: 'npmレジストリとは何ですか？',
+        choices: [
+          { label: 'ローカルPCに保存されるパッケージのキャッシュ' },
+          { label: 'パッケージが公開・配布されているデータベース' },
+          { label: 'package.jsonの別名' },
+          { label: 'Node.jsのバージョン管理ツール' },
+      ],
+        correctIndex: 1,
+        explanation:
+          'npmレジストリはパッケージが公開されているデータベースです。npm install を実行するとここからパッケージがダウンロードされます。',
+    },
+    {
+        id: 'npm-q11',
+        text: 'package.jsonの "scripts" フィールドは何のために使いますか？',
+        choices: [
+          { label: 'インストールするパッケージの一覧を書く' },
+          { label: 'よく使うコマンドに短い名前をつけて実行できるようにする' },
+          { label: 'プロジェクトのバージョンを管理する' },
+          { label: 'CSSのスタイルを定義する' },
+      ],
+        correctIndex: 1,
+        explanation:
+          'scriptsフィールドに "start": "node index.js" のように書くと、npm start で実行できるようになります。',
+    },
+    {
+        id: 'npm-q12',
+        text: 'npmはどのツールと一緒にインストールされますか？',
+        choices: [
+          { label: 'React' },
+          { label: 'Vite' },
+          { label: 'Node.js' },
+          { label: 'TypeScript' },
+      ],
+        correctIndex: 2,
+        explanation:
+          'npmはNode.jsに同梱されています。Node.jsをインストールすると自動的にnpmも使えるようになります。',
+    },
+  ],
+},
+
+  // ── 12. TypeScript ────────────────────────────────
+  {
+    id: 'typescript',
+    title: 'TypeScriptって何？',
+    summary: 'JavaScriptに型を加えた言語',
+    icon: 'Shield',
+    article: `## ひとことで言うと
+
+TypeScriptは、**JavaScriptに「型」という概念を加えた言語**です。コードを実行する前にミスを発見できるようになり、大きなアプリを安全に開発できます。
+
+## もう少し詳しく
+
+JavaScriptは非常に柔軟な言語ですが、その柔軟さゆえに「数値を渡すつもりの変数に文字列が入っていた」「存在しないプロパティにアクセスしていた」といったミスに、実際にプログラムを動かすまで気づけないことがあります。
+
+TypeScriptはJavaScriptの完全上位互換（スーパーセット）です。つまり、**JavaScriptのコードはそのままTypeScriptとして動きます**。TypeScriptを使うことで、変数や関数に「型注釈」を付けられます。
+
+型注釈とは「この変数には文字列しか入れられない」「この関数は数値を受け取って文字列を返す」といった約束事をコードに書き込むことです。カーナビにたとえるなら、目的地（どんな値を使うか）を事前に設定しておけば、道を外れたとき（型が合わないとき）にすぐ警告が出る仕組みです。
+
+TypeScriptのコードはブラウザで直接動きません。**コンパイル（トランスパイル）** という変換作業でJavaScriptに変換してから実行します。この変換の際に型チェックも行われるため、ミスを実行前に発見できます。
+
+## コードで見てみよう
+
+\`\`\`ts
+// 型注釈なし（JavaScript）
+function greet(name) {
+  return "こんにちは、" + name + "さん！";
+}
+
+// 型注釈あり（TypeScript）
+function greet(name: string): string {
+  return "こんにちは、" + name + "さん！";
+}
+
+greet("太郎");   // OK
+greet(42);       // エラー: 数値は string ではない
+\`\`\`
+
+\`name: string\` が引数の型注釈、\`: string\` が戻り値の型注釈です。\`greet(42)\` のように数値を渡そうとすると、実行前にエラーが報告されます。
+
+## まとめ
+
+- TypeScriptは **JavaScriptに型注釈を加えた言語**（JSの完全上位互換）
+- **型注釈**を書くことで、実行前にミスを発見できる
+- TypeScriptのコードは **コンパイルでJavaScriptに変換**してから動く`,
+    questions: [
+      {
+        id: 'typescript-q01',
+        text: 'TypeScriptとJavaScriptの関係として正しいのはどれですか？',
+        choices: [
+          { label: 'TypeScriptはJavaScriptとは全く別の言語' },
+          { label: 'TypeScriptはJavaScriptの完全上位互換（スーパーセット）' },
+          { label: 'JavaScriptはTypeScriptの上位互換' },
+          { label: 'TypeScriptはJavaScriptを置き換える予定の言語' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'TypeScriptはJavaScriptのスーパーセット（上位互換）です。JavaScriptのコードはそのままTypeScriptとして動きます。TypeScriptはJavaScriptに型システムなどの機能を加えたものです。',
+      },
+      {
+        id: 'typescript-q02',
+        text: 'TypeScriptが解決しようとする問題はどれですか？',
+        choices: [
+          { label: 'JavaScriptの実行速度が遅い問題' },
+          { label: 'JavaScriptをブラウザで動かせない問題' },
+          { label: '実行するまでミス（型のズレなど）に気づけない問題' },
+          { label: 'JavaScriptのコード量が多くなりすぎる問題' },
+        ],
+        correctIndex: 2,
+        explanation:
+          'TypeScriptの主な目的は、コードを実行する前に型の不一致などのミスを発見できるようにすることです。JavaScriptでは実行時まで気づけないバグを、TypeScriptでは開発中に検出できます。',
+      },
+      {
+        id: 'typescript-q03',
+        text: '「型注釈」とは何ですか？',
+        choices: [
+          { label: 'コードにコメントを追加すること' },
+          { label: '変数や関数に「どんな型の値を扱うか」を明記すること' },
+          { label: 'エラーメッセージを日本語化すること' },
+          { label: 'コードを自動的に整形すること' },
+        ],
+        correctIndex: 1,
+        explanation:
+          '型注釈とは、変数や関数に「この変数には文字列しか入れられない」「この関数は数値を返す」といった型情報をコードに書き込むことです。TypeScriptの型チェックはこの情報をもとに行われます。',
+      },
+      {
+        id: 'typescript-q04',
+        text: '次のコードで name: string の意味はどれですか？\n\nfunction greet(name: string): string { ... }',
+        choices: [
+          { label: 'name という名前の文字列定数を作る' },
+          { label: '引数 name は文字列型でなければならないという注釈' },
+          { label: 'name を string というオブジェクトに変換する' },
+          { label: 'name の文字数を確認する' },
+        ],
+        correctIndex: 1,
+        explanation:
+          '関数の引数に付ける name: string は「この引数には string（文字列）型の値を渡す必要がある」という型注釈です。文字列以外を渡すとコンパイル時にエラーになります。',
+      },
+      {
+        id: 'typescript-q05',
+        text: 'TypeScriptの基本的な型として存在しないのはどれですか？',
+        choices: [
+          { label: 'string' },
+          { label: 'number' },
+          { label: 'boolean' },
+          { label: 'integer' },
+        ],
+        correctIndex: 3,
+        explanation:
+          'TypeScript（およびJavaScript）の基本型は string・number・boolean などです。integer（整数型）は存在せず、整数も小数も同じ number 型で扱います。',
+      },
+      {
+        id: 'typescript-q06',
+        text: '次のコードはTypeScriptでエラーになりますか？\n\nconst age: number = "25";',
+        choices: [
+          { label: 'エラーにならない。自動変換される' },
+          { label: 'エラーになる。number 型に string は代入できない' },
+          { label: 'エラーにならない。number と string は互換性がある' },
+          { label: '実行してみないとわからない' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'age を number 型と宣言しているのに string の "25" を代入しようとしているため、TypeScriptのコンパイル時にエラーになります。これがTypeScriptの型チェックの基本的な働きです。',
+      },
+      {
+        id: 'typescript-q07',
+        text: 'TypeScriptのコードをブラウザで動かすには何が必要ですか？',
+        choices: [
+          { label: '最新のブラウザがあれば直接動く' },
+          { label: 'コンパイル（トランスパイル）でJavaScriptに変換する必要がある' },
+          { label: 'サーバーサイドでのみ動かせる' },
+          { label: '特別なブラウザ拡張機能が必要' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'ブラウザはTypeScriptを直接理解できません。TypeScriptのコードはコンパイル（トランスパイル）によってJavaScriptに変換されてから、ブラウザで実行されます。',
+      },
+      {
+        id: 'typescript-q08',
+        text: 'TypeScriptでの型チェックはいつ行われますか？',
+        choices: [
+          { label: 'ブラウザでページを開いたとき' },
+          { label: 'コンパイル（変換）のとき' },
+          { label: 'ユーザーがボタンを押したとき' },
+          { label: 'サーバーにデプロイしたとき' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'TypeScriptの型チェックはコンパイル時（JavaScriptへの変換時）に行われます。実行前にミスを発見できるのはこのためです。',
+      },
+      {
+        id: 'typescript-q09',
+        text: '関数の戻り値の型注釈はどこに書きますか？',
+        choices: [
+          { label: '関数名の前' },
+          { label: '引数リストの前' },
+          { label: '引数リストの閉じ括弧 ) のあと' },
+          { label: '関数の中のreturn文の前' },
+        ],
+        correctIndex: 2,
+        explanation:
+          '関数の戻り値の型注釈は引数リストの閉じ括弧 ) のあとに書きます。例: function greet(name: string): string { ... } の ): string の部分が戻り値の型注釈です。',
+      },
+      {
+        id: 'typescript-q10',
+        text: 'TypeScriptを使うメリットとして最も適切なのはどれですか？',
+        choices: [
+          { label: 'コードの実行速度が大幅に向上する' },
+          { label: 'コードを書く量が大幅に減る' },
+          { label: '開発中に型の間違いを発見でき、バグを未然に防げる' },
+          { label: 'ブラウザの互換性問題がなくなる' },
+        ],
+        correctIndex: 2,
+        explanation:
+          'TypeScriptの最大のメリットは、型チェックによってコードを実行する前にバグを発見できることです。特にアプリが大きくなるほど、このメリットが大きくなります。',
+      },
+      {
+        id: 'typescript-q11',
+        text: 'カーナビのたとえでTypeScriptの型チェックに当たるのはどれですか？',
+        choices: [
+          { label: '目的地に到着したときの音声案内' },
+          { label: '道を外れたときに出る警告' },
+          { label: '燃料残量のゲージ' },
+          { label: 'ルートを検索する機能' },
+        ],
+        correctIndex: 1,
+        explanation:
+          'TypeScriptの型チェックは、道（型）を外れたときに警告を出すカーナビの機能に似ています。目的地（どんな値を使うか）を事前に宣言しておくことで、ズレを早期に検知できます。',
+      },
+      {
+        id: 'typescript-q12',
+        text: '既存のJavaScriptファイルをTypeScriptプロジェクトに持ち込んだ場合、どうなりますか？',
+        choices: [
+          { label: '全てのコードを書き直す必要がある' },
+          { label: '全てに型注釈を付けないと動かない' },
+          { label: 'TypeScriptはJavaScriptの上位互換なので基本的にそのまま動く' },
+          { label: '自動的にTypeScriptのコードに変換される' },
+        ],
+        correctIndex: 2,
+        explanation:
+          'TypeScriptはJavaScriptの完全上位互換なので、既存のJavaScriptコードはそのままTypeScriptとして動きます。型注釈は少しずつ追加していけばよく、段階的に移行できます。',
       },
     ],
   },
