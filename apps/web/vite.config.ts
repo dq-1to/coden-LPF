@@ -27,6 +27,7 @@ export default defineConfig({
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-supabase': ['@supabase/supabase-js'],
           'vendor-monaco': ['@monaco-editor/react'],
+          'vendor-codemirror': ['@uiw/react-codemirror', '@codemirror/view', '@codemirror/state'],
           'vendor-markdown': ['react-markdown', 'remark-gfm'],
           'vendor-prism': ['prismjs'],
           'vendor-icons': ['lucide-react'],
