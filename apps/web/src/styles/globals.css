@@ -22,6 +22,18 @@ body {
   #root {
     min-height: 100%;
   }
+
+  /* v3.0: モバイルタッチ最適化 */
+  html {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* セーフエリア対応（ノッチ端末） */
+  body {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+      env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
 }
 
 @layer utilities {

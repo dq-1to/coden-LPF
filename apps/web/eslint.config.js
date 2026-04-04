@@ -6,7 +6,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import jsxA11y from 'eslint-plugin-jsx-a11y'
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules'] },
+  { ignores: ['dist', 'node_modules', 'public/sw.js'] },
   js.configs.recommended,
   ...tseslint.configs.strict,
   jsxA11y.flatConfigs.recommended,
