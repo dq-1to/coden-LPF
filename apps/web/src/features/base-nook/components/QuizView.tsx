@@ -57,7 +57,7 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
   return (
     <div className="space-y-6">
       {/* セクション見出し */}
-      <div className="rounded-xl bg-sky-50 px-5 py-4">
+      <div className="rounded-xl bg-sky-50 px-3 py-3 sm:px-5 sm:py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ClipboardCheck size={20} className="text-sky-600" aria-hidden="true" />

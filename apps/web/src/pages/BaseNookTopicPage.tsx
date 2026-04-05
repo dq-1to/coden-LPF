@@ -114,7 +114,7 @@ export function BaseNookTopicPage() {
         {/* 戻るリンク */}
         <Link
           to="/base-nook"
-          className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-sky-600"
+          className="mb-6 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-sky-600"
         >
           <ArrowLeft size={16} aria-hidden="true" />
           Base Nook に戻る
@@ -141,7 +141,7 @@ export function BaseNookTopicPage() {
         ) : (
           <>
             {/* 解説パート */}
-            <section className="mb-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <section className="mb-10 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
               <ArticleView markdown={topic.article} />
             </section>
 

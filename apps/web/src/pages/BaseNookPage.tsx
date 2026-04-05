@@ -69,10 +69,10 @@ export function BaseNookPage() {
     <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
       <AppHeader displayName={greetingName} onSignOut={() => void handleSignOut()} />
 
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <main className="mx-auto max-w-5xl px-3 py-6 sm:px-4 sm:py-8">
         {/* ヘッダー */}
         <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-600 sm:h-12 sm:w-12">
             <BookOpen size={24} aria-hidden="true" />
           </div>
           <div>
@@ -96,7 +96,7 @@ export function BaseNookPage() {
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-sky-200 border-t-sky-500" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {BASE_NOOK_TOPICS.map((topic) => (
               <TopicCard
                 key={topic.id}
