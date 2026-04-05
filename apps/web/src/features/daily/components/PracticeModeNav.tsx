@@ -51,14 +51,14 @@ export function PracticeModeNav() {
               key={path}
               to={path}
               className={[
-                'flex flex-1 items-center justify-center gap-1 rounded-md px-1 py-2 text-xs font-medium transition-colors',
+                'flex flex-1 items-center justify-center gap-0.5 rounded-md px-0.5 py-2 text-[11px] font-medium transition-colors',
                 isActive
                   ? 'bg-amber-500 text-white shadow-sm'
                   : 'text-text-muted hover:text-amber-600',
               ].join(' ')}
               aria-current={isActive ? 'page' : undefined}
             >
-              <Icon size={13} aria-hidden="true" />
+              <Icon size={12} aria-hidden="true" />
               {label}
             </Link>
           )
