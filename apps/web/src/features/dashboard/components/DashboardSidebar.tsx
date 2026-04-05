@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Spinner } from '@/components/Spinner'
 import { useAchievementContext } from '@/contexts/AchievementContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -111,11 +112,11 @@ export function DashboardSidebar() {
 
           <div>
             <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-light">獲得バッジ</p>
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+            <Link to="/profile" className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 transition hover:text-primary-dark">
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1">
-                {unlockedBadgeIds.length} 個獲得
+                {unlockedBadgeIds.length} 個獲得 →
               </span>
-            </div>
+            </Link>
           </div>
         </div>
       </section>

@@ -257,7 +257,7 @@ function CategoryCard({
             </span>
             <span className="text-slate-400">{progressPercent}%</span>
           </div>
-          <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+          <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-100 sm:h-1.5">
             <div
               className="h-full rounded-full bg-primary-mint transition-all duration-500"
               style={{ width: `${progressPercent}%` }}
