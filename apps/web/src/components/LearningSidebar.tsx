@@ -21,7 +21,7 @@ export function LearningSidebar({ category, currentStepId }: LearningSidebarProp
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{category.title}</p>
         <button
-          className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 lg:hidden"
+          className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-2 min-h-[44px] text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 lg:hidden"
           type="button"
           aria-expanded={!isCollapsed}
           aria-controls="learning-sidebar-list"
