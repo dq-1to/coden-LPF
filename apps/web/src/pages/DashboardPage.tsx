@@ -189,7 +189,7 @@ export function DashboardPage() {
             {/* スキルアップセクション */}
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-slate-900">スキルアップ</h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
                 {SKILL_UP_CARDS.filter((c) => c.to !== '/daily').map((card) => (
                   <Link
                     key={card.to}
@@ -202,7 +202,7 @@ export function DashboardPage() {
                     <h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-primary-dark">
                       {card.title}
                     </h3>
-                    <p className="mt-0.5 text-xs text-slate-500">{card.description}</p>
+                    <p className="mt-0.5 hidden text-xs text-slate-500 sm:block">{card.description}</p>
                   </Link>
                 ))}
               </div>
@@ -257,7 +257,7 @@ function CategoryCard({
             </span>
             <span className="text-slate-400">{progressPercent}%</span>
           </div>
-          <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+          <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-100 sm:h-1.5">
             <div
               className="h-full rounded-full bg-primary-mint transition-all duration-500"
               style={{ width: `${progressPercent}%` }}
