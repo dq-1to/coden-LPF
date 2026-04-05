@@ -33,6 +33,10 @@ vi.mock('@/components/CodeEditor', () => ({
   CodeEditor: () => <div>CodeEditor</div>,
 }))
 
+vi.mock('@/hooks/useIsMobile', () => ({
+  useIsMobile: () => false,
+}))
+
 describe('CodeDoctorPage', () => {
   beforeEach(() => {
     getProblemProgressMapMock.mockReset()

@@ -14,6 +14,10 @@ vi.mock('@/components/CodeEditor', () => ({
   ),
 }))
 
+vi.mock('@/hooks/useIsMobile', () => ({
+  useIsMobile: () => false,
+}))
+
 const firstTask: ChallengeTask = {
   patterns: [
     {
