@@ -15,6 +15,11 @@ interface TokenGeneratorOutput {
   allTokens: string[]
 }
 
+/** ディストラクター（ダミートークン）の生成比率（正答トークン数に対する割合） */
+const DISTRACTOR_RATIO = 0.75
+/** ディストラクターの最小数 */
+const MIN_DISTRACTOR_COUNT = 3
+
 /** Multi-char operators that must be matched before single-char fallback */
 const MULTI_CHAR_OPS = ['===', '!==', '=>', '&&', '||', '<=', '>=', '...', '?.', '++', '--']
 
@@ -179,16 +184,22 @@ export function generateDistractors(correctTokens: string[], starterCode: string
     }
   }
 
-  const targetCount = Math.max(3, Math.min(correctTokens.length, Math.ceil(correctTokens.length * 0.75)))
+  const targetCount = Math.max(
+    MIN_DISTRACTOR_COUNT,
+    Math.min(correctTokens.length, Math.ceil(correctTokens.length * DISTRACTOR_RATIO)),
+  )
   const arr = [...candidates]
 
   // deterministic shuffle using simple seed from correct tokens
   const seed = correctTokens.join('').length
   for (let idx = arr.length - 1; idx > 0; idx--) {
     const j = (seed * (idx + 1) * 31) % (idx + 1)
-    const tmp = arr[idx]
-    arr[idx] = arr[j] as string
-    arr[j] = tmp as string
+    const valIdx = arr[idx]
+    const valJ = arr[j]
+    if (valIdx !== undefined && valJ !== undefined) {
+      arr[idx] = valJ
+      arr[j] = valIdx
+    }
   }
 
   return arr.slice(0, targetCount)
@@ -204,9 +215,12 @@ export function seededShuffle<T>(arr: T[], seed: number): T[] {
   for (let idx = result.length - 1; idx > 0; idx--) {
     s = (s * 16807 + 0) % 2147483647 // LCG
     const j = s % (idx + 1)
-    const tmp = result[idx]
-    result[idx] = result[j] as T
-    result[j] = tmp as T
+    const valIdx = result[idx]
+    const valJ = result[j]
+    if (valIdx !== undefined && valJ !== undefined) {
+      result[idx] = valJ
+      result[j] = valIdx
+    }
   }
   return result
 }

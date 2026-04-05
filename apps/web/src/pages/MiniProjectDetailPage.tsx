@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { CodeEditor } from '../components/CodeEditor'
@@ -25,18 +25,7 @@ export function MiniProjectDetailPage() {
   const [submitResult, setSubmitResult] = useState<SubmitProjectResult | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-
-  const loadProgress = useCallback(async () => {
-    if (!user || !project) return
-    try {
-      const map = await getProjectProgressMap(user.id)
-      const prog = map.get(project.id) ?? null
-      setProgress(prog)
-      setCode(prog?.code ?? project.initialCode)
-    } catch {
-      setCode(project.initialCode)
-    }
-  }, [user, project])
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const milestoneKeywords = useMemo(
     () => project?.milestones.flatMap((m) => m.requiredKeywords) ?? [],
@@ -44,8 +33,28 @@ export function MiniProjectDetailPage() {
   )
 
   useEffect(() => {
-    void loadProgress()
-  }, [loadProgress])
+    if (!user || !project) return
+    const userId = user.id
+    const proj = project
+    let isMounted = true
+
+    async function load() {
+      try {
+        const map = await getProjectProgressMap(userId)
+        if (!isMounted) return
+        const prog = map.get(proj.id) ?? null
+        setProgress(prog)
+        setCode(prog?.code ?? proj.initialCode)
+      } catch (e) {
+        if (!isMounted) return
+        setLoadError(e instanceof Error ? e.message : '進捗の取得に失敗しました')
+        setCode(proj.initialCode)
+      }
+    }
+
+    void load()
+    return () => { isMounted = false }
+  }, [user, project])
 
   if (!project) {
     return <Navigate to="/practice/mini-projects" replace />
@@ -67,7 +76,7 @@ export function MiniProjectDetailPage() {
         projectId: project.id,
         status: result.newStatus,
         code,
-        completedAt: result.allPassed ? new Date().toISOString() : (prev?.completedAt ?? null),
+        completedAt: prev?.completedAt ?? null,
       }))
     } catch (e) {
       setSubmitError(e instanceof Error ? e.message : '送信に失敗しました')
@@ -161,6 +170,12 @@ export function MiniProjectDetailPage() {
               <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 {submitError}
               </p>
+            )}
+
+            {loadError && (
+              <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+                {loadError}
+              </div>
             )}
           </div>
 

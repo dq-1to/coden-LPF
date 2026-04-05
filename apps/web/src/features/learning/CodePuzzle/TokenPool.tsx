@@ -8,9 +8,9 @@ interface TokenPoolProps {
 
 export function TokenPool({ tokens, usedTokens, onTokenTap }: TokenPoolProps) {
   return (
-    <div>
+    <div role="region" aria-label="使えるパーツ">
       <p className="text-xs font-medium text-slate-400 mb-1.5">使えるパーツ</p>
-      <div className="flex flex-wrap gap-2 p-3 bg-slate-800/50 rounded-lg">
+      <div className="flex flex-wrap gap-2 p-3 bg-slate-800/50 rounded-lg" role="group">
         {tokens.map((token, index) => {
           const isUsed = usedTokens.has(index)
           return (

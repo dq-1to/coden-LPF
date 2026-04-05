@@ -16,12 +16,14 @@ const BASE_STYLES = 'min-h-[44px] min-w-[44px] inline-flex items-center justify-
 const DISABLED_STYLES = 'opacity-50 cursor-not-allowed'
 
 export function Token({ text, onClick, variant, disabled = false }: TokenProps) {
+  const variantLabel = variant === 'pool' ? 'パーツ' : '組み立て済み'
   return (
     <button
       type="button"
       className={`${BASE_STYLES} ${VARIANT_STYLES[variant]} ${disabled ? DISABLED_STYLES : ''}`}
       onClick={onClick}
       disabled={disabled}
+      aria-label={`${variantLabel}: ${text}`}
     >
       {text}
     </button>
