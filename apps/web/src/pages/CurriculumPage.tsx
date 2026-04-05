@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BookOpen, ChevronDown, Code2, FileCode, Puzzle, Stethoscope, Atom, Zap } from 'lucide-react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { ErrorBanner } from '../components/ErrorBanner'
 import { CATEGORIES, type CategoryMeta, type CourseMeta } from '../content/courseData'
 import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
@@ -53,6 +54,7 @@ export function CurriculumPage() {
   const { completedStepIds, isLoadingStats } = useLearningContext()
   const navigate = useNavigate()
   const [displayName, setDisplayName] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const greetingName = useMemo(
     () =>
@@ -67,15 +69,26 @@ export function CurriculumPage() {
   useEffect(() => {
     if (!user?.id || supabaseConfigError) return
     let isMounted = true
-    void getProfile(user.id).then((profile) => {
-      if (isMounted) setDisplayName(profile?.display_name ?? null)
-    })
+    void getProfile(user.id)
+      .then((profile) => {
+        if (isMounted) setDisplayName(profile?.display_name ?? null)
+      })
+      .catch((loadError) => {
+        if (isMounted) {
+          const message = loadError instanceof Error ? loadError.message : 'プロフィール情報の取得に失敗しました。'
+          setError(message)
+        }
+      })
     return () => { isMounted = false }
   }, [user?.id])
 
   const handleSignOut = useCallback(async () => {
     const err = await signOut()
-    if (!err) navigate('/login', { replace: true })
+    if (err) {
+      setError(err)
+      return
+    }
+    navigate('/login', { replace: true })
   }, [signOut, navigate])
 
   // ハッシュからスクロール
@@ -91,6 +104,7 @@ export function CurriculumPage() {
       <AppHeader displayName={greetingName} onSignOut={() => void handleSignOut()} />
 
       <main className="mx-auto w-full max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
+        {error ? <ErrorBanner className="mb-4">{error}</ErrorBanner> : null}
         <h1 className="text-2xl font-bold text-slate-900">カリキュラム</h1>
         <p className="mt-1 text-sm text-slate-500">カテゴリ・コース・ステップを一覧して学習を始めましょう</p>
 
