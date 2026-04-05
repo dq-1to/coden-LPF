@@ -15,7 +15,7 @@ export function ArticleView({ markdown }: ArticleViewProps) {
   }, [markdown])
 
   return (
-    <article className="prose prose-slate prose-sm max-w-none sm:prose-base">
+    <article className="prose prose-slate prose-sm max-w-none leading-relaxed sm:prose-base">
       <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
     </article>
   )

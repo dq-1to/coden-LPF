@@ -110,7 +110,7 @@ export function BaseNookTopicPage() {
     <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
       <AppHeader displayName={greetingName} onSignOut={() => void handleSignOut()} />
 
-      <main className="mx-auto max-w-4xl px-4 py-8">
+      <main className="mx-auto max-w-4xl px-3 py-6 sm:px-4 sm:py-8">
         {/* 戻るリンク */}
         <Link
           to="/base-nook"
