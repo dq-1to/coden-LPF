@@ -6,11 +6,14 @@ import { useIsMobile } from '../hooks/useIsMobile'
 import { getProblemProgressMap, submitDoctorSolution } from '../services/codeDoctorService'
 import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
 import { ProblemCard } from '../features/code-doctor/components/ProblemCard'
+import { Pagination } from '../components/Pagination'
 import { PracticePageLayout } from '../components/PracticePageLayout'
 import { Spinner } from '../components/Spinner'
 import { CODE_DOCTOR_PROBLEMS } from '../content/code-doctor/problems'
 import { estimateBuggyLines } from '../content/code-doctor/estimateBuggyLines'
 import type { CodeDoctorDifficulty, CodeDoctorProblem, CodeDoctorProgress, SubmitDoctorResult } from '../content/code-doctor/types'
+
+const ITEMS_PER_PAGE = 9
 
 type FilterValue = 'all' | CodeDoctorDifficulty
 
@@ -35,6 +38,7 @@ export function CodeDoctorPage() {
 
   const [progressMap, setProgressMap] = useState<Map<string, CodeDoctorProgress>>(new Map())
   const [filter, setFilter] = useState<FilterValue>('all')
+  const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -119,6 +123,12 @@ export function CodeDoctorPage() {
     filter === 'all'
       ? CODE_DOCTOR_PROBLEMS
       : CODE_DOCTOR_PROBLEMS.filter((p) => p.difficulty === filter)
+
+  const totalPages = Math.ceil(filteredProblems.length / ITEMS_PER_PAGE)
+  const paginatedProblems = filteredProblems.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  )
 
   // ─── 問題ビュー ─────────────────────────────────────────
   if (selectedProblem) {
@@ -273,7 +283,7 @@ export function CodeDoctorPage() {
                   type="button"
                   role="tab"
                   aria-selected={filter === value}
-                  onClick={() => setFilter(value)}
+                  onClick={() => { setFilter(value); setCurrentPage(1) }}
                   className={[
                     'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
                     filter === value
@@ -295,16 +305,24 @@ export function CodeDoctorPage() {
                 {error}
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredProblems.map((problem) => (
-                  <ProblemCard
-                    key={problem.id}
-                    problem={problem}
-                    progress={progressMap.get(problem.id)}
-                    onClick={() => handleSelectProblem(problem)}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {paginatedProblems.map((problem) => (
+                    <ProblemCard
+                      key={problem.id}
+                      problem={problem}
+                      progress={progressMap.get(problem.id)}
+                      onClick={() => handleSelectProblem(problem)}
+                    />
+                  ))}
+                </div>
+
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </>
             )}
           </div>
         </div>
