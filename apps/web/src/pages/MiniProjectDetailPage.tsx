@@ -6,6 +6,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { getProjectProgressMap, submitProject } from '../services/miniProjectService'
 import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
+import { MilestoneGuide } from '../features/mini-projects/components/MilestoneGuide'
 import { PracticePageLayout } from '../components/PracticePageLayout'
 import { MINI_PROJECTS } from '../content/mini-projects/projects'
 import type { MilestoneJudgeResult, MiniProjectProgress, MiniProjectStatus, SubmitProjectResult } from '../content/mini-projects/types'
@@ -27,9 +28,24 @@ export function MiniProjectDetailPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
 
+  // ガイドモード: 現在フォーカスしているマイルストーン
+  const [currentMilestoneIndex, setCurrentMilestoneIndex] = useState(0)
+
   const milestoneKeywords = useMemo(
     () => project?.milestones.flatMap((m) => m.requiredKeywords) ?? [],
     [project?.milestones],
+  )
+
+  // モバイルガイドモード: 現在のマイルストーンのキーワードのみ
+  const currentMilestoneKeywords = useMemo(
+    () => project?.milestones[currentMilestoneIndex]?.requiredKeywords ?? [],
+    [project?.milestones, currentMilestoneIndex],
+  )
+
+  // 現在のマイルストーンの編集可能範囲
+  const currentEditableRange = useMemo(
+    () => project?.milestones[currentMilestoneIndex]?.editableRange ?? undefined,
+    [project?.milestones, currentMilestoneIndex],
   )
 
   useEffect(() => {
@@ -72,6 +88,11 @@ export function MiniProjectDetailPage() {
       const result = await submitProject(user.id, project, code, previousStatus)
       setSubmitResult(result)
       setMilestoneResults(result.milestoneResults)
+      // ガイドモード: 最初の未達成マイルストーンにフォーカスを移動
+      const firstFailing = result.milestoneResults.findIndex((r) => !r.passed)
+      if (firstFailing !== -1) {
+        setCurrentMilestoneIndex(firstFailing)
+      }
       setProgress((prev) => ({
         projectId: project.id,
         status: result.newStatus,
@@ -179,12 +200,21 @@ export function MiniProjectDetailPage() {
             )}
           </div>
 
-          {/* 右エリア: Monaco Editor */}
+          {/* 右エリア: エディタ */}
           <div className="flex min-w-0 flex-1 flex-col gap-4">
             {isCompleted && !submitResult && (
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
                 ✅ このプロジェクトは完了済みです。コードを確認・編集できます。
               </div>
+            )}
+
+            {/* モバイル: ガイドモード UI */}
+            {isMobile && (
+              <MilestoneGuide
+                milestones={project.milestones}
+                currentIndex={currentMilestoneIndex}
+                milestoneResults={milestoneResults}
+              />
             )}
 
             <div className="overflow-hidden rounded-xl border border-border">
@@ -197,7 +227,8 @@ export function MiniProjectDetailPage() {
                 }}
                 language="typescript"
                 height={isMobile ? 'min(50vh, 300px)' : '520px'}
-                toolbarKeywords={milestoneKeywords}
+                toolbarKeywords={isMobile ? currentMilestoneKeywords : milestoneKeywords}
+                {...(isMobile && currentEditableRange ? { editableLineRange: currentEditableRange } : {})}
               />
             </div>
 
