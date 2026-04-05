@@ -189,7 +189,7 @@ export function DashboardPage() {
             {/* スキルアップセクション */}
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-slate-900">スキルアップ</h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
                 {SKILL_UP_CARDS.filter((c) => c.to !== '/daily').map((card) => (
                   <Link
                     key={card.to}
@@ -202,7 +202,7 @@ export function DashboardPage() {
                     <h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-primary-dark">
                       {card.title}
                     </h3>
-                    <p className="mt-0.5 text-xs text-slate-500">{card.description}</p>
+                    <p className="mt-0.5 hidden text-xs text-slate-500 sm:block">{card.description}</p>
                   </Link>
                 ))}
               </div>
