@@ -7,9 +7,13 @@ import { getAllProgress } from '../services/baseNookService'
 import { getProfile } from '../services/profileService'
 import { BASE_NOOK_TOPICS } from '../content/base-nook/topics'
 import { TopicCard } from '../features/base-nook/components/TopicCard'
+import { BaseNookSidebar } from '../features/base-nook/components/BaseNookSidebar'
+import { Pagination } from '../components/Pagination'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { getDisplayName } from '../shared/utils/getDisplayName'
 import type { TopicProgressSummary } from '../content/base-nook/types'
+
+const ITEMS_PER_PAGE = 9
 
 export function BaseNookPage() {
   useDocumentTitle('Base Nook')
@@ -20,6 +24,7 @@ export function BaseNookPage() {
   const [progressList, setProgressList] = useState<TopicProgressSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     if (!user) return
@@ -65,6 +70,12 @@ export function BaseNookPage() {
   // topicId → progress のルックアップ
   const progressMap = new Map(progressList.map((p) => [p.topicId, p]))
 
+  const totalPages = Math.ceil(BASE_NOOK_TOPICS.length / ITEMS_PER_PAGE)
+  const paginatedTopics = BASE_NOOK_TOPICS.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  )
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
       <AppHeader displayName={greetingName} onSignOut={() => void handleSignOut()} />
@@ -90,23 +101,38 @@ export function BaseNookPage() {
           </div>
         )}
 
-        {/* トピックグリッド */}
-        {isLoading ? (
-          <div className="flex justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-sky-200 border-t-sky-500" />
+        {/* 2カラム: サイドバー + メイン */}
+        <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
+          <BaseNookSidebar topics={BASE_NOOK_TOPICS} progressMap={progressMap} />
+
+          {/* メインコンテンツ */}
+          <div className="min-w-0 flex-1">
+            {isLoading ? (
+              <div className="flex justify-center py-20">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-sky-200 border-t-sky-500" />
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {paginatedTopics.map((topic) => (
+                    <TopicCard
+                      key={topic.id}
+                      topic={topic}
+                      progress={progressMap.get(topic.id)}
+                      onClick={() => navigate(`/base-nook/${topic.id}`)}
+                    />
+                  ))}
+                </div>
+
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {BASE_NOOK_TOPICS.map((topic) => (
-              <TopicCard
-                key={topic.id}
-                topic={topic}
-                progress={progressMap.get(topic.id)}
-                onClick={() => navigate(`/base-nook/${topic.id}`)}
-              />
-            ))}
-          </div>
-        )}
+        </div>
       </main>
     </div>
   )
