@@ -30,6 +30,7 @@ export function ProfilePage() {
   const [isSavingDisplayName, setIsSavingDisplayName] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [showUnearned, setShowUnearned] = useState(false)
 
   const headerDisplayName = useMemo(
     () =>
@@ -143,14 +144,12 @@ export function ProfilePage() {
         {notice ? <ErrorBanner variant="success">{notice}</ErrorBanner> : null}
 
         <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary-mint">Profile</p>
-              <h1 className="mt-1 text-2xl font-bold text-text-dark">プロフィール</h1>
-            </div>
-            <Link className="text-sm font-semibold text-primary-dark underline" to="/">
-              ダッシュボードへ戻る
+          <div>
+            <Link to="/" className="mb-2 flex items-center gap-1 text-sm text-text-muted hover:text-text-dark">
+              ← ダッシュボードへ戻る
             </Link>
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary-mint">Profile</p>
+            <h1 className="mt-1 text-2xl font-bold text-text-dark">プロフィール</h1>
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
@@ -175,7 +174,7 @@ export function ProfilePage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wide text-text-light">総ポイント</p>
             <p className="mt-2 text-2xl font-black text-amber-600">{stats?.total_points ?? 0} Pt</p>
@@ -203,43 +202,67 @@ export function ProfilePage() {
             </span>
           </div>
           {isLoadingAchievements ? <p className="mb-3 text-xs text-text-light">バッジ状態を更新中...</p> : null}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {BADGE_DEFINITIONS.map((badge) => {
-              const unlocked = unlockedBadgeIds.includes(badge.id)
-              return (
-                <article
-                  key={badge.id}
-                  className={`rounded-xl border p-4 ${unlocked ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-slate-50 opacity-70'
-                    }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className={`text-sm font-bold ${unlocked ? 'text-amber-900' : 'text-slate-600'}`}>{badge.name}</h3>
-                    <span className="text-lg">{unlocked ? <Trophy className="h-5 w-5 text-amber-600" /> : <Lock className="h-5 w-5 text-slate-400" />}</span>
-                  </div>
-                  <p className={`mt-1 text-xs ${unlocked ? 'text-amber-700' : 'text-slate-500'}`}>{badge.description}</p>
-                </article>
-              )
-            })}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {BADGE_DEFINITIONS.filter((b) => unlockedBadgeIds.includes(b.id)).map((badge) => (
+              <article
+                key={badge.id}
+                className="rounded-xl border border-amber-200 bg-amber-50 p-4"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="text-sm font-bold text-amber-900">{badge.name}</h3>
+                  <span className="text-lg"><Trophy className="h-5 w-5 text-amber-600" /></span>
+                </div>
+                <p className="mt-1 text-xs text-amber-700">{badge.description}</p>
+              </article>
+            ))}
+            {showUnearned && BADGE_DEFINITIONS.filter((b) => !unlockedBadgeIds.includes(b.id)).map((badge) => (
+              <article
+                key={badge.id}
+                className="rounded-xl border border-slate-200 bg-slate-50 p-4 opacity-40 grayscale"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="text-sm font-bold text-slate-600">{badge.name}</h3>
+                  <span className="text-lg"><Lock className="h-5 w-5 text-slate-400" /></span>
+                </div>
+                <p className="mt-1 text-xs text-slate-500">{badge.description}</p>
+              </article>
+            ))}
           </div>
+          {BADGE_DEFINITIONS.filter((b) => !unlockedBadgeIds.includes(b.id)).length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowUnearned(!showUnearned)}
+              className="mt-3 text-sm text-text-muted hover:text-text-dark"
+            >
+              {showUnearned ? '未獲得を隠す' : `未獲得を表示（${BADGE_DEFINITIONS.filter((b) => !unlockedBadgeIds.includes(b.id)).length}個）`}
+            </button>
+          )}
         </section>
 
         <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-bold text-text-dark">ポイント履歴</h2>
-          {isLoading ? <Spinner size="sm" label="履歴を読み込み中..." /> : null}
-          {!isLoading && pointHistory.length === 0 ? <p className="text-sm text-text-light">ポイント履歴はまだありません。</p> : null}
-          {pointHistory.length > 0 ? (
-            <ul className="divide-y divide-slate-100">
-              {pointHistory.map((entry) => (
-                <li key={entry.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-text-dark">{entry.reason}</p>
-                    <p className="text-xs text-text-light">{formatDateTime(entry.created_at)}</p>
-                  </div>
-                  <p className="text-sm font-bold text-primary-dark">+{entry.amount} Pt</p>
-                </li>
-              ))}
-            </ul>
-          ) : null}
+          <details className="group">
+            <summary className="flex cursor-pointer list-none items-center justify-between py-1 text-lg font-bold text-text-dark">
+              ポイント履歴
+              <span className="text-sm text-text-muted transition-transform group-open:rotate-180">▼</span>
+            </summary>
+            <div className="mt-3">
+              {isLoading ? <Spinner size="sm" label="履歴を読み込み中..." /> : null}
+              {!isLoading && pointHistory.length === 0 ? <p className="text-sm text-text-light">ポイント履歴はまだありません。</p> : null}
+              {pointHistory.length > 0 ? (
+                <ul className="divide-y divide-slate-100">
+                  {pointHistory.map((entry) => (
+                    <li key={entry.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                      <div>
+                        <p className="text-sm font-medium text-text-dark">{entry.reason}</p>
+                        <p className="text-xs text-text-light">{formatDateTime(entry.created_at)}</p>
+                      </div>
+                      <p className="text-sm font-bold text-primary-dark">+{entry.amount} Pt</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          </details>
         </section>
       </main>
     </div>
