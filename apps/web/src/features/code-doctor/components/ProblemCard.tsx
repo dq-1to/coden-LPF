@@ -53,7 +53,7 @@ export function ProblemCard({ problem, progress, onClick }: ProblemCardProps) {
       <p className="line-clamp-2 text-sm leading-relaxed text-slate-500">{problem.description}</p>
 
       <div className="mt-auto pt-3">
-        <span className="text-xs font-medium text-amber-600 opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="text-xs font-medium text-amber-600 opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100">
           問題を解く →
         </span>
       </div>

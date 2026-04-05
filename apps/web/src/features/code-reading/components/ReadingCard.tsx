@@ -57,7 +57,7 @@ export function ReadingCard({ problem, progress, onClick }: ReadingCardProps) {
         <span className="rounded-md border border-slate-100 bg-slate-50 px-2 py-0.5 text-xs text-slate-500">
           設問 {totalCount}問
         </span>
-        <span className="text-xs font-medium text-amber-600 opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="text-xs font-medium text-amber-600 opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100">
           挑戦する →
         </span>
       </div>

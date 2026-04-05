@@ -71,7 +71,7 @@ function CourseSection({
     <div>
       <button
         type="button"
-        className={`flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs font-semibold transition ${
+        className={`flex w-full min-h-[44px] items-center justify-between rounded-lg px-2 py-1.5 text-xs font-semibold transition ${
           containsCurrent ? 'text-primary-dark' : 'text-slate-600 hover:bg-slate-50'
         } ${lockStatus.locked ? 'opacity-50' : ''}`}
         onClick={() => !lockStatus.locked && setIsOpen((prev) => !prev)}
@@ -96,7 +96,7 @@ function CourseSection({
             return (
               <li key={step.id}>
                 <Link
-                  className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition ${
+                  className={`flex min-h-[44px] items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition ${
                     isCurrent
                       ? 'border border-primary-mint/30 bg-secondary-bg text-primary-dark'
                       : 'text-slate-600 hover:bg-slate-50'

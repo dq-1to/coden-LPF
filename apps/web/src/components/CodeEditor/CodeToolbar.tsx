@@ -65,7 +65,7 @@ export function CodeToolbar({ keywords, onInsert }: CodeToolbarProps) {
               key={kw}
               type="button"
               aria-label={`${kw} を挿入`}
-              className="rounded-lg bg-slate-700 px-3 py-2 font-mono text-sm text-slate-200 active:bg-slate-600"
+              className="min-h-[44px] rounded-lg bg-slate-700 px-3 py-2 font-mono text-sm text-slate-200 active:bg-slate-600"
               onPointerDown={(e) => {
                 e.preventDefault()
                 onInsert(kw)
