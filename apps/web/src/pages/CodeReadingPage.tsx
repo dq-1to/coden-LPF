@@ -144,7 +144,7 @@ export function CodeReadingPage() {
               <button
                 type="button"
                 onClick={handleBack}
-                className="flex items-center gap-1 text-sm text-text-muted hover:text-text-dark"
+                className="flex min-h-[44px] items-center gap-1 text-sm text-text-muted hover:text-text-dark"
               >
                 ← 一覧に戻る
               </button>
@@ -160,7 +160,7 @@ export function CodeReadingPage() {
 
               {/* コードスニペット */}
               <div className="overflow-x-auto rounded-xl border border-border bg-slate-900">
-                <pre className="p-4 text-sm leading-relaxed text-slate-100">
+                <pre className="p-3 text-[13px] leading-relaxed text-slate-100 sm:p-4 sm:text-sm">
                   <code>{selectedProblem.codeSnippet}</code>
                 </pre>
               </div>
@@ -229,7 +229,7 @@ export function CodeReadingPage() {
                           type="button"
                           disabled={hasAnswered}
                           onClick={() => setSelectedAnswer(idx)}
-                          className={`w-full rounded-lg border px-4 py-2.5 text-left text-sm transition-colors disabled:cursor-default ${choiceStyle}`}
+                          className={`min-h-[44px] w-full rounded-lg border px-4 py-2.5 text-left text-sm transition-colors disabled:cursor-default ${choiceStyle}`}
                         >
                           {String.fromCharCode(65 + idx)}. {choice}
                         </button>
@@ -261,7 +261,7 @@ export function CodeReadingPage() {
                         type="button"
                         onClick={() => void handleAnswer()}
                         disabled={selectedAnswer === null || isSubmitting}
-                        className="rounded-lg bg-amber-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="min-h-[44px] rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         回答する
                       </button>
@@ -270,7 +270,7 @@ export function CodeReadingPage() {
                         type="button"
                         onClick={handleNextQuestion}
                         disabled={isSubmitting}
-                        className="rounded-lg bg-amber-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:opacity-50"
+                        className="min-h-[44px] rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:opacity-50"
                       >
                         {isSubmitting ? '送信中...' : '次の設問へ →'}
                       </button>
@@ -308,7 +308,7 @@ export function CodeReadingPage() {
                   type="button"
                   onClick={() => setFilter(value)}
                   className={[
-                    'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
+                    'min-h-[44px] rounded-full px-4 py-2 text-sm font-medium transition-colors',
                     filter === value
                       ? 'bg-amber-500 text-white'
                       : 'border border-border text-text-muted hover:border-amber-400 hover:text-amber-600',
