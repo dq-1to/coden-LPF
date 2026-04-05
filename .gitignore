@@ -22,4 +22,5 @@ Thumbs.db
 .vercel
 .tmp/
 docs/sessions/
+docs/qa/
 .playwright-mcp/
