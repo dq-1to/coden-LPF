@@ -3,6 +3,8 @@ import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror'
 import { javascript } from '@codemirror/lang-javascript'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { EditorView } from '@codemirror/view'
+import { useIsMobile } from '../../hooks/useIsMobile'
+import { CodeToolbar } from './CodeToolbar'
 
 export interface CodeEditorHandle {
   /** カーソル位置にテキストを挿入する（ツールバー連携用） */
@@ -16,7 +18,7 @@ interface CodeEditorProps {
   readOnly?: boolean
   height?: string
   className?: string
-  // M3 で追加予定: toolbarKeywords?: string[]
+  toolbarKeywords?: string[]
 }
 
 const fontSizeTheme = EditorView.theme({
@@ -25,9 +27,10 @@ const fontSizeTheme = EditorView.theme({
 })
 
 export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEditor(
-  { value, onChange, language = 'typescript', readOnly = false, height = '400px', className },
+  { value, onChange, language = 'typescript', readOnly = false, height = '400px', className, toolbarKeywords },
   ref,
 ) {
+  const isMobile = useIsMobile()
   const cmRef = useRef<ReactCodeMirrorRef>(null)
 
   const extensions = useMemo(
@@ -50,26 +53,31 @@ export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function
   useImperativeHandle(ref, () => ({ insertAtCursor }), [insertAtCursor])
 
   return (
-    <CodeMirror
-      ref={cmRef}
-      value={value}
-      height={height}
-      theme={oneDark}
-      extensions={extensions}
-      onChange={onChange}
-      readOnly={readOnly}
-      editable={!readOnly}
-      className={className}
-      basicSetup={{
-        lineNumbers: true,
-        highlightActiveLineGutter: true,
-        highlightActiveLine: true,
-        foldGutter: true,
-        autocompletion: true,
-        bracketMatching: true,
-        closeBrackets: true,
-        indentOnInput: true,
-      }}
-    />
+    <div className="flex flex-col">
+      <CodeMirror
+        ref={cmRef}
+        value={value}
+        height={height}
+        theme={oneDark}
+        extensions={extensions}
+        onChange={onChange}
+        readOnly={readOnly}
+        editable={!readOnly}
+        className={className}
+        basicSetup={{
+          lineNumbers: true,
+          highlightActiveLineGutter: true,
+          highlightActiveLine: true,
+          foldGutter: true,
+          autocompletion: true,
+          bracketMatching: true,
+          closeBrackets: true,
+          indentOnInput: true,
+        }}
+      />
+      {isMobile && toolbarKeywords && (
+        <CodeToolbar keywords={toolbarKeywords} onInsert={insertAtCursor} />
+      )}
+    </div>
   )
 })
