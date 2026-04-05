@@ -69,7 +69,7 @@ export function SignUpPage() {
 
   if (showConfirmEmail) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50 px-6 py-16">
+      <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50 px-4 py-8 sm:px-6 sm:py-16">
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm text-center">
           <h2 className="text-xl font-bold text-slate-800">メールアドレスを確認してください</h2>
           <p className="text-sm text-slate-600">
@@ -85,7 +85,7 @@ export function SignUpPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50 px-6 py-16">
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50 px-4 py-8 sm:px-6 sm:py-16">
       <header className="space-y-2">
         <div className="flex items-center gap-3">
           <img src="/coden_logo.png" alt="Coden Logo" className="h-12 w-12 object-contain" />
@@ -97,11 +97,13 @@ export function SignUpPage() {
       {supabaseConfigError ? <ConfigErrorView message={supabaseConfigError} /> : null}
 
       <form className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" onSubmit={handleSubmit} noValidate>
+        {error ? <ErrorBanner>{error}</ErrorBanner> : null}
+
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-slate-700">メールアドレス</span>
           <input
             aria-label="メールアドレス"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint"
+            className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint min-h-[44px]"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -114,7 +116,7 @@ export function SignUpPage() {
           <span className="mb-1 block text-sm font-medium text-slate-700">パスワード</span>
           <input
             aria-label="パスワード"
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint"
+            className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint min-h-[44px]"
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -124,8 +126,6 @@ export function SignUpPage() {
           />
           <span className="mt-1 block text-xs text-slate-500">{MIN_PASSWORD_LENGTH}文字以上で入力してください。</span>
         </label>
-
-        {error ? <ErrorBanner>{error}</ErrorBanner> : null}
 
         <Button type="submit" fullWidth disabled={isDisabled}>
           {isSubmitting ? '登録中...' : 'アカウントを作成'}
