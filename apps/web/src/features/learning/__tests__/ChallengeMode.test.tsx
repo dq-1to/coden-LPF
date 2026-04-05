@@ -4,8 +4,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ChallengeMode } from '../ChallengeMode'
 import type { ChallengeTask } from '../../../content/fundamentals/steps'
 
-vi.mock('@monaco-editor/react', () => ({
-  default: ({ value, onChange }: { value?: string; onChange?: (nextValue: string) => void }) => (
+vi.mock('@/components/CodeEditor', () => ({
+  CodeEditor: ({ value, onChange }: { value?: string; onChange?: (nextValue: string) => void }) => (
     <textarea
       aria-label="challenge-editor"
       value={value}

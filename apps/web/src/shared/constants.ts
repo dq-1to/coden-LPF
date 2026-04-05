@@ -47,8 +47,6 @@ export const MAX_CODE_LENGTH = 50_000
 /** デイリーチャレンジ回答の最大文字数 */
 export const MAX_ANSWER_LENGTH = 500
 
-/** Monaco Editor のデフォルト高さ */
-export const MONACO_EDITOR_HEIGHT = '320px'
 
 /** ポイント目標のマイルストーン */
 export const POINT_MILESTONES = [500, 1000, 1500, 2000] as const

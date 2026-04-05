@@ -1,5 +1,6 @@
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { CodeEditor } from '../components/CodeEditor'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { getProblemProgressMap, submitDoctorSolution } from '../services/codeDoctorService'
 import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
@@ -8,8 +9,6 @@ import { PracticePageLayout } from '../components/PracticePageLayout'
 import { Spinner } from '../components/Spinner'
 import { CODE_DOCTOR_PROBLEMS } from '../content/code-doctor/problems'
 import type { CodeDoctorDifficulty, CodeDoctorProblem, CodeDoctorProgress, SubmitDoctorResult } from '../content/code-doctor/types'
-
-const MonacoEditor = lazy(() => import('@monaco-editor/react'))
 
 type FilterValue = 'all' | CodeDoctorDifficulty
 
@@ -201,22 +200,12 @@ export function CodeDoctorPage() {
             {/* Monaco エディタ */}
             <div className="flex min-w-0 flex-1 flex-col gap-4">
               <div className="overflow-hidden rounded-xl border border-border">
-                <Suspense
-                  fallback={
-                    <div className="flex h-80 items-center justify-center bg-slate-900 text-sm text-slate-300">
-                      エディタを読み込み中...
-                    </div>
-                  }
-                >
-                  <MonacoEditor
-                    height="480px"
-                    defaultLanguage="typescript"
-                    theme="vs-dark"
-                    value={code}
-                    options={{ minimap: { enabled: false }, fontSize: 14, scrollBeyondLastLine: false }}
-                    onChange={(v) => { setCode(v ?? ''); setResult(null) }}
-                  />
-                </Suspense>
+                <CodeEditor
+                  value={code}
+                  onChange={(v) => { setCode(v); setResult(null) }}
+                  language="typescript"
+                  height="480px"
+                />
               </div>
 
               <div className="flex items-center gap-4">
