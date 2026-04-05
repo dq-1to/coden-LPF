@@ -8,6 +8,7 @@ import { JudgmentResult } from './components/JudgmentResult'
 import { useJudgmentAction } from './hooks/useJudgmentAction'
 import { useStepReset } from './hooks/useStepReset'
 import { previewByStepId } from './testModePreview'
+import { checkAllKeywords } from './utils/keywordMatcher'
 import { previewComponentByStepId } from './previews'
 
 interface TestModeProps {
@@ -29,9 +30,7 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
 
   const mergedCode = useMemo(() => task.starterCode.replace('____', blankInput), [blankInput, task.starterCode])
   const isPassed = useMemo(
-    () =>
-      blankInput.length > 0 &&
-      task.expectedKeywords.every((keyword) => mergedCode.toLowerCase().includes(keyword.toLowerCase())),
+    () => blankInput.length > 0 && checkAllKeywords(mergedCode, task.expectedKeywords),
     [blankInput, mergedCode, task.expectedKeywords],
   )
 
@@ -47,9 +46,7 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
 
   const handlePuzzleSubmit = useCallback(
     (mergedCode: string) => {
-      const isCorrect = task.expectedKeywords.every((kw) =>
-        mergedCode.toLowerCase().includes(kw.toLowerCase()),
-      )
+      const isCorrect = checkAllKeywords(mergedCode, task.expectedKeywords)
       setIsJudged(true)
       handleResult(isCorrect)
     },
@@ -65,7 +62,9 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
       <h2 className="text-lg font-semibold">Test</h2>
 
       {isMobile ? (
-        <CodePuzzle task={task} onSubmit={handlePuzzleSubmit} />
+        <ErrorBoundary fallback={<p className="text-sm text-red-600">パズルの表示��にエラーが発生しました���</p>}>
+          <CodePuzzle task={task} onSubmit={handlePuzzleSubmit} />
+        </ErrorBoundary>
       ) : (
         <>
           <p className="text-sm text-slate-700">{task.instruction}</p>

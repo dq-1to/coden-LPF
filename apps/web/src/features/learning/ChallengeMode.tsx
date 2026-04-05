@@ -5,6 +5,7 @@ import { ErrorBanner } from '../../components/ErrorBanner'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
 import { JudgmentResult } from './components/JudgmentResult'
+import { getMissingKeywords } from './utils/keywordMatcher'
 
 interface ChallengeModeProps {
   stepId: string
@@ -38,7 +39,7 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
   }, [stepId, task])
 
   const missingKeywords = useMemo(
-    () => pattern.expectedKeywords.filter((keyword) => !code.toLowerCase().includes(keyword.toLowerCase())),
+    () => getMissingKeywords(code, pattern.expectedKeywords),
     [code, pattern.expectedKeywords],
   )
   const hasSatisfiedRequirements = missingKeywords.length === 0

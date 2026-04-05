@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { CodeEditor } from '../components/CodeEditor'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
@@ -45,23 +45,29 @@ export function CodeDoctorPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const loadProgress = useCallback(async () => {
-    if (!user) return
-    setIsLoading(true)
-    setError(null)
-    try {
-      const map = await getProblemProgressMap(user.id)
-      setProgressMap(map)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'データの取得に失敗しました')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [user])
-
   useEffect(() => {
-    void loadProgress()
-  }, [loadProgress])
+    if (!user) return
+    const userId = user.id
+    let isMounted = true
+
+    async function load() {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const map = await getProblemProgressMap(userId)
+        if (!isMounted) return
+        setProgressMap(map)
+      } catch (e) {
+        if (!isMounted) return
+        setError(e instanceof Error ? e.message : 'データの取得に失敗しました')
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+
+    void load()
+    return () => { isMounted = false }
+  }, [user])
 
   function handleSelectProblem(problem: CodeDoctorProblem) {
     setSelectedProblem(problem)
@@ -91,7 +97,7 @@ export function CodeDoctorPage() {
             problemId: selectedProblem.id,
             solved: true,
             attempts: (prev.get(selectedProblem.id)?.attempts ?? 0) + 1,
-            solvedAt: new Date().toISOString(),
+            solvedAt: null,
           })
           return next
         })
@@ -253,11 +259,13 @@ export function CodeDoctorPage() {
             </div>
 
             {/* フィルタ */}
-            <div className="flex gap-2">
+            <div className="flex gap-2" role="tablist" aria-label="難易度フィルター">
               {FILTER_OPTIONS.map(({ value, label }) => (
                 <button
                   key={value}
                   type="button"
+                  role="tab"
+                  aria-selected={filter === value}
                   onClick={() => setFilter(value)}
                   className={[
                     'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
