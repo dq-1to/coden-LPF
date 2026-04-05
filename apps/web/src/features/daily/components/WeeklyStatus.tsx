@@ -26,7 +26,7 @@ export function WeeklyStatus({ entries, todayStr }: WeeklyStatusProps) {
               <span className="text-xs font-medium text-slate-400">{DAY_LABELS[i]}</span>
               <div
                 className={[
-                  'flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold transition-colors sm:h-11 sm:w-11',
+                  'flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-colors sm:h-10 sm:w-10',
                   entry.completed
                     ? 'bg-amber-400 text-white shadow-sm shadow-amber-200'
                     : isToday
