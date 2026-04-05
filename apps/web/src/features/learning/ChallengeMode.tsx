@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Button } from '../../components/Button'
 import { CodeEditor } from '../../components/CodeEditor'
 import { ErrorBanner } from '../../components/ErrorBanner'
+import { useIsMobile } from '../../hooks/useIsMobile'
 import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
 import { JudgmentResult } from './components/JudgmentResult'
 
@@ -20,6 +21,7 @@ function getRandomPattern(task: ChallengeTask): ChallengePattern {
 }
 
 export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: ChallengeModeProps) {
+  const isMobile = useIsMobile()
   const [pattern, setPattern] = useState<ChallengePattern>(() => getRandomPattern(task))
   const [code, setCode] = useState(() => pattern.starterCode)
   const [checked, setChecked] = useState(false)
@@ -89,7 +91,8 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
           value={code}
           onChange={handleCodeChange}
           language="typescript"
-          height="320px"
+          height={isMobile ? 'min(50vh, 300px)' : '320px'}
+          toolbarKeywords={pattern.expectedKeywords}
         />
       </div>
 
