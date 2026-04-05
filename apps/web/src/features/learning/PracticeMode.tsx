@@ -66,7 +66,7 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
                 {question.choices.map((choice) => {
                   const isSelected = answer === choice
                   const isChoiceCorrect = normalize(choice) === normalize(question.answer)
-                  let btnClass = 'rounded-md border px-3 py-2 text-sm text-left transition-colors'
+                  let btnClass = 'min-h-[44px] rounded-md border px-3 py-2.5 text-sm text-left transition-colors'
                   if (isJudged) {
                     if (isChoiceCorrect) {
                       btnClass += ' border-emerald-500 bg-emerald-100 text-emerald-800 font-semibold'
@@ -96,13 +96,17 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
               </div>
             ) : (
               <input
-                className={`w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint ${isJudged
+                className={`min-h-[44px] w-full rounded-md border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint ${isJudged
                   ? isCorrect
                     ? 'border-emerald-500 bg-emerald-50/50'
                     : 'border-rose-500 bg-rose-50/50'
                   : 'border-slate-300'
                   }`}
                 placeholder="回答を入力"
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
+                autoCapitalize="off"
                 value={answer}
                 aria-label={`Q${index + 1} 回答欄`}
                 onChange={(event) => handleAnswerChange(question.id, event.target.value)}
@@ -120,7 +124,7 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
               </div>
             ) : null}
             <button
-              className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+              className="min-h-[44px] rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-100"
               type="button"
               aria-expanded={hints[question.id] ?? false}
               onClick={() =>
