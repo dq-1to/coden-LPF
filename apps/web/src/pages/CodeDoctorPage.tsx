@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { CodeEditor } from '../components/CodeEditor'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
@@ -9,6 +9,7 @@ import { ProblemCard } from '../features/code-doctor/components/ProblemCard'
 import { PracticePageLayout } from '../components/PracticePageLayout'
 import { Spinner } from '../components/Spinner'
 import { CODE_DOCTOR_PROBLEMS } from '../content/code-doctor/problems'
+import { estimateBuggyLines } from '../content/code-doctor/estimateBuggyLines'
 import type { CodeDoctorDifficulty, CodeDoctorProblem, CodeDoctorProgress, SubmitDoctorResult } from '../content/code-doctor/types'
 
 type FilterValue = 'all' | CodeDoctorDifficulty
@@ -108,6 +109,11 @@ export function CodeDoctorPage() {
       setIsSubmitting(false)
     }
   }
+
+  const buggyLines = useMemo(
+    () => (selectedProblem ? estimateBuggyLines(selectedProblem) : []),
+    [selectedProblem],
+  )
 
   const filteredProblems =
     filter === 'all'
@@ -214,6 +220,7 @@ export function CodeDoctorPage() {
                   language="typescript"
                   height={isMobile ? 'min(50vh, 300px)' : '480px'}
                   toolbarKeywords={selectedProblem.requiredKeywords}
+                  highlightLines={buggyLines}
                 />
               </div>
 

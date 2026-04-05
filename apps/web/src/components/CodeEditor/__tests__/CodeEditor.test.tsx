@@ -18,9 +18,21 @@ vi.mock('@codemirror/theme-one-dark', () => ({
   oneDark: [],
 }))
 
+vi.mock('@codemirror/state', () => ({
+  StateEffect: { define: vi.fn(() => ({ of: vi.fn() })) },
+  StateField: { define: vi.fn(() => []) },
+}))
+
 vi.mock('@codemirror/view', () => ({
   EditorView: {
     theme: vi.fn(() => []),
+    baseTheme: vi.fn(() => []),
+    decorations: { from: vi.fn(() => []) },
+  },
+  Decoration: {
+    none: [],
+    line: vi.fn(() => ({ range: vi.fn() })),
+    set: vi.fn(() => []),
   },
 }))
 
