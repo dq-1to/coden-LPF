@@ -1,15 +1,13 @@
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { CodeEditor } from '../components/CodeEditor'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { getProjectProgressMap, submitProject } from '../services/miniProjectService'
 import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
 import { PracticePageLayout } from '../components/PracticePageLayout'
-import { Spinner } from '../components/Spinner'
 import { MINI_PROJECTS } from '../content/mini-projects/projects'
 import type { MilestoneJudgeResult, MiniProjectProgress, MiniProjectStatus, SubmitProjectResult } from '../content/mini-projects/types'
-
-const MonacoEditor = lazy(() => import('@monaco-editor/react'))
 
 export function MiniProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -168,26 +166,16 @@ export function MiniProjectDetailPage() {
             )}
 
             <div className="overflow-hidden rounded-xl border border-border">
-              <Suspense
-                fallback={
-                  <div className="flex h-80 items-center justify-center bg-slate-900 text-sm text-slate-300">
-                    <Spinner />
-                  </div>
-                }
-              >
-                <MonacoEditor
-                  height="520px"
-                  defaultLanguage="typescript"
-                  theme="vs-dark"
-                  value={code}
-                  options={{ minimap: { enabled: false }, fontSize: 14, scrollBeyondLastLine: false }}
-                  onChange={(v) => {
-                    setCode(v ?? '')
-                    setMilestoneResults(null)
-                    setSubmitResult(null)
-                  }}
-                />
-              </Suspense>
+              <CodeEditor
+                value={code}
+                onChange={(v) => {
+                  setCode(v)
+                  setMilestoneResults(null)
+                  setSubmitResult(null)
+                }}
+                language="typescript"
+                height="520px"
+              />
             </div>
 
             <div className="flex items-center gap-4">
