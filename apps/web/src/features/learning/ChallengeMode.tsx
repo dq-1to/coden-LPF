@@ -1,12 +1,9 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button } from '../../components/Button'
+import { CodeEditor } from '../../components/CodeEditor'
 import { ErrorBanner } from '../../components/ErrorBanner'
-import { ErrorBoundary } from '../../components/ErrorBoundary'
 import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
 import { JudgmentResult } from './components/JudgmentResult'
-import { MONACO_EDITOR_HEIGHT } from '../../shared/constants'
-
-const MonacoEditor = lazy(() => import('@monaco-editor/react'))
 
 interface ChallengeModeProps {
   stepId: string
@@ -71,9 +68,9 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     }
   }
 
-  function handleCodeChange(nextValue: string | undefined) {
+  function handleCodeChange(nextValue: string) {
     setChecked(false)
-    setCode(nextValue ?? '')
+    setCode(nextValue)
   }
 
   return (
@@ -88,18 +85,12 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
       </ul>
 
       <div className="overflow-hidden rounded-lg border border-slate-300">
-        <ErrorBoundary fallback={<div className="bg-slate-900 p-4 text-sm text-red-300">エディタの読み込みに失敗しました。ページを再読み込みしてください。</div>}>
-          <Suspense fallback={<div className="bg-slate-900 p-4 text-sm text-slate-100">エディタを読み込み中...</div>}>
-            <MonacoEditor
-              defaultLanguage="typescript"
-              height={MONACO_EDITOR_HEIGHT}
-              theme="vs-dark"
-              value={code}
-              options={{ minimap: { enabled: false }, fontSize: 14 }}
-              onChange={handleCodeChange}
-            />
-          </Suspense>
-        </ErrorBoundary>
+        <CodeEditor
+          value={code}
+          onChange={handleCodeChange}
+          language="typescript"
+          height="320px"
+        />
       </div>
 
       <div className="flex flex-col items-start gap-4 pt-4 sm:flex-row sm:items-center">
