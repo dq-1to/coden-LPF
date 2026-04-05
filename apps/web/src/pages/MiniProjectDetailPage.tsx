@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { CodeEditor } from '../components/CodeEditor'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useIsMobile } from '../hooks/useIsMobile'
 import { getProjectProgressMap, submitProject } from '../services/miniProjectService'
 import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
 import { PracticePageLayout } from '../components/PracticePageLayout'
@@ -12,6 +13,7 @@ import type { MilestoneJudgeResult, MiniProjectProgress, MiniProjectStatus, Subm
 export function MiniProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const { user } = useAuth()
+  const isMobile = useIsMobile()
 
   const project = MINI_PROJECTS.find((p) => p.id === projectId)
 
@@ -35,6 +37,11 @@ export function MiniProjectDetailPage() {
       setCode(project.initialCode)
     }
   }, [user, project])
+
+  const milestoneKeywords = useMemo(
+    () => project?.milestones.flatMap((m) => m.requiredKeywords) ?? [],
+    [project?.milestones],
+  )
 
   useEffect(() => {
     void loadProgress()
@@ -174,7 +181,8 @@ export function MiniProjectDetailPage() {
                   setSubmitResult(null)
                 }}
                 language="typescript"
-                height="520px"
+                height={isMobile ? 'min(50vh, 300px)' : '520px'}
+                toolbarKeywords={milestoneKeywords}
               />
             </div>
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { CodeEditor } from '../components/CodeEditor'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useIsMobile } from '../hooks/useIsMobile'
 import { getProblemProgressMap, submitDoctorSolution } from '../services/codeDoctorService'
 import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
 import { ProblemCard } from '../features/code-doctor/components/ProblemCard'
@@ -29,6 +30,7 @@ export function CodeDoctorPage() {
   useDocumentTitle('コードドクター')
 
   const { user } = useAuth()
+  const isMobile = useIsMobile()
 
   const [progressMap, setProgressMap] = useState<Map<string, CodeDoctorProgress>>(new Map())
   const [filter, setFilter] = useState<FilterValue>('all')
@@ -197,14 +199,15 @@ export function CodeDoctorPage() {
               )}
             </div>
 
-            {/* Monaco エディタ */}
+            {/* コードエディタ */}
             <div className="flex min-w-0 flex-1 flex-col gap-4">
               <div className="overflow-hidden rounded-xl border border-border">
                 <CodeEditor
                   value={code}
                   onChange={(v) => { setCode(v); setResult(null) }}
                   language="typescript"
-                  height="480px"
+                  height={isMobile ? 'min(50vh, 300px)' : '480px'}
+                  toolbarKeywords={selectedProblem.requiredKeywords}
                 />
               </div>
 
