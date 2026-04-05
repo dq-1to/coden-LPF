@@ -14,13 +14,13 @@ export default function CustomHookPreview() {
     <div className="space-y-3">
       <div className="flex gap-3">
         <button
-          className={`rounded-lg px-4 py-2 text-sm font-medium active:scale-95 ${isDark ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-800'}`}
+          className={`rounded-lg px-4 py-2 min-h-[44px] text-sm font-medium active:scale-95 ${isDark ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-800'}`}
           onClick={toggleDark}
         >
           {isDark ? '🌙 Dark' : '☀️ Light'}
         </button>
         <button
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 active:scale-95"
+          className="rounded-lg bg-blue-600 px-4 py-2 min-h-[44px] text-sm font-medium text-white hover:bg-blue-700 active:scale-95"
           onClick={toggleOpen}
         >
           {isOpen ? 'パネルを閉じる' : 'パネルを開く'}

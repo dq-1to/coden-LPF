@@ -21,7 +21,7 @@ export default function ApiCounterGetPreview() {
         <p className="text-2xl font-bold text-slate-800">{count}</p>
       )}
       <button
-        className="rounded-lg bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700 active:scale-95"
+        className="rounded-lg bg-blue-600 px-3 py-2 min-h-[44px] text-sm font-medium text-white hover:bg-blue-700 active:scale-95"
         onClick={() => {
           setLoading(true)
           setTimeout(() => {

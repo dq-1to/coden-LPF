@@ -22,7 +22,7 @@ export default function ListPreview() {
             <span className="text-emerald-500">•</span>
             {fruit}
             <button
-              className="text-xs text-rose-400 hover:text-rose-600"
+              className="min-h-[44px] px-2 py-1 text-xs text-rose-400 hover:text-rose-600"
               onClick={() => setFruits((prev) => prev.filter((_, j) => j !== i))}
             >
               削除
@@ -32,14 +32,14 @@ export default function ListPreview() {
       </ul>
       <div className="flex gap-2">
         <input
-          className="rounded border border-slate-300 px-2 py-1 text-sm"
+          className="rounded border border-slate-300 px-3 py-2 min-h-[44px] text-sm"
           placeholder="フルーツ名"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
         />
         <button
-          className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 active:scale-95"
+          className="rounded-lg bg-emerald-600 px-3 py-2 min-h-[44px] text-sm font-medium text-white hover:bg-emerald-700 active:scale-95"
           onClick={handleAdd}
         >
           追加
