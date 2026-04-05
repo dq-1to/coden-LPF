@@ -24,6 +24,14 @@ vi.mock('@codemirror/view', () => ({
   },
 }))
 
+vi.mock('@/hooks/useIsMobile', () => ({
+  useIsMobile: () => false,
+}))
+
+vi.mock('../CodeToolbar', () => ({
+  CodeToolbar: () => null,
+}))
+
 import { CodeEditor } from '../CodeEditor'
 
 /** モックの最新呼び出しから props を取得 */
