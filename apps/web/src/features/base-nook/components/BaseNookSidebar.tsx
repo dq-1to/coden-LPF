@@ -26,7 +26,7 @@ export function BaseNookSidebar({ topics, progressMap }: BaseNookSidebarProps) {
           <li key={topic.id}>
             <Link
               to={`/base-nook/${topic.id}`}
-              className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm transition-colors hover:bg-sky-50 hover:text-sky-700"
+              className="flex min-h-[44px] items-center gap-2 rounded-lg px-2.5 py-2 text-sm transition-colors hover:bg-sky-50 hover:text-sky-700"
             >
               <IconComponent size={14} className="shrink-0 text-slate-400" aria-hidden="true" />
               <span className="min-w-0 flex-1 truncate text-text-dark">{topic.title}</span>
@@ -57,7 +57,7 @@ export function BaseNookSidebar({ topics, progressMap }: BaseNookSidebarProps) {
         <button
           type="button"
           onClick={() => setIsOpen((v) => !v)}
-          className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-text-dark"
+          className="flex w-full min-h-[44px] items-center justify-between px-4 py-3 text-sm font-medium text-text-dark"
           aria-expanded={isOpen}
         >
           {isOpen ? '目次を閉じる' : '目次を見る'}
