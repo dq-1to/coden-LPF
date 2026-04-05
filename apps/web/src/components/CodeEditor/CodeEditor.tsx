@@ -1,10 +1,11 @@
-import { useMemo, useRef, useCallback, forwardRef, useImperativeHandle } from 'react'
+import { useMemo, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react'
 import CodeMirror, { type ReactCodeMirrorRef } from '@uiw/react-codemirror'
 import { javascript } from '@codemirror/lang-javascript'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { EditorView } from '@codemirror/view'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { CodeToolbar } from './CodeToolbar'
+import { setHighlightLines, highlightLinesField, buggyLineTheme } from './highlightLinesExtension'
 
 export interface CodeEditorHandle {
   /** カーソル位置にテキストを挿入する（ツールバー連携用） */
@@ -19,6 +20,8 @@ interface CodeEditorProps {
   height?: string
   className?: string
   toolbarKeywords?: string[]
+  /** バグ行ハイライト（1-indexed 行番号配列） */
+  highlightLines?: number[]
 }
 
 const fontSizeTheme = EditorView.theme({
@@ -27,16 +30,28 @@ const fontSizeTheme = EditorView.theme({
 })
 
 export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEditor(
-  { value, onChange, language = 'typescript', readOnly = false, height = '400px', className, toolbarKeywords },
+  { value, onChange, language = 'typescript', readOnly = false, height = '400px', className, toolbarKeywords, highlightLines },
   ref,
 ) {
   const isMobile = useIsMobile()
   const cmRef = useRef<ReactCodeMirrorRef>(null)
 
   const extensions = useMemo(
-    () => [javascript({ typescript: language === 'typescript', jsx: true }), fontSizeTheme],
+    () => [
+      javascript({ typescript: language === 'typescript', jsx: true }),
+      fontSizeTheme,
+      highlightLinesField,
+      buggyLineTheme,
+    ],
     [language],
   )
+
+  // highlightLines 変更時に Effect を発火
+  useEffect(() => {
+    const view = cmRef.current?.view
+    if (!view) return
+    view.dispatch({ effects: setHighlightLines.of(highlightLines ?? []) })
+  }, [highlightLines])
 
   const insertAtCursor = useCallback((text: string, cursorOffset?: number) => {
     const view = cmRef.current?.view
