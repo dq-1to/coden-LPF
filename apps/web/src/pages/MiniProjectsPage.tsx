@@ -73,7 +73,7 @@ export function MiniProjectsPage() {
                   type="button"
                   onClick={() => setFilter(value)}
                   className={[
-                    'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
+                    'rounded-full px-4 py-2.5 min-h-[44px] text-sm font-medium transition-colors',
                     filter === value
                       ? 'bg-amber-500 text-white'
                       : 'border border-border text-text-muted hover:border-amber-400 hover:text-amber-600',

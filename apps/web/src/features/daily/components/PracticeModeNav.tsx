@@ -51,7 +51,7 @@ export function PracticeModeNav() {
               key={path}
               to={path}
               className={[
-                'flex flex-1 items-center justify-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors',
+                'flex flex-1 items-center justify-center gap-1.5 rounded-full px-3.5 py-2.5 min-h-[44px] text-sm font-medium transition-colors',
                 isActive
                   ? 'bg-amber-500 text-white'
                   : 'border border-slate-200 bg-white text-text-muted hover:border-amber-400 hover:text-amber-600',
