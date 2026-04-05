@@ -35,7 +35,7 @@ export default function ApiTaskCreatePreview() {
           onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
         />
         <button
-          className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+          className="rounded-lg bg-emerald-600 px-3 py-2 min-h-[44px] text-sm font-medium text-white hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
           onClick={handleCreate}
           disabled={sending}
         >

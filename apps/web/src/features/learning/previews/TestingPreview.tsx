@@ -26,7 +26,7 @@ export default function TestingPreview() {
       </div>
       <div className="flex items-center gap-3">
         <button
-          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+          className="rounded-lg bg-emerald-600 px-4 py-2 min-h-[44px] text-sm font-medium text-white hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
           onClick={runTests}
           disabled={running}
         >

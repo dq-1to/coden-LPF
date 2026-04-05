@@ -41,13 +41,13 @@ export default function ApiCustomHookPreview() {
         {tasks.map((t) => (
           <li key={t.id} className="flex items-center gap-2 text-sm">
             <button
-              className={`text-xs ${t.done ? 'text-emerald-500' : 'text-slate-300'}`}
+              className={`min-h-[44px] px-2 py-1 text-xs ${t.done ? 'text-emerald-500' : 'text-slate-300'}`}
               onClick={() => toggleTask(t.id)}
             >
               {t.done ? '✓' : '○'}
             </button>
             <span className={t.done ? 'text-slate-400 line-through' : 'text-slate-700'}>{t.title}</span>
-            <button className="text-xs text-rose-400 hover:text-rose-600" onClick={() => deleteTask(t.id)}>
+            <button className="min-h-[44px] px-2 py-1 text-xs text-rose-400 hover:text-rose-600" onClick={() => deleteTask(t.id)}>
               ✗
             </button>
           </li>
@@ -62,7 +62,7 @@ export default function ApiCustomHookPreview() {
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
         />
         <button
-          className="rounded-lg bg-emerald-600 px-3 py-1 text-sm font-medium text-white hover:bg-emerald-700 active:scale-95"
+          className="rounded-lg bg-emerald-600 px-3 py-2 min-h-[44px] text-sm font-medium text-white hover:bg-emerald-700 active:scale-95"
           onClick={handleAdd}
         >
           追加

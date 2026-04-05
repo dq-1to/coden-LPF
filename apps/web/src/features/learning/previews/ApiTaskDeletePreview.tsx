@@ -31,7 +31,7 @@ export default function ApiTaskDeletePreview() {
             <li key={t.id} className="flex items-center gap-2 text-sm">
               <span className="text-slate-700">{t.title}</span>
               <button
-                className="text-xs text-rose-400 hover:text-rose-600 disabled:opacity-50"
+                className="min-h-[44px] px-2 py-1 text-xs text-rose-400 hover:text-rose-600 active:text-rose-700 disabled:opacity-50"
                 onClick={() => handleDelete(t.id)}
                 disabled={deleting === t.id}
               >
@@ -43,7 +43,7 @@ export default function ApiTaskDeletePreview() {
       )}
       {tasks.length < initial.length && (
         <button
-          className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-600 hover:bg-slate-100"
+          className="rounded-lg border border-slate-300 px-3 py-1 min-h-[44px] text-sm text-slate-600 hover:bg-slate-100"
           onClick={() => setTasks(initial)}
         >
           リセット

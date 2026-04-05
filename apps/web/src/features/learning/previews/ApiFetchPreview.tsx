@@ -44,7 +44,7 @@ export default function ApiFetchPreview() {
         </ul>
       )}
       <button
-        className="rounded-lg bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700 active:scale-95"
+        className="rounded-lg bg-blue-600 px-3 py-2 min-h-[44px] text-sm font-medium text-white hover:bg-blue-700 active:scale-95"
         onClick={handleRefresh}
       >
         再取得

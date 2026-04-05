@@ -19,13 +19,13 @@ export default function PerformancePreview() {
       </div>
       <div className="flex gap-2">
         <button
-          className="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 active:scale-95"
+          className="rounded-lg bg-emerald-600 px-3 py-2 min-h-[44px] text-sm font-medium text-white hover:bg-emerald-700 active:scale-95"
           onClick={() => setCount((c) => c + 10)}
         >
           計算量を増やす ({count})
         </button>
         <button
-          className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 active:scale-95"
+          className="rounded-lg bg-indigo-600 px-3 py-2 min-h-[44px] text-sm font-medium text-white hover:bg-indigo-700 active:scale-95"
           onClick={() => setColor((c) => (c === 'emerald' ? 'blue' : 'emerald'))}
         >
           色を切替

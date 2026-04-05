@@ -35,7 +35,7 @@ export default function ContextPreview() {
           <ThemedBadge />
         </div>
         <button
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 active:scale-95"
+          className="rounded-lg bg-indigo-600 px-4 py-2 min-h-[44px] text-sm font-medium text-white hover:bg-indigo-700 active:scale-95"
           onClick={() => setTheme((t) => (t === 'light' ? 'dark' : 'light'))}
         >
           テーマ切替

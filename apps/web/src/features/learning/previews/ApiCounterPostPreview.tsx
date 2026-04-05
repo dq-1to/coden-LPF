@@ -17,7 +17,7 @@ export default function ApiCounterPostPreview() {
       <p className="text-xs font-medium text-slate-500">POST /api/counter</p>
       <p className="text-2xl font-bold text-slate-800">{count}</p>
       <button
-        className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+        className="rounded-lg bg-emerald-600 px-4 py-2 min-h-[44px] text-sm font-medium text-white hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
         onClick={handleIncrement}
         disabled={sending}
       >

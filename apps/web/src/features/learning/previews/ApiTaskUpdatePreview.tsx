@@ -27,7 +27,7 @@ export default function ApiTaskUpdatePreview() {
         {tasks.map((t) => (
           <li key={t.id} className="flex items-center gap-2 text-sm">
             <button
-              className={`rounded px-2 py-0.5 text-xs font-medium ${t.done ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'} ${updating === t.id ? 'opacity-50' : 'hover:opacity-80'}`}
+              className={`rounded px-2 py-2 min-h-[44px] text-xs font-medium ${t.done ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'} ${updating === t.id ? 'opacity-50' : 'hover:opacity-80'}`}
               onClick={() => handleToggle(t.id)}
               disabled={updating === t.id}
             >
