@@ -78,10 +78,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
     `pb-1 ${active ? 'border-b-2 border-primary-mint text-slate-900' : 'text-slate-500 hover:text-slate-700'}`
 
   const drawerLinkClass = (active: boolean) =>
-    `block rounded-lg px-3 py-2.5 text-base font-medium transition ${active ? 'bg-secondary-bg text-primary-dark' : 'text-slate-700 hover:bg-slate-50'}`
-
-  const drawerSubLinkClass =
-    'block rounded-lg px-3 py-2 pl-6 text-sm text-slate-600 transition hover:bg-slate-50'
+    `flex min-h-[44px] items-center rounded-lg px-3 text-base font-medium transition ${active ? 'bg-secondary-bg text-primary-dark' : 'text-slate-700 hover:bg-slate-50'}`
 
   return (
     <>
@@ -193,49 +190,40 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
       </div>
     </header>
 
-    {/* モバイルドロワー — header 外に配置し z-50 がグローバルに効くようにする */}
+    {/* モバイルドロワー — フルスクリーン */}
     {isDrawerOpen ? (
-      <div className="fixed inset-0 z-50 md:hidden">
-        {/* オーバーレイ */}
-        <div
-          className="absolute inset-0 bg-black/30 transition-opacity"
-          onClick={closeDrawer}
-          aria-hidden="true"
-        />
+      <nav
+        className="fixed inset-0 z-50 flex flex-col bg-white md:hidden"
+        aria-label="モバイルナビゲーション"
+      >
+        {/* ヘッダー */}
+        <div className="flex h-16 items-center justify-between border-b border-slate-200 px-4">
+          <span className="text-sm font-semibold text-slate-900">メニュー</span>
+          <button
+            className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
+            type="button"
+            onClick={closeDrawer}
+            aria-label="メニューを閉じる"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
-        {/* ドロワーパネル */}
-        <nav
-          className="absolute right-0 top-0 flex h-full w-72 flex-col bg-white shadow-xl transition-transform duration-300"
-          aria-label="モバイルナビゲーション"
-        >
-          {/* ヘッダー */}
-          <div className="flex h-16 items-center justify-between border-b border-slate-200 px-4">
-            <span className="text-sm font-semibold text-slate-900">メニュー</span>
-            <button
-              className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100"
-              type="button"
-              onClick={closeDrawer}
-              aria-label="メニューを閉じる"
-            >
-              <X className="h-5 w-5" />
-            </button>
+        {/* ユーザー情報 */}
+        <div className="border-b border-slate-100 px-4 py-4">
+          <p className="font-semibold text-slate-900">{displayName}</p>
+          <div className="mt-1 flex items-center gap-3 text-sm text-slate-500">
+            <span><Gem className="inline-block h-3.5 w-3.5 text-amber-600" aria-hidden="true" /> {stats?.total_points ?? 0} Pt</span>
+            <span aria-hidden="true">·</span>
+            <span><Flame className="inline-block h-3.5 w-3.5 text-primary-mint" aria-hidden="true" /> {stats?.current_streak ?? 0}日連続</span>
           </div>
+        </div>
 
-          {/* ユーザー情報 */}
+        {/* ナビゲーションリンク */}
+        <div className="flex-1 overflow-y-auto">
+          {/* メイン */}
           <div className="border-b border-slate-100 px-4 py-3">
-            <div className="text-sm font-medium text-slate-900">{displayName}</div>
-            <div className="mt-1.5 flex items-center gap-2">
-              <span className="rounded-full border border-amber-300/30 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                <Gem className="inline-block h-3.5 w-3.5" /> {stats?.total_points ?? 0} Pt
-              </span>
-              <span className="rounded-full border border-primary-mint/30 bg-secondary-bg px-2 py-0.5 text-xs font-semibold text-primary-dark">
-                <Flame className="inline-block h-3.5 w-3.5" /> {stats?.current_streak ?? 0}日連続
-              </span>
-            </div>
-          </div>
-
-          {/* ナビゲーションリンク */}
-          <div className="flex-1 overflow-y-auto px-3 py-3">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">メイン</p>
             <Link
               to="/"
               className={drawerLinkClass(location.pathname === '/')}
@@ -243,7 +231,6 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
             >
               ダッシュボード
             </Link>
-
             <Link
               to="/curriculum"
               className={drawerLinkClass(isCurriculumActive)}
@@ -251,25 +238,40 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
             >
               カリキュラム
             </Link>
+          </div>
 
-            {/* カテゴリ */}
-            <div className="ml-2 border-l border-slate-200 pl-1">
-              {CATEGORIES.map((cat) => (
-                <Link key={cat.id} to={`/curriculum#${cat.id}`} className={drawerSubLinkClass}>
-                  {cat.title}
-                </Link>
-              ))}
-            </div>
+          {/* 学習コース */}
+          <div className="border-b border-slate-100 px-4 py-3">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">学習コース</p>
+            {CATEGORIES.map((cat) => (
+              <Link
+                key={cat.id}
+                to={`/curriculum#${cat.id}`}
+                className={drawerLinkClass(false)}
+              >
+                {cat.title}
+              </Link>
+            ))}
+          </div>
 
-            {/* 練習モード */}
-            <div className="mb-2 ml-2 border-l border-slate-200 pl-1">
-              {PRACTICE_LINKS.map((link) => (
-                <Link key={link.to} to={link.to} className={drawerSubLinkClass}>
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+          {/* 練習モード */}
+          <div className="border-b border-slate-100 px-4 py-3">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">練習モード</p>
+            {PRACTICE_LINKS.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={drawerLinkClass(location.pathname.startsWith(link.to))}
+                aria-current={location.pathname.startsWith(link.to) ? 'page' : undefined}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
 
+          {/* その他 */}
+          <div className="border-b border-slate-100 px-4 py-3">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">その他</p>
             {TOP_NAV_LINKS.map((link) => {
               const isActive = location.pathname.startsWith(link.pathPrefix)
               return (
@@ -284,19 +286,19 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
               )
             })}
           </div>
+        </div>
 
-          {/* ログアウトボタン */}
-          <div className="border-t border-slate-200 px-3 py-3">
-            <button
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-              type="button"
-              onClick={() => { closeDrawer(); onSignOut() }}
-            >
-              ログアウト
-            </button>
-          </div>
-        </nav>
-      </div>
+        {/* ログアウトボタン */}
+        <div className="border-t border-slate-200 px-4 py-3">
+          <button
+            className="flex min-h-[44px] w-full items-center justify-center rounded-lg border border-slate-300 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            type="button"
+            onClick={() => { closeDrawer(); onSignOut() }}
+          >
+            ログアウト
+          </button>
+        </div>
+      </nav>
     ) : null}
     </>
   )
