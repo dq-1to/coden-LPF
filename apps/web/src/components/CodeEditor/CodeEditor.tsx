@@ -6,6 +6,7 @@ import { EditorView } from '@codemirror/view'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { CodeToolbar } from './CodeToolbar'
 import { setHighlightLines, highlightLinesField, buggyLineTheme } from './highlightLinesExtension'
+import { setEditableRange, editableRangeField, editableRangeState, editableRangeFilter, editableRangeTheme } from './editableRangeExtension'
 
 export interface CodeEditorHandle {
   /** カーソル位置にテキストを挿入する（ツールバー連携用） */
@@ -22,6 +23,8 @@ interface CodeEditorProps {
   toolbarKeywords?: string[]
   /** バグ行ハイライト（1-indexed 行番号配列） */
   highlightLines?: number[]
+  /** 編集可能行範囲（1-indexed）。範囲外はグレーアウト＋編集不可 */
+  editableLineRange?: { startLine: number; endLine: number }
 }
 
 const fontSizeTheme = EditorView.theme({
@@ -30,7 +33,7 @@ const fontSizeTheme = EditorView.theme({
 })
 
 export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function CodeEditor(
-  { value, onChange, language = 'typescript', readOnly = false, height = '400px', className, toolbarKeywords, highlightLines },
+  { value, onChange, language = 'typescript', readOnly = false, height = '400px', className, toolbarKeywords, highlightLines, editableLineRange },
   ref,
 ) {
   const isMobile = useIsMobile()
@@ -42,6 +45,10 @@ export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function
       fontSizeTheme,
       highlightLinesField,
       buggyLineTheme,
+      editableRangeField,
+      editableRangeState,
+      editableRangeFilter,
+      editableRangeTheme,
     ],
     [language],
   )
@@ -52,6 +59,13 @@ export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(function
     if (!view) return
     view.dispatch({ effects: setHighlightLines.of(highlightLines ?? []) })
   }, [highlightLines])
+
+  // editableLineRange 変更時に Effect を発火（readOnly 時は無視）
+  useEffect(() => {
+    const view = cmRef.current?.view
+    if (!view || readOnly) return
+    view.dispatch({ effects: setEditableRange.of(editableLineRange ?? null) })
+  }, [editableLineRange, readOnly])
 
   const insertAtCursor = useCallback((text: string, cursorOffset?: number) => {
     const view = cmRef.current?.view

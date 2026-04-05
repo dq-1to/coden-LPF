@@ -19,6 +19,7 @@ vi.mock('@codemirror/theme-one-dark', () => ({
 }))
 
 vi.mock('@codemirror/state', () => ({
+  EditorState: { changeFilter: { of: vi.fn(() => []) } },
   StateEffect: { define: vi.fn(() => ({ of: vi.fn() })) },
   StateField: { define: vi.fn(() => []) },
 }))

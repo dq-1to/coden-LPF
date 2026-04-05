@@ -6,6 +6,10 @@ export interface MiniProjectMilestone {
   title: string
   description: string
   requiredKeywords: string[]
+  /** マイルストーン開始時のスキャフォールドコード（省略時は initialCode を使用） */
+  scaffoldCode?: string
+  /** モバイルガイドモード: 編集可能行範囲（1-indexed） */
+  editableRange?: { startLine: number; endLine: number }
 }
 
 export interface MiniProject {
