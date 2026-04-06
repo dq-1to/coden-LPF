@@ -47,7 +47,7 @@ describe('ReadingCard', () => {
       completedAt: '2026-04-01T10:00:00Z',
     }
     render(<ReadingCard problem={problem} progress={progress} onClick={vi.fn()} />)
-    expect(screen.getByText('✅ 3/3')).toBeTruthy()
+    expect(screen.getByText((_content, element) => element?.textContent === '✅ 3/3')).toBeTruthy()
   })
 
   it('途中の場合に進捗が表示される', () => {
@@ -59,7 +59,7 @@ describe('ReadingCard', () => {
       completedAt: null,
     }
     render(<ReadingCard problem={problem} progress={progress} onClick={vi.fn()} />)
-    expect(screen.getByText('🔄 1/3 正解')).toBeTruthy()
+    expect(screen.getByText((_content, element) => element?.textContent === '🔄 1/3 正解')).toBeTruthy()
   })
 
   it('クリックでコールバックが呼ばれる', () => {

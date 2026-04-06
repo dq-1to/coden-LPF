@@ -1,6 +1,7 @@
 import { BookOpenCheck, ChevronRight } from 'lucide-react'
 import * as Icons from 'lucide-react'
 import type { BaseNookTopic, TopicProgressSummary } from '../../../content/base-nook/types'
+import { POINTS_BASE_NOOK_CORRECT } from '../../../shared/constants'
 
 interface TopicCardProps {
   topic: BaseNookTopic
@@ -12,7 +13,7 @@ export function TopicCard({ topic, progress, onClick }: TopicCardProps) {
   const totalQuestions = topic.questions.length
   const correctCount = progress?.correctCount ?? 0
   const isComplete = correctCount >= totalQuestions
-  const earnedPt = correctCount * 5
+  const earnedPt = correctCount * POINTS_BASE_NOOK_CORRECT
 
   // アイコンを動的に解決する
   const IconComponent = (Icons as Record<string, Icons.LucideIcon>)[topic.icon] ?? Icons.HelpCircle
@@ -58,7 +59,7 @@ export function TopicCard({ topic, progress, onClick }: TopicCardProps) {
         </div>
         <div className="flex items-center justify-between text-xs text-slate-400">
           <span>{earnedPt > 0 ? `${earnedPt} pt` : '--'}</span>
-          <span className="flex items-center gap-0.5 font-medium text-amber-600 opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100">
+          <span className="flex items-center gap-0.5 font-medium text-amber-600 opacity-0 transition-opacity group-hover:opacity-100">
             学ぶ <ChevronRight size={14} aria-hidden="true" />
           </span>
         </div>

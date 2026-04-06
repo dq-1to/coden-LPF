@@ -1,25 +1,26 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BookOpen } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useGreetingName } from '../hooks/useGreetingName'
+import { useSignOut } from '../hooks/useSignOut'
 import { getAllProgress } from '../services/baseNookService'
-import { getProfile } from '../services/profileService'
 import { BASE_NOOK_TOPICS } from '../content/base-nook/topics'
 import { TopicCard } from '../features/base-nook/components/TopicCard'
 import { BaseNookSidebar } from '../features/base-nook/components/BaseNookSidebar'
 import { Pagination } from '../components/Pagination'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
-import { getDisplayName } from '../shared/utils/getDisplayName'
 import type { TopicProgressSummary } from '../content/base-nook/types'
 
 const ITEMS_PER_PAGE = 9
 
 export function BaseNookPage() {
   useDocumentTitle('Base Nook')
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
-  const [displayName, setDisplayName] = useState<string | null>(null)
+  const { greetingName } = useGreetingName()
+  const handleSignOut = useSignOut()
 
   const [progressList, setProgressList] = useState<TopicProgressSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -33,13 +34,9 @@ export function BaseNookPage() {
 
     async function load() {
       try {
-        const [list, profile] = await Promise.all([
-          getAllProgress(userId),
-          getProfile(userId),
-        ])
+        const list = await getAllProgress(userId)
         if (!isMounted) return
         setProgressList(list)
-        if (profile) setDisplayName(profile.display_name)
       } catch (e) {
         if (!isMounted) return
         setError(e instanceof Error ? e.message : '進捗の取得に失敗しました')
@@ -51,21 +48,6 @@ export function BaseNookPage() {
     void load()
     return () => { isMounted = false }
   }, [user])
-
-  const greetingName = useMemo(
-    () =>
-      getDisplayName(
-        user
-          ? { ...user, user_metadata: { ...user.user_metadata, display_name: displayName ?? user.user_metadata?.display_name } }
-          : null,
-      ),
-    [user, displayName],
-  )
-
-  const handleSignOut = useCallback(async () => {
-    const err = await signOut()
-    if (!err) navigate('/login', { replace: true })
-  }, [signOut, navigate])
 
   // topicId → progress のルックアップ
   const progressMap = new Map(progressList.map((p) => [p.topicId, p]))
@@ -108,7 +90,7 @@ export function BaseNookPage() {
           {/* メインコンテンツ */}
           <div className="min-w-0 flex-1">
             {isLoading ? (
-              <div className="flex justify-center py-20">
+              <div className="flex justify-center py-20" role="status" aria-label="読み込み中">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-sky-200 border-t-sky-500" />
               </div>
             ) : (

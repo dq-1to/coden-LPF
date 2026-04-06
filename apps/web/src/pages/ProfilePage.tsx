@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Lock, Trophy } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useGreetingName } from '../hooks/useGreetingName'
+import { useSignOut } from '../hooks/useSignOut'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { useAchievementContext } from '../contexts/AchievementContext'
@@ -10,44 +12,31 @@ import { useLearningContext } from '../contexts/LearningContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { supabaseConfigError } from '../lib/supabaseClient'
 import { BADGE_DEFINITIONS } from '../services/achievementService'
-import { getPointHistory, getProfile, upsertDisplayName, type PointHistoryRecord } from '../services/profileService'
+import { getPointHistory, upsertDisplayName, type PointHistoryRecord } from '../services/profileService'
 import { Spinner } from '../components/Spinner'
 import { formatDateTime, formatStudyDate } from '../shared/utils/dateTime'
-import { getDisplayName } from '../shared/utils/getDisplayName'
 
 export function ProfilePage() {
   useDocumentTitle('プロフィール')
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const { stats, completedStepsCount } = useLearningContext()
   const { unlockedBadgeIds, isLoadingAchievements } = useAchievementContext()
-  const navigate = useNavigate()
   const userId = user?.id ?? null
+  const { greetingName: headerDisplayName, displayName, setDisplayName } = useGreetingName()
 
-  const [displayName, setDisplayName] = useState<string | null>(null)
   const [displayNameInput, setDisplayNameInput] = useState('')
   const [pointHistory, setPointHistory] = useState<PointHistoryRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSavingDisplayName, setIsSavingDisplayName] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  const [showUnearned, setShowUnearned] = useState(false)
 
-  const headerDisplayName = useMemo(
-    () =>
-      getDisplayName(
-        user
-          ? {
-              ...user,
-              user_metadata: {
-                ...user.user_metadata,
-                display_name: displayName ?? user.user_metadata?.display_name,
-              },
-            }
-          : null,
-      ),
-    [displayName, user],
-  )
+  // displayName が取得されたら入力フィールドを同期
+  useEffect(() => {
+    setDisplayNameInput(displayName ?? '')
+  }, [displayName])
 
+  // ポイント履歴の取得
   useEffect(() => {
     if (!userId || supabaseConfigError) {
       setIsLoading(false)
@@ -58,15 +47,12 @@ export function ProfilePage() {
     setIsLoading(true)
     setError(null)
 
-    Promise.all([getProfile(userId), getPointHistory(userId, 30)])
-      .then(([profile, history]) => {
+    getPointHistory(userId, 30)
+      .then((history) => {
         if (!isMounted) {
           return
         }
 
-        const currentDisplayName = profile?.display_name ?? null
-        setDisplayName(currentDisplayName)
-        setDisplayNameInput(currentDisplayName ?? '')
         setPointHistory(history)
       })
       .catch((loadError) => {
@@ -74,7 +60,7 @@ export function ProfilePage() {
           return
         }
 
-        const message = loadError instanceof Error ? loadError.message : 'プロフィール情報の取得に失敗しました。'
+        const message = loadError instanceof Error ? loadError.message : 'ポイント履歴の取得に失敗しました。'
         setError(message)
       })
       .finally(() => {
@@ -88,15 +74,8 @@ export function ProfilePage() {
     }
   }, [userId])
 
-  async function handleSignOut() {
-    const signOutError = await signOut()
-    if (signOutError) {
-      setError(signOutError)
-      return
-    }
-
-    navigate('/login', { replace: true })
-  }
+  const onSignOutError = useCallback((msg: string) => setError(msg), [])
+  const handleSignOut = useSignOut(onSignOutError)
 
   async function handleDisplayNameSave() {
     if (!userId) {
@@ -144,12 +123,14 @@ export function ProfilePage() {
         {notice ? <ErrorBanner variant="success">{notice}</ErrorBanner> : null}
 
         <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-          <div>
-            <Link to="/" className="mb-2 flex items-center gap-1 text-sm text-text-muted hover:text-text-dark">
-              ← ダッシュボードへ戻る
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary-mint">Profile</p>
+              <h1 className="mt-1 text-2xl font-bold text-text-dark">プロフィール</h1>
+            </div>
+            <Link className="text-sm font-semibold text-primary-dark underline" to="/">
+              ダッシュボードへ戻る
             </Link>
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary-mint">Profile</p>
-            <h1 className="mt-1 text-2xl font-bold text-text-dark">プロフィール</h1>
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
@@ -174,7 +155,7 @@ export function ProfilePage() {
           </div>
         </section>
 
-        <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wide text-text-light">総ポイント</p>
             <p className="mt-2 text-2xl font-black text-amber-600">{stats?.total_points ?? 0} Pt</p>
@@ -201,68 +182,44 @@ export function ProfilePage() {
               {unlockedBadgeIds.length} / {BADGE_DEFINITIONS.length} 獲得
             </span>
           </div>
-          {isLoadingAchievements ? <p className="mb-3 text-xs text-text-light">バッジ状態を更新中...</p> : null}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {BADGE_DEFINITIONS.filter((b) => unlockedBadgeIds.includes(b.id)).map((badge) => (
-              <article
-                key={badge.id}
-                className="rounded-xl border border-amber-200 bg-amber-50 p-4"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-sm font-bold text-amber-900">{badge.name}</h3>
-                  <span className="text-lg"><Trophy className="h-5 w-5 text-amber-600" /></span>
-                </div>
-                <p className="mt-1 text-xs text-amber-700">{badge.description}</p>
-              </article>
-            ))}
-            {showUnearned && BADGE_DEFINITIONS.filter((b) => !unlockedBadgeIds.includes(b.id)).map((badge) => (
-              <article
-                key={badge.id}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-4 opacity-40 grayscale"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-sm font-bold text-slate-600">{badge.name}</h3>
-                  <span className="text-lg"><Lock className="h-5 w-5 text-slate-400" /></span>
-                </div>
-                <p className="mt-1 text-xs text-slate-500">{badge.description}</p>
-              </article>
-            ))}
+          {isLoadingAchievements ? <p className="mb-3 text-xs text-text-light" role="status" aria-live="polite">バッジ状態を更新中...</p> : null}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {BADGE_DEFINITIONS.map((badge) => {
+              const unlocked = unlockedBadgeIds.includes(badge.id)
+              return (
+                <article
+                  key={badge.id}
+                  className={`rounded-xl border p-4 ${unlocked ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-slate-50 opacity-70'
+                    }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className={`text-sm font-bold ${unlocked ? 'text-amber-900' : 'text-slate-600'}`}>{badge.name}</h3>
+                    <span className="text-lg">{unlocked ? <Trophy className="h-5 w-5 text-amber-600" aria-hidden="true" /> : <Lock className="h-5 w-5 text-slate-400" aria-hidden="true" />}</span>
+                  </div>
+                  <p className={`mt-1 text-xs ${unlocked ? 'text-amber-700' : 'text-slate-500'}`}>{badge.description}</p>
+                </article>
+              )
+            })}
           </div>
-          {BADGE_DEFINITIONS.filter((b) => !unlockedBadgeIds.includes(b.id)).length > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowUnearned(!showUnearned)}
-              className="mt-3 text-sm text-text-muted hover:text-text-dark"
-            >
-              {showUnearned ? '未獲得を隠す' : `未獲得を表示（${BADGE_DEFINITIONS.filter((b) => !unlockedBadgeIds.includes(b.id)).length}個）`}
-            </button>
-          )}
         </section>
 
         <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-          <details className="group">
-            <summary className="flex cursor-pointer list-none items-center justify-between py-1 text-lg font-bold text-text-dark">
-              ポイント履歴
-              <span className="text-sm text-text-muted transition-transform group-open:rotate-180">▼</span>
-            </summary>
-            <div className="mt-3">
-              {isLoading ? <Spinner size="sm" label="履歴を読み込み中..." /> : null}
-              {!isLoading && pointHistory.length === 0 ? <p className="text-sm text-text-light">ポイント履歴はまだありません。</p> : null}
-              {pointHistory.length > 0 ? (
-                <ul className="divide-y divide-slate-100">
-                  {pointHistory.map((entry) => (
-                    <li key={entry.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                      <div>
-                        <p className="text-sm font-medium text-text-dark">{entry.reason}</p>
-                        <p className="text-xs text-text-light">{formatDateTime(entry.created_at)}</p>
-                      </div>
-                      <p className="text-sm font-bold text-primary-dark">+{entry.amount} Pt</p>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
-          </details>
+          <h2 className="mb-4 text-lg font-bold text-text-dark">ポイント履歴</h2>
+          {isLoading ? <Spinner size="sm" label="履歴を読み込み中..." /> : null}
+          {!isLoading && pointHistory.length === 0 ? <p className="text-sm text-text-light">ポイント履歴はまだありません。</p> : null}
+          {pointHistory.length > 0 ? (
+            <ul className="divide-y divide-slate-100">
+              {pointHistory.map((entry) => (
+                <li key={entry.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <div>
+                    <p className="text-sm font-medium text-text-dark">{entry.reason}</p>
+                    <p className="text-xs text-text-light">{formatDateTime(entry.created_at)}</p>
+                  </div>
+                  <p className="text-sm font-bold text-primary-dark">+{entry.amount} Pt</p>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </section>
       </main>
     </div>

@@ -22,6 +22,11 @@ vi.mock('../../contexts/AuthContext', () => ({
   }),
 }))
 
+vi.mock('../../lib/supabaseClient', () => ({
+  supabaseConfigError: null,
+  supabase: {},
+}))
+
 describe('SignUpPage', () => {
   afterEach(() => {
     cleanup()
@@ -45,7 +50,8 @@ describe('SignUpPage', () => {
     await user.click(screen.getByRole('button', { name: 'アカウントを作成' }))
 
     expect(mockSignUp).not.toHaveBeenCalled()
-    expect(screen.getByRole('alert').textContent).toContain('正しいメールアドレスを入力してください。')
+    const alerts = screen.getAllByRole('alert')
+    expect(alerts.some((el) => el.textContent?.includes('正しいメールアドレスを入力してください。'))).toBe(true)
   })
 
   it('短すぎるパスワードでは送信せずエラーを表示する', async () => {
@@ -61,7 +67,8 @@ describe('SignUpPage', () => {
     await user.click(screen.getByRole('button', { name: 'アカウントを作成' }))
 
     expect(mockSignUp).not.toHaveBeenCalled()
-    expect(screen.getByRole('alert').textContent).toContain('パスワードは8文字以上で入力してください。')
+    const alerts = screen.getAllByRole('alert')
+    expect(alerts.some((el) => el.textContent?.includes('パスワードは8文字以上で入力してください。'))).toBe(true)
   })
 
   it('登録成功時にダッシュボードへ遷移する', async () => {

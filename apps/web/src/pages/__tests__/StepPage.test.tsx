@@ -136,17 +136,17 @@ describe('StepPage', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('button', { name: 'Read' }).getAttribute('aria-current')).toBe('step')
-    expect(screen.getByRole('button', { name: 'Practice' }).getAttribute('aria-current')).toBeNull()
+    expect(screen.getByRole('tab', { name: 'Read' }).getAttribute('aria-current')).toBe('step')
+    expect(screen.getByRole('tab', { name: 'Practice' }).getAttribute('aria-current')).toBeNull()
     expect(screen.getByRole('navigation', { name: 'パンくずリスト' }).textContent).toContain('カリキュラム')
     expect(screen.getByText('Step 1 / 40')).toBeTruthy()
     expect(screen.getAllByText('React基礎').length).toBeGreaterThan(0)
 
-    await user.click(screen.getByRole('button', { name: 'Practice' }))
+    await user.click(screen.getByRole('tab', { name: 'Practice' }))
 
-    expect(screen.getByRole('button', { name: 'Practice' }).getAttribute('aria-current')).toBe('step')
-    expect(screen.getByRole('button', { name: 'Read' }).getAttribute('aria-current')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Practice' }).className).toContain('min-h-11')
+    expect(screen.getByRole('tab', { name: 'Practice' }).getAttribute('aria-current')).toBe('step')
+    expect(screen.getByRole('tab', { name: 'Read' }).getAttribute('aria-current')).toBeNull()
+    expect(screen.getByRole('tab', { name: 'Practice' }).className).toContain('min-h-11')
   })
 
   it('Challenge タブで提出履歴を主要導線上に表示する', async () => {
@@ -179,7 +179,7 @@ describe('StepPage', () => {
       </MemoryRouter>,
     )
 
-    await user.click(screen.getAllByRole('button', { name: 'Challenge' })[0]!)
+    await user.click(screen.getAllByRole('tab', { name: 'Challenge' })[0]!)
 
     expect(screen.getByText('直近の提出履歴')).toBeTruthy()
     expect(screen.getByText('最新の提出')).toBeTruthy()
@@ -257,7 +257,7 @@ describe('StepPage', () => {
       </MemoryRouter>,
     )
 
-    await user.click(screen.getAllByRole('button', { name: 'Challenge' })[0]!)
+    await user.click(screen.getAllByRole('tab', { name: 'Challenge' })[0]!)
 
     learningStepState = {
       ...learningStepState,
@@ -359,7 +359,7 @@ describe('StepPage', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getAllByRole('button', { name: 'Practice' })[0]!.className).toContain('animate-pulseMint')
+      expect(screen.getAllByRole('tab', { name: 'Practice' })[0]!.className).toContain('animate-pulseMint')
     })
   })
 })

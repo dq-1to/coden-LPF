@@ -164,7 +164,7 @@ export function MiniProjectDetailPage() {
                 {submitResult.allPassed ? (
                   <>
                     <p className="font-semibold text-emerald-800">
-                      ✅ 全マイルストーン達成！
+                      <span aria-hidden="true">✅</span> 全マイルストーン達成！
                       {submitResult.pointsEarned > 0 && ` +${submitResult.pointsEarned} Pt`}
                     </p>
                     <p className="mt-1 text-xs text-emerald-700">
@@ -204,7 +204,7 @@ export function MiniProjectDetailPage() {
           <div className="flex min-w-0 flex-1 flex-col gap-4">
             {isCompleted && !submitResult && (
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-                ✅ このプロジェクトは完了済みです。コードを確認・編集できます。
+                <span aria-hidden="true">✅</span> このプロジェクトは完了済みです。コードを確認・編集できます。
               </div>
             )}
 
@@ -239,7 +239,7 @@ export function MiniProjectDetailPage() {
                 disabled={isSubmitting || isCompleted}
                 className="rounded-lg bg-amber-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isSubmitting ? '判定中...' : isCompleted ? '✅ 完了済み' : '判定する'}
+                {isSubmitting ? '判定中...' : isCompleted ? (<><span aria-hidden="true">✅</span> 完了済み</>) : '判定する'}
               </button>
               {isCompleted && (
                 <Link
