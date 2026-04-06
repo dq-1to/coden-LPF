@@ -115,7 +115,7 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
       {submissionError ? <ErrorBanner>{submissionError}</ErrorBanner> : null}
 
       {checked && !isPassed ? (
-        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4">
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4" role="alert">
           <p className="text-sm font-semibold text-rose-800">以下の要件が未達成です:</p>
           <ul className="mt-2 list-inside list-disc text-sm text-rose-700">
             {missingKeywords.map((keyword) => (

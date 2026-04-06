@@ -18,7 +18,7 @@ export default function FormPreview() {
         <p className="text-sm font-medium text-emerald-700">送信完了！</p>
         <p className="text-xs text-slate-600">名前: {name} / メール: {email}</p>
         <button
-          className="rounded-lg border border-slate-300 px-3 py-2 min-h-[44px] text-sm text-slate-700 hover:bg-slate-100"
+          className="rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-100"
           onClick={() => {
             setName('')
             setEmail('')
@@ -37,7 +37,7 @@ export default function FormPreview() {
         <label className="block text-xs font-medium text-slate-600">
           名前
           <input
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 min-h-[44px] text-sm"
+            className="mt-1 w-full rounded border border-slate-300 px-2 py-1 text-sm"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
@@ -47,7 +47,7 @@ export default function FormPreview() {
         <label className="block text-xs font-medium text-slate-600">
           メール
           <input
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 min-h-[44px] text-sm"
+            className="mt-1 w-full rounded border border-slate-300 px-2 py-1 text-sm"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -57,12 +57,12 @@ export default function FormPreview() {
       <button
         type="submit"
         disabled={!isValid}
-        className="rounded-lg bg-emerald-600 px-4 py-2 min-h-[44px] text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+        className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
         送信
       </button>
       {!isValid && (name.length > 0 || email.length > 0) && (
-        <p className="text-xs text-amber-600">名前と有効なメールアドレスを入力してください</p>
+        <p className="text-xs text-amber-600" role="alert">名前と有効なメールアドレスを入力してください</p>
       )}
     </form>
   )

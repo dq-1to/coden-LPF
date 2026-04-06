@@ -4,7 +4,7 @@ interface ConfigErrorViewProps {
 
 export function ConfigErrorView({ message }: ConfigErrorViewProps) {
   return (
-    <section className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">
+    <section className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800" role="alert">
       <h2 className="text-sm font-semibold">設定エラー</h2>
       <p className="mt-1 text-sm">{message}</p>
       <p className="mt-2 text-xs text-red-700">

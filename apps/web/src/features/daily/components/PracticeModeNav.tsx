@@ -14,7 +14,7 @@ export function PracticeModeNav() {
   return (
     <>
       {/* デスクトップ: サイドバー */}
-      <nav className="hidden w-44 shrink-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:block">
+      <nav className="hidden w-44 shrink-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:block" aria-label="練習モード">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-light">
           練習モード
         </p>
@@ -33,7 +33,7 @@ export function PracticeModeNav() {
                   ].join(' ')}
                   aria-current={isActive ? 'page' : undefined}
                 >
-                  <Icon size={16} />
+                  <Icon size={16} aria-hidden="true" />
                   {label}
                 </Link>
               </li>
@@ -42,8 +42,8 @@ export function PracticeModeNav() {
         </ul>
       </nav>
 
-      {/* モバイル: セグメンテッドコントロール */}
-      <nav className="mb-2 flex rounded-lg border border-slate-200 bg-white p-0.5 lg:hidden" aria-label="練習モード">
+      {/* モバイル: 折り返しピルナビ */}
+      <nav className="mb-2 flex flex-wrap gap-2 lg:hidden" aria-label="練習モード">
         {NAV_ITEMS.map(({ path, label, icon: Icon }) => {
           const isActive = pathname === path || pathname.startsWith(path + '/')
           return (
@@ -51,14 +51,14 @@ export function PracticeModeNav() {
               key={path}
               to={path}
               className={[
-                'flex flex-1 items-center justify-center gap-0.5 rounded-md px-0.5 py-2 text-[11px] font-medium transition-colors',
+                'flex flex-1 items-center justify-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-amber-500 text-white shadow-sm'
-                  : 'text-text-muted hover:text-amber-600',
+                  ? 'bg-amber-500 text-white'
+                  : 'border border-slate-200 bg-white text-text-muted hover:border-amber-400 hover:text-amber-600',
               ].join(' ')}
               aria-current={isActive ? 'page' : undefined}
             >
-              <Icon size={12} aria-hidden="true" />
+              <Icon size={14} aria-hidden="true" />
               {label}
             </Link>
           )

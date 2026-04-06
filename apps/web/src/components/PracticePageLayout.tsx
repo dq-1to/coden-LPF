@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useSignOut } from '../hooks/useSignOut'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { getDisplayName } from '../shared/utils/getDisplayName'
 
@@ -9,16 +9,9 @@ interface PracticePageLayoutProps {
 }
 
 export function PracticePageLayout({ children }: PracticePageLayoutProps) {
-  const { user, signOut } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
   const displayName = useMemo(() => getDisplayName(user), [user])
-
-  async function handleSignOut() {
-    const err = await signOut()
-    if (!err) {
-      navigate('/login', { replace: true })
-    }
-  }
+  const handleSignOut = useSignOut()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
