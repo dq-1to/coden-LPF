@@ -1,35 +1,36 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useState, useEffect, useCallback } from 'react'
+import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, BookOpen } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useGreetingName } from '../hooks/useGreetingName'
+import { useSignOut } from '../hooks/useSignOut'
 import {
   getTopicProgress,
   submitAnswer,
   selectQuestions,
 } from '../services/baseNookService'
-import { getProfile } from '../services/profileService'
 import { BASE_NOOK_TOPICS } from '../content/base-nook/topics'
 import { ArticleView } from '../features/base-nook/components/ArticleView'
 import { QuizView } from '../features/base-nook/components/QuizView'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
-import { getDisplayName } from '../shared/utils/getDisplayName'
 import type { BaseNookQuestion } from '../content/base-nook/types'
 
 const QUIZ_COUNT = 3
 
 export function BaseNookTopicPage() {
   const { topicId } = useParams<{ topicId: string }>()
-  const { user, signOut } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
 
   const topic = BASE_NOOK_TOPICS.find((t) => t.id === topicId)
   useDocumentTitle(topic ? topic.title : 'Base Nook')
 
+  const { greetingName } = useGreetingName()
+  const handleSignOut = useSignOut()
+
   const [solvedIds, setSolvedIds] = useState<Set<string>>(new Set())
   const [quizQuestions, setQuizQuestions] = useState<BaseNookQuestion[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [displayName, setDisplayName] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -40,13 +41,9 @@ export function BaseNookTopicPage() {
 
     async function load() {
       try {
-        const [solved, profile] = await Promise.all([
-          getTopicProgress(userId, topicData.id),
-          getProfile(userId),
-        ])
+        const solved = await getTopicProgress(userId, topicData.id)
         if (!isMounted) return
         setSolvedIds(solved)
-        if (profile) setDisplayName(profile.display_name)
         setQuizQuestions(selectQuestions(solved, topicData.questions, QUIZ_COUNT))
       } catch (e) {
         if (!isMounted) return
@@ -60,25 +57,15 @@ export function BaseNookTopicPage() {
     return () => { isMounted = false }
   }, [user, topic])
 
-  const greetingName = useMemo(
-    () =>
-      getDisplayName(
-        user
-          ? { ...user, user_metadata: { ...user.user_metadata, display_name: displayName ?? user.user_metadata?.display_name } }
-          : null,
-      ),
-    [user, displayName],
-  )
-
-  const handleSignOut = useCallback(async () => {
-    const err = await signOut()
-    if (!err) navigate('/login', { replace: true })
-  }, [signOut, navigate])
-
   const handleAnswer = useCallback(
     async (questionId: string, isCorrect: boolean) => {
       if (!user || !topic) return
-      await submitAnswer(user.id, topic.id, questionId, isCorrect)
+      try {
+        await submitAnswer(user.id, topic.id, questionId, isCorrect)
+      } catch {
+        // submitAnswer の失敗はクイズ体験をブロックしない
+        console.error('クイズ回答の保存に失敗しました')
+      }
       if (isCorrect) {
         setSolvedIds((prev) => new Set([...prev, questionId]))
       }
@@ -110,11 +97,11 @@ export function BaseNookTopicPage() {
     <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
       <AppHeader displayName={greetingName} onSignOut={() => void handleSignOut()} />
 
-      <main className="mx-auto max-w-4xl px-3 py-6 sm:px-4 sm:py-8">
+      <main className="mx-auto max-w-4xl px-4 py-8">
         {/* 戻るリンク */}
         <Link
           to="/base-nook"
-          className="mb-6 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-sky-600"
+          className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-sky-600"
         >
           <ArrowLeft size={16} aria-hidden="true" />
           Base Nook に戻る
@@ -135,13 +122,13 @@ export function BaseNookTopicPage() {
         )}
 
         {isLoading ? (
-          <div className="flex justify-center py-20">
+          <div className="flex justify-center py-20" role="status" aria-label="読み込み中">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-sky-200 border-t-sky-500" />
           </div>
         ) : (
           <>
             {/* 解説パート */}
-            <section className="mb-10 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
+            <section className="mb-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
               <ArticleView markdown={topic.article} />
             </section>
 

@@ -40,7 +40,7 @@ describe('ProblemCard', () => {
       solvedAt: '2026-04-01T10:00:00Z',
     }
     render(<ProblemCard problem={problem} progress={progress} onClick={vi.fn()} />)
-    expect(screen.getByText('✅ 解決済み')).toBeTruthy()
+    expect(screen.getByText((_content, element) => element?.textContent === '✅ 解決済み')).toBeTruthy()
   })
 
   it('挑戦中の場合に回数が表示される', () => {

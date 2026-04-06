@@ -27,8 +27,13 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const drawerRef = useRef<HTMLElement>(null)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
 
-  const closeDrawer = useCallback(() => setIsDrawerOpen(false), [])
+  const closeDrawer = useCallback(() => {
+    setIsDrawerOpen(false)
+    menuButtonRef.current?.focus()
+  }, [])
 
   const isCurriculumActive =
     location.pathname === '/curriculum' ||
@@ -46,10 +51,37 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
   useEffect(() => {
     if (!isDrawerOpen) return
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') setIsDrawerOpen(false)
+      if (e.key === 'Escape') closeDrawer()
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isDrawerOpen, closeDrawer])
+
+  // フォーカストラップ: ドロワー内にフォーカスを閉じ込める
+  useEffect(() => {
+    if (!isDrawerOpen) return
+    const nav = drawerRef.current
+    if (!nav) return
+    const focusable = Array.from(nav.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ))
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (!first || !last) return
+    // クロージャ内で型ナローイングを維持するためにローカル変数に再代入
+    const firstEl: HTMLElement = first
+    const lastEl: HTMLElement = last
+    firstEl.focus()
+    function handleTab(e: KeyboardEvent) {
+      if (e.key !== 'Tab') return
+      if (e.shiftKey) {
+        if (document.activeElement === firstEl) { e.preventDefault(); lastEl.focus() }
+      } else {
+        if (document.activeElement === lastEl) { e.preventDefault(); firstEl.focus() }
+      }
+    }
+    nav.addEventListener('keydown', handleTab)
+    return () => nav.removeEventListener('keydown', handleTab)
   }, [isDrawerOpen])
 
   // ドロワー開放中はbodyスクロールを無効化
@@ -90,7 +122,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
             <span className="font-display text-2xl font-bold tracking-tight text-primary-mint">Coden</span>
           </Link>
 
-          <nav className="hidden items-center gap-5 text-sm font-medium md:flex" aria-label="メインナビゲーション">
+          <nav className="hidden items-center gap-5 text-sm font-medium lg:flex" aria-label="メインナビゲーション">
             <Link
               to="/"
               className={navLinkClass(location.pathname === '/')}
@@ -107,13 +139,14 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
                 onClick={() => setIsDropdownOpen((prev) => !prev)}
                 aria-expanded={isDropdownOpen}
                 aria-haspopup="true"
+                aria-controls="curriculum-menu"
               >
                 カリキュラム
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
               </button>
 
               {isDropdownOpen && (
-                <div className="absolute left-0 top-full mt-2 w-56 rounded-lg border border-slate-200 bg-white py-2 shadow-lg">
+                <div id="curriculum-menu" role="menu" className="absolute left-0 top-full mt-2 w-56 rounded-lg border border-slate-200 bg-white py-2 shadow-lg">
                   <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
                     学習コース
                   </div>
@@ -121,6 +154,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
                     <Link
                       key={cat.id}
                       to={`/curriculum#${cat.id}`}
+                      role="menuitem"
                       className="block px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
                     >
                       {cat.title}
@@ -136,6 +170,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
                     <Link
                       key={link.to}
                       to={link.to}
+                      role="menuitem"
                       className="block px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
                     >
                       {link.label}
@@ -163,14 +198,14 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
 
         <div className="flex items-center gap-3">
           <div className="hidden rounded-full border border-amber-300/30 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 sm:block">
-            <Gem className="inline-block h-3.5 w-3.5" /> {stats?.total_points ?? 0} Pt
+            <Gem className="inline-block h-3.5 w-3.5" aria-hidden="true" /> {stats?.total_points ?? 0} Pt
           </div>
           <div className="hidden rounded-full border border-primary-mint/30 bg-secondary-bg px-3 py-1 text-xs font-semibold text-primary-dark sm:block">
-            <Flame className="inline-block h-3.5 w-3.5" /> {stats?.current_streak ?? 0}日連続
+            <Flame className="inline-block h-3.5 w-3.5" aria-hidden="true" /> {stats?.current_streak ?? 0}日連続
           </div>
           <div className="hidden text-sm font-medium text-slate-600 sm:block">{displayName}</div>
           <button
-            className="hidden rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 md:block"
+            className="hidden rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 lg:block"
             type="button"
             onClick={onSignOut}
           >
@@ -179,12 +214,13 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
 
           {/* モバイル: ハンバーガーボタン */}
           <button
-            className="rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 md:hidden"
+            ref={menuButtonRef}
+            className="rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 lg:hidden"
             type="button"
             onClick={() => setIsDrawerOpen(true)}
             aria-label="メニューを開く"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-6 w-6" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -193,7 +229,10 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
     {/* モバイルドロワー — フルスクリーン */}
     {isDrawerOpen ? (
       <nav
-        className="fixed inset-0 z-50 flex flex-col bg-white md:hidden"
+        ref={drawerRef}
+        role="dialog"
+        aria-modal="true"
+        className="fixed inset-0 z-50 flex flex-col bg-white lg:hidden"
         aria-label="モバイルナビゲーション"
       >
         {/* ヘッダー */}

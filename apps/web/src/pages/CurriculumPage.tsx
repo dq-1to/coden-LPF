@@ -1,95 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { BookOpen, ChevronDown, Code2, FileCode, Puzzle, Stethoscope, Atom, Zap } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ChevronDown, Code2 } from 'lucide-react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
-import { ErrorBanner } from '../components/ErrorBanner'
+import { useGreetingName } from '../hooks/useGreetingName'
+import { useSignOut } from '../hooks/useSignOut'
 import { CATEGORIES, type CategoryMeta, type CourseMeta } from '../content/courseData'
-import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { getCourseLockStatus, isCourseCompleted } from '../lib/courseLock'
-import { supabaseConfigError } from '../lib/supabaseClient'
-import { getProfile } from '../services/profileService'
-import { getDisplayName } from '../shared/utils/getDisplayName'
-
-const CATEGORY_ICONS: Record<string, typeof Atom> = {
-  Atom,
-  FileCode,
-}
-
-const PRACTICE_CARDS = [
-  {
-    to: '/daily',
-    icon: Zap,
-    title: 'デイリーチャレンジ',
-    description: '日替わり1問で知識を定着。毎日の習慣に。',
-    color: 'text-amber-600 bg-amber-50 border-amber-200',
-  },
-  {
-    to: '/practice/code-doctor',
-    icon: Stethoscope,
-    title: 'コードドクター',
-    description: 'バグ入りコードを修正して実践力アップ。',
-    color: 'text-rose-600 bg-rose-50 border-rose-200',
-  },
-  {
-    to: '/practice/mini-projects',
-    icon: Puzzle,
-    title: 'ミニプロジェクト',
-    description: '仕様からゼロ実装。段階的に腕を磨く。',
-    color: 'text-violet-600 bg-violet-50 border-violet-200',
-  },
-  {
-    to: '/practice/code-reading',
-    icon: BookOpen,
-    title: 'コードリーディング',
-    description: 'コードを読んで理解度を問うクイズ形式。',
-    color: 'text-sky-600 bg-sky-50 border-sky-200',
-  },
-] as const
+import { CATEGORY_ICONS, PRACTICE_MODE_CARDS } from '../shared/constants'
 
 export function CurriculumPage() {
   useDocumentTitle('カリキュラム')
-  const { user, signOut } = useAuth()
   const { completedStepIds, isLoadingStats } = useLearningContext()
-  const navigate = useNavigate()
-  const [displayName, setDisplayName] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  const greetingName = useMemo(
-    () =>
-      getDisplayName(
-        user
-          ? { ...user, user_metadata: { ...user.user_metadata, display_name: displayName ?? user.user_metadata?.display_name } }
-          : null,
-      ),
-    [displayName, user],
-  )
-
-  useEffect(() => {
-    if (!user?.id || supabaseConfigError) return
-    let isMounted = true
-    void getProfile(user.id)
-      .then((profile) => {
-        if (isMounted) setDisplayName(profile?.display_name ?? null)
-      })
-      .catch((loadError) => {
-        if (isMounted) {
-          const message = loadError instanceof Error ? loadError.message : 'プロフィール情報の取得に失敗しました。'
-          setError(message)
-        }
-      })
-    return () => { isMounted = false }
-  }, [user?.id])
-
-  const handleSignOut = useCallback(async () => {
-    const err = await signOut()
-    if (err) {
-      setError(err)
-      return
-    }
-    navigate('/login', { replace: true })
-  }, [signOut, navigate])
+  const { greetingName } = useGreetingName()
+  const handleSignOut = useSignOut()
 
   // ハッシュからスクロール
   useEffect(() => {
@@ -104,7 +29,6 @@ export function CurriculumPage() {
       <AppHeader displayName={greetingName} onSignOut={() => void handleSignOut()} />
 
       <main className="mx-auto w-full max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
-        {error ? <ErrorBanner className="mb-4">{error}</ErrorBanner> : null}
         <h1 className="text-2xl font-bold text-slate-900">カリキュラム</h1>
         <p className="mt-1 text-sm text-slate-500">カテゴリ・コース・ステップを一覧して学習を始めましょう</p>
 
@@ -121,19 +45,19 @@ export function CurriculumPage() {
         </div>
 
         {/* 練習モードセクション */}
-        <section id="practice" className="mt-6 border-t border-slate-200 pt-6">
+        <section id="practice" className="mt-12">
           <h2 className="text-xl font-bold text-slate-900">練習モード</h2>
           <p className="mt-1 text-sm text-slate-500">繰り返し学習で知識を定着させましょう</p>
 
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {PRACTICE_CARDS.map((card) => (
+            {PRACTICE_MODE_CARDS.map((card) => (
               <Link
                 key={card.to}
                 to={card.to}
                 className="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
               >
                 <div className={`inline-flex rounded-lg border p-2.5 ${card.color}`}>
-                  <card.icon className="h-5 w-5" />
+                  <card.icon className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <h3 className="mt-3 text-sm font-bold text-slate-900 group-hover:text-primary-dark">
                   {card.title}
@@ -161,9 +85,9 @@ function CategorySection({
 
   return (
     <section id={category.id}>
-      <div className="flex items-center gap-3 border-l-4 border-emerald-400 pl-3">
+      <div className="flex items-center gap-3">
         <div className="rounded-lg bg-primary-mint/10 p-2">
-          <IconComponent className="h-5 w-5 text-primary-dark" />
+          <IconComponent className="h-5 w-5 text-primary-dark" aria-hidden="true" />
         </div>
         <div>
           <h2 className="text-lg font-bold text-slate-900">{category.title}</h2>
@@ -200,9 +124,8 @@ function CourseAccordion({
   const completedCount = implementedSteps.filter((s) => completedStepIds.has(s.id)).length
   const hasSteps = implementedSteps.length > 0
 
-  // 進行中コースのみ初期展開
-  const isInProgress = !isLoading && completedCount > 0 && !isCompleted
-  const [isOpen, setIsOpen] = useState(isInProgress)
+  // 進行中コースのみ初期展開（useEffect で一元管理し、useState 初期値との二重制御を避ける）
+  const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
     if (!isLoading && completedCount > 0 && !isCompleted) {
@@ -222,7 +145,7 @@ function CourseAccordion({
     <div className={`rounded-xl border bg-white shadow-sm ${lockStatus.locked ? 'border-slate-200 opacity-60' : 'border-slate-200'}`}>
       <button
         type="button"
-        className="flex w-full items-center justify-between px-4 py-3 text-left sm:px-5 sm:py-4"
+        className="flex w-full items-center justify-between px-5 py-4 text-left"
         onClick={() => !lockStatus.locked && setIsOpen((prev) => !prev)}
         disabled={lockStatus.locked}
         aria-expanded={isOpen}
@@ -233,7 +156,7 @@ function CourseAccordion({
           </span>
           <span className="min-w-0 font-semibold text-slate-900">{course.title}</span>
           {hasSteps && (
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-slate-400" aria-live="polite">
               {completedCount}/{implementedSteps.length}
             </span>
           )}
@@ -242,22 +165,22 @@ function CourseAccordion({
 
         <div className="flex shrink-0 items-center gap-2">
           {lockStatus.locked && (
-            <span className="hidden text-xs text-slate-400 sm:inline">🔒 {lockStatus.reason}</span>
+            <span className="hidden text-xs text-slate-400 sm:inline"><span role="img" aria-label="ロック">🔒</span> {lockStatus.reason}</span>
           )}
           {lockStatus.locked && (
-            <span className="text-xs text-slate-400 sm:hidden">🔒</span>
+            <span className="text-xs text-slate-400 sm:hidden"><span role="img" aria-label="ロック">🔒</span></span>
           )}
           {!lockStatus.locked && !lockStatus.warning && hasSteps && (
-            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
           )}
           {!lockStatus.locked && lockStatus.warning && (
-            <span className="text-xs text-amber-500" title={lockStatus.warning}>⚠️</span>
+            <span className="text-xs text-amber-500" title={lockStatus.warning}><span role="img" aria-label="注意">⚠️</span></span>
           )}
         </div>
       </button>
 
       {isOpen && !lockStatus.locked && hasSteps && (
-        <div className="border-t border-slate-100 px-4 py-3 sm:px-5">
+        <div className="border-t border-slate-100 px-5 py-3">
           {!lockStatus.locked && lockStatus.warning && (
             <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
               {lockStatus.warning}
@@ -270,7 +193,7 @@ function CourseAccordion({
                 <li key={step.id}>
                   <Link
                     to={`/step/${step.id}`}
-                    className="flex min-h-[44px] items-center gap-3 rounded-lg px-3 py-2 text-sm transition hover:bg-slate-50"
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition hover:bg-slate-50"
                   >
                     <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${done ? 'bg-emerald-500 text-white' : 'border border-slate-300 text-slate-400'}`}>
                       {done ? '✓' : step.order}

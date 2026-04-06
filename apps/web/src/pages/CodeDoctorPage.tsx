@@ -12,17 +12,9 @@ import { Spinner } from '../components/Spinner'
 import { CODE_DOCTOR_PROBLEMS } from '../content/code-doctor/problems'
 import { estimateBuggyLines } from '../content/code-doctor/estimateBuggyLines'
 import type { CodeDoctorDifficulty, CodeDoctorProblem, CodeDoctorProgress, SubmitDoctorResult } from '../content/code-doctor/types'
+import { DIFFICULTY_FILTER_OPTIONS, type DifficultyFilterValue } from '../shared/constants'
 
 const ITEMS_PER_PAGE = 9
-
-type FilterValue = 'all' | CodeDoctorDifficulty
-
-const FILTER_OPTIONS: { value: FilterValue; label: string }[] = [
-  { value: 'all', label: '全て' },
-  { value: 'beginner', label: '初級' },
-  { value: 'intermediate', label: '中級' },
-  { value: 'advanced', label: '上級' },
-]
 
 const DIFFICULTY_STARS: Record<CodeDoctorDifficulty, string> = {
   beginner: '★☆☆',
@@ -37,7 +29,7 @@ export function CodeDoctorPage() {
   const isMobile = useIsMobile()
 
   const [progressMap, setProgressMap] = useState<Map<string, CodeDoctorProgress>>(new Map())
-  const [filter, setFilter] = useState<FilterValue>('all')
+  const [filter, setFilter] = useState<DifficultyFilterValue>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -165,7 +157,7 @@ export function CodeDoctorPage() {
                 onClick={() => setShowHint((v) => !v)}
                 className="text-sm font-medium text-amber-600 hover:text-amber-700"
               >
-                💡 {showHint ? 'ヒントを隠す' : 'ヒントを表示'}
+                <span aria-hidden="true">💡</span> {showHint ? 'ヒントを隠す' : 'ヒントを表示'}
               </button>
 
               {showHint && (
@@ -182,13 +174,13 @@ export function CodeDoctorPage() {
                   {result.passed ? (
                     <>
                       <p className="font-semibold text-emerald-800">
-                        ✅ 正解！ +{result.pointsEarned} Pt
+                        <span aria-hidden="true">✅</span> 正解！ +{result.pointsEarned} Pt
                       </p>
                       <p className="mt-2 text-emerald-700">{result.explanation}</p>
                     </>
                   ) : (
                     <>
-                      <p className="font-semibold text-rose-800">❌ まだバグが残っています</p>
+                      <p className="font-semibold text-rose-800"><span aria-hidden="true">❌</span> まだバグが残っています</p>
                       {result.missingKeywords.length > 0 && (
                         <div className="mt-2">
                           <p className="text-xs text-rose-700">不足している修正:</p>
@@ -277,7 +269,7 @@ export function CodeDoctorPage() {
 
             {/* フィルタ */}
             <div className="flex gap-2" role="tablist" aria-label="難易度フィルター">
-              {FILTER_OPTIONS.map(({ value, label }) => (
+              {DIFFICULTY_FILTER_OPTIONS.map(({ value, label }) => (
                 <button
                   key={value}
                   type="button"

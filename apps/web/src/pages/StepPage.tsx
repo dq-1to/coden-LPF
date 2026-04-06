@@ -20,6 +20,8 @@ import { useChallengeSubmission } from '../features/learning/hooks/useChallengeS
 import { useLearningStep } from '../features/learning/hooks/useLearningStep'
 import { useRecentChallengeSubmissions } from '../features/learning/hooks/useRecentChallengeSubmissions'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSignOut } from '../hooks/useSignOut'
+import { PULSE_ANIMATION_MS } from '../shared/constants'
 import { getDisplayName } from '../shared/utils/getDisplayName'
 
 const MODE_META: Record<
@@ -64,9 +66,10 @@ const MODE_META: Record<
 
 export function StepPage() {
   const { stepId = '' } = useParams()
-  const { signOut, user } = useAuth()
+  const { user } = useAuth()
   const { completedStepIds, isLoadingStats } = useLearningContext()
   const navigate = useNavigate()
+  const handleSignOut = useSignOut()
   const [activeMode, setActiveMode] = useState<LearningMode>('read')
   const [pulseModes, setPulseModes] = useState<Record<LearningMode, boolean>>({
     read: false,
@@ -137,7 +140,7 @@ export function StepPage() {
             ...current,
             [mode]: false,
           }))
-        }, 750)
+        }, PULSE_ANIMATION_MS)
 
         pulseTimeoutsRef.current.push(timeoutId)
       }
@@ -159,15 +162,6 @@ export function StepPage() {
       }
     }
   }, [])
-
-  async function handleSignOut() {
-    const errorMessage = await signOut()
-    if (errorMessage) {
-      return
-    }
-
-    navigate('/login', { replace: true })
-  }
 
   function handleNextStep() {
     if (!nextStep) {
@@ -248,7 +242,7 @@ export function StepPage() {
           <ErrorBoundary>
           <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <nav className="sticky top-0 z-10 -mx-5 mt-4 border-b border-slate-200 bg-white px-5 pb-4 pt-2" aria-label="学習モードステッパー">
-              <ol className="flex items-center gap-0">
+              <ol className="flex items-center gap-0" role="tablist" aria-label="学習モード">
                 {modeButtons.map((mode, index) => {
                   const isActive = activeMode === mode.id
                   const isDone = modeStatus[mode.id]
@@ -273,8 +267,10 @@ export function StepPage() {
                               : 'border-slate-200 bg-slate-100 text-slate-500 hover:border-slate-300 hover:bg-slate-200 hover:text-slate-700'
                         } ${pulseModes[mode.id] ? 'animate-pulseMint' : ''}`}
                         type="button"
+                        role="tab"
                         title={mode.description}
                         aria-label={mode.label}
+                        aria-selected={isActive}
                         aria-current={isActive ? 'step' : undefined}
                         onClick={() => setActiveMode(mode.id)}
                       >
@@ -287,7 +283,7 @@ export function StepPage() {
                                 : 'bg-slate-200 text-slate-500'
                           }`}
                         >
-                          {isDone ? <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> : index + 1}
+                          {isDone ? <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" aria-hidden="true" /> : index + 1}
                         </span>
                         <ModeIcon className="hidden h-3.5 w-3.5 sm:block" aria-hidden="true" />
                         <span className="hidden sm:inline">{mode.label}</span>

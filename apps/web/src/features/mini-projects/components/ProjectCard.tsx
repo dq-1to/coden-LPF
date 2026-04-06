@@ -1,17 +1,6 @@
 import { FolderOpen } from 'lucide-react'
-import type { MiniProject, MiniProjectDifficulty, MiniProjectProgress } from '../../../content/mini-projects/types'
-
-const DIFFICULTY_LABEL: Record<MiniProjectDifficulty, string> = {
-  beginner: '初級',
-  intermediate: '中級',
-  advanced: '上級',
-}
-
-const DIFFICULTY_COLOR: Record<MiniProjectDifficulty, string> = {
-  beginner: 'text-emerald-700 bg-emerald-50 border-emerald-200',
-  intermediate: 'text-amber-700 bg-amber-50 border-amber-200',
-  advanced: 'text-rose-700 bg-rose-50 border-rose-200',
-}
+import type { MiniProject, MiniProjectProgress } from '../../../content/mini-projects/types'
+import { DIFFICULTY_COLOR, DIFFICULTY_LABEL_STANDARD } from '../../../shared/constants'
 
 interface ProjectCardProps {
   project: MiniProject
@@ -32,7 +21,7 @@ export function ProjectCard({ project, progress, onClick }: ProjectCardProps) {
         <span
           className={`shrink-0 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${DIFFICULTY_COLOR[project.difficulty]}`}
         >
-          {DIFFICULTY_LABEL[project.difficulty]}
+          {DIFFICULTY_LABEL_STANDARD[project.difficulty]}
         </span>
         {status === 'completed' ? (
           <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">

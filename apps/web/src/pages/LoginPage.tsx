@@ -1,6 +1,7 @@
 import { type FormEvent, useMemo, useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { AuthBrandHeader } from '../components/AuthBrandHeader'
 import { Button } from '../components/Button'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { ErrorBanner } from '../components/ErrorBanner'
@@ -42,17 +43,11 @@ export function LoginPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50 px-4 py-8 sm:px-6 sm:py-16">
-      <header className="space-y-2">
-        <div className="flex items-center gap-3">
-          <img src="/coden_logo.png" alt="Coden Logo" className="h-12 w-12 object-contain" />
-          <h1 className="font-display text-3xl font-bold tracking-tight text-primary-mint">Coden</h1>
-        </div>
-        <p className="text-slate-600">メールアドレスとパスワードでログインしてください。</p>
-      </header>
+      <AuthBrandHeader subtitle="メールアドレスとパスワードでログインしてください。" />
 
       {supabaseConfigError ? <ConfigErrorView message={supabaseConfigError} /> : null}
 
-      <form className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" onSubmit={handleSubmit}>
+      <form className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" onSubmit={handleSubmit} aria-label="ログインフォーム">
         {error ? <ErrorBanner>{error}</ErrorBanner> : null}
 
         <label className="block">

@@ -127,9 +127,9 @@ export function DashboardSidebar() {
           <span className="text-xs text-text-light">過去30日</span>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {heatmapCells.map((cell, index) => (
+          {heatmapCells.map((cell) => (
             <span
-              key={`${cell.date}-${index}`}
+              key={cell.date}
               className={`h-3 w-3 rounded-sm ${heatmapColor(cell.level)}`}
               role="img"
               aria-label={`${cell.date}: ${cell.count}回学習`}
@@ -151,7 +151,7 @@ export function DashboardSidebar() {
           </div>
         </div>
         {isLoadingHeatmap ? <div className="mt-2 flex justify-center"><Spinner size="sm" /></div> : null}
-        {error ? <p className="mt-2 text-center text-[11px] text-rose-600">{error}</p> : null}
+        {error ? <p className="mt-2 text-center text-[11px] text-rose-600" role="alert">{error}</p> : null}
       </section>
 
     </aside>

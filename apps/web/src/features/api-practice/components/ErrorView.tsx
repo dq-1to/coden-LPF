@@ -10,11 +10,11 @@ interface ErrorViewProps {
  */
 export function ErrorView({ message, onRetry }: ErrorViewProps) {
   return (
-    <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3">
+    <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3" role="alert">
       <p className="text-sm font-medium text-rose-700">{message}</p>
       {onRetry ? (
         <button
-          className="mt-2 min-h-[44px] text-xs font-medium text-rose-600 underline hover:text-rose-800"
+          className="mt-2 text-xs font-medium text-rose-600 underline hover:text-rose-800"
           type="button"
           onClick={onRetry}
         >

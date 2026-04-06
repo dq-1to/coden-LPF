@@ -39,7 +39,7 @@ function CopyButton({ text }: { text: string }) {
       await navigator.clipboard.writeText(text)
       setCopied(true)
     } catch {
-      // コピー失敗時は何もしない
+      // Clipboard API 未対応環境やセキュリティ制約による失敗は無視（補助機能のため）
     }
   }, [text])
 
@@ -106,7 +106,7 @@ export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
             blockquote({ children }) {
               return (
                 <div className="not-prose my-4 flex gap-3 rounded-lg border-l-4 border-primary-mint bg-secondary-bg px-4 py-3">
-                  <Lightbulb className="mt-0.5 size-5 shrink-0 text-primary-mint" />
+                  <Lightbulb className="mt-0.5 size-5 shrink-0 text-primary-mint" aria-hidden="true" />
                   <div className="text-sm leading-relaxed text-text-dark [&>p]:m-0">{children}</div>
                 </div>
               )

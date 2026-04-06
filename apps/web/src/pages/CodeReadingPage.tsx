@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import {
@@ -12,20 +12,11 @@ import { PracticePageLayout } from '../components/PracticePageLayout'
 import { Spinner } from '../components/Spinner'
 import { CODE_READING_PROBLEMS } from '../content/code-reading/problems'
 import type {
-  CodeReadingDifficulty,
   CodeReadingProblem,
   CodeReadingProgress,
   SubmitReadingResult,
 } from '../content/code-reading/types'
-
-type FilterValue = 'all' | CodeReadingDifficulty
-
-const FILTER_OPTIONS: { value: FilterValue; label: string }[] = [
-  { value: 'all', label: '全て' },
-  { value: 'basic', label: '基礎' },
-  { value: 'intermediate', label: '応用' },
-  { value: 'advanced', label: '実践' },
-]
+import { READING_FILTER_OPTIONS, type ReadingFilterValue } from '../shared/constants'
 
 export function CodeReadingPage() {
   useDocumentTitle('コードリーディング')
@@ -33,7 +24,7 @@ export function CodeReadingPage() {
   const { user } = useAuth()
 
   const [progressMap, setProgressMap] = useState<Map<string, CodeReadingProgress>>(new Map())
-  const [filter, setFilter] = useState<FilterValue>('all')
+  const [filter, setFilter] = useState<ReadingFilterValue>('all')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -48,23 +39,24 @@ export function CodeReadingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const loadProgress = useCallback(async () => {
-    if (!user) return
-    setIsLoading(true)
-    setError(null)
-    try {
-      const map = await getReadingProgressMap(user.id)
-      setProgressMap(map)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'データの取得に失敗しました')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [user])
-
   useEffect(() => {
-    void loadProgress()
-  }, [loadProgress])
+    if (!user) return
+    let isMounted = true
+    const load = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const map = await getReadingProgressMap(user.id)
+        if (isMounted) setProgressMap(map)
+      } catch (e) {
+        if (isMounted) setError(e instanceof Error ? e.message : 'データの取得に失敗しました')
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+    void load()
+    return () => { isMounted = false }
+  }, [user])
 
   function handleSelectProblem(problem: CodeReadingProblem) {
     setSelectedProblem(problem)
@@ -243,7 +235,7 @@ export function CodeReadingPage() {
                       className={`rounded-lg border p-3 text-sm ${isCurrentCorrect ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}
                       role="status"
                     >
-                      <p className="font-semibold">{isCurrentCorrect ? '✅ 正解！' : '❌ 不正解'}</p>
+                      <p className="font-semibold">{isCurrentCorrect ? <><span aria-hidden="true">✅</span> 正解！</> : <><span aria-hidden="true">❌</span> 不正解</>}</p>
                       <p className="mt-1">{currentQuestion.explanation}</p>
                     </div>
                   )}
@@ -301,11 +293,13 @@ export function CodeReadingPage() {
             </div>
 
             {/* フィルター */}
-            <div className="flex gap-2">
-              {FILTER_OPTIONS.map(({ value, label }) => (
+            <div className="flex gap-2" role="tablist" aria-label="難易度フィルター">
+              {READING_FILTER_OPTIONS.map(({ value, label }) => (
                 <button
                   key={value}
                   type="button"
+                  role="tab"
+                  aria-selected={filter === value}
                   onClick={() => setFilter(value)}
                   className={[
                     'min-h-[44px] rounded-full px-4 py-2 text-sm font-medium transition-colors',
