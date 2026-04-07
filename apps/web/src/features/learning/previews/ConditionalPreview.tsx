@@ -13,7 +13,7 @@ export default function ConditionalPreview() {
         )}
       </div>
       <button
-        className={`rounded-lg px-4 py-2 text-sm font-medium text-white active:scale-95 ${isLoggedIn ? 'bg-rose-600 hover:bg-rose-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}
+        className={`rounded-lg px-4 py-2 min-h-[44px] text-sm font-medium text-white active:scale-95 ${isLoggedIn ? 'bg-rose-600 hover:bg-rose-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}
         onClick={() => setIsLoggedIn((v) => !v)}
       >
         {isLoggedIn ? 'ログアウト' : 'ログイン'}

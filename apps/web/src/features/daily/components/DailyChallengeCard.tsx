@@ -53,7 +53,7 @@ export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallen
               className="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-text-dark placeholder-slate-400 transition-colors focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
             />
           ) : (
-            <div className="mb-4 space-y-2">
+            <div className="mb-4 space-y-2" role="radiogroup" aria-label="選択肢">
               {question.choices?.map((choice) => (
                 <label
                   key={choice}
@@ -96,7 +96,7 @@ export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallen
 
           {showHint && (
             <p className="mt-3 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">
-              💡 {question.hint}
+              <span aria-hidden="true">💡</span> {question.hint}
             </p>
           )}
         </>
@@ -110,9 +110,10 @@ export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallen
               ? 'border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100/50'
               : 'border-rose-200 bg-gradient-to-br from-rose-50 to-rose-100/50',
           ].join(' ')}
+          role="alert"
         >
           <div className="mb-2 flex items-center gap-2">
-            <span className="text-xl">{result.isCorrect ? '🎉' : '😢'}</span>
+            <span className="text-xl" aria-hidden="true">{result.isCorrect ? '🎉' : '😢'}</span>
             <span
               className={[
                 'text-base font-bold',

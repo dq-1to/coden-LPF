@@ -40,6 +40,14 @@ export function calcStatus(results: MilestoneJudgeResult[]): MiniProjectStatus {
   return 'not_started'
 }
 
+const VALID_STATUSES: ReadonlySet<string> = new Set<MiniProjectStatus>([
+  'not_started', 'in_progress', 'completed',
+])
+
+function isMiniProjectStatus(value: string): value is MiniProjectStatus {
+  return VALID_STATUSES.has(value)
+}
+
 // ─── DB 関数 ─────────────────────────────────────────────
 
 /** ユーザーの全プロジェクト進捗を Map<projectId, MiniProjectProgress> で返す */
@@ -58,9 +66,10 @@ export async function getProjectProgressMap(
 
   const map = new Map<string, MiniProjectProgress>()
   for (const row of data ?? []) {
+    const status = isMiniProjectStatus(row.status) ? row.status : 'not_started'
     map.set(row.project_id, {
       projectId: row.project_id,
-      status: row.status as MiniProjectStatus,
+      status,
       code: row.code,
       completedAt: row.completed_at,
     })

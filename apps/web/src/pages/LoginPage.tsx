@@ -1,6 +1,7 @@
 import { type FormEvent, useMemo, useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { AuthBrandHeader } from '../components/AuthBrandHeader'
 import { Button } from '../components/Button'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { ErrorBanner } from '../components/ErrorBanner'
@@ -41,22 +42,18 @@ export function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50 px-6 py-16">
-      <header className="space-y-2">
-        <div className="flex items-center gap-3">
-          <img src="/coden_logo.png" alt="Coden Logo" className="h-12 w-12 object-contain" />
-          <h1 className="font-display text-3xl font-bold tracking-tight text-primary-mint">Coden</h1>
-        </div>
-        <p className="text-slate-600">メールアドレスとパスワードでログインしてください。</p>
-      </header>
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50 px-4 py-8 sm:px-6 sm:py-16">
+      <AuthBrandHeader subtitle="メールアドレスとパスワードでログインしてください。" />
 
       {supabaseConfigError ? <ConfigErrorView message={supabaseConfigError} /> : null}
 
-      <form className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" onSubmit={handleSubmit}>
+      <form className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" onSubmit={handleSubmit} aria-label="ログインフォーム">
+        {error ? <ErrorBanner>{error}</ErrorBanner> : null}
+
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-slate-700">メールアドレス</span>
           <input
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint"
+            className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint min-h-[44px]"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -68,7 +65,7 @@ export function LoginPage() {
         <label className="block">
           <span className="mb-1 block text-sm font-medium text-slate-700">パスワード</span>
           <input
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint"
+            className="w-full rounded-md border border-slate-300 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-primary-mint/30 focus:border-primary-mint min-h-[44px]"
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -76,8 +73,6 @@ export function LoginPage() {
             required
           />
         </label>
-
-        {error ? <ErrorBanner>{error}</ErrorBanner> : null}
 
         <Button type="submit" fullWidth disabled={isSubmitting || Boolean(supabaseConfigError)}>
           {isSubmitting ? 'ログイン中...' : 'ログイン'}

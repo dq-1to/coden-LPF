@@ -57,7 +57,7 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
   return (
     <div className="space-y-6">
       {/* セクション見出し */}
-      <div className="rounded-xl bg-sky-50 px-5 py-4">
+      <div className="rounded-xl bg-sky-50 px-3 py-3 sm:px-5 sm:py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ClipboardCheck size={20} className="text-sky-600" aria-hidden="true" />
@@ -66,7 +66,7 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
           <button
             type="button"
             onClick={handleRefresh}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+            className="flex min-h-[44px] items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
           >
             <RotateCcw size={14} aria-hidden="true" />
             別の3問に挑戦
@@ -112,7 +112,7 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
             </p>
 
             {/* 選択肢 */}
-            <div className="space-y-2" role="radiogroup" aria-labelledby={`question-${q.id}`}>
+            <div className="space-y-2.5" role="radiogroup" aria-labelledby={`question-${q.id}`}>
               {q.choices.map((choice, ci) => {
                 const isSelected = state?.selectedIndex === ci
                 const isSubmitted = state?.submitted ?? false
@@ -135,7 +135,7 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
                     aria-checked={isSelected}
                     onClick={() => handleSelect(q.id, ci)}
                     disabled={isSubmitted}
-                    className={`flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm transition-colors disabled:cursor-default ${choiceClass}`}
+                    className={`flex min-h-[44px] w-full items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm transition-colors disabled:cursor-default ${choiceClass}`}
                   >
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-300 text-xs font-semibold text-slate-500">
                       {String.fromCharCode(65 + ci)}
@@ -159,7 +159,7 @@ export function QuizView({ questions, solvedIds, onAnswer, onRefresh, allCleared
                   type="button"
                   onClick={() => void handleSubmit(q)}
                   disabled={state?.selectedIndex == null || submitting === q.id}
-                  className="rounded-lg bg-sky-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="min-h-[44px] rounded-lg bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {submitting === q.id ? '判定中...' : '回答する'}
                 </button>

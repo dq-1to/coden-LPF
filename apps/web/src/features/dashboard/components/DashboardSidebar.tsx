@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Spinner } from '@/components/Spinner'
 import { useAchievementContext } from '@/contexts/AchievementContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -111,11 +112,11 @@ export function DashboardSidebar() {
 
           <div>
             <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-light">獲得バッジ</p>
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+            <Link to="/profile" className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 transition hover:text-primary-dark">
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1">
-                {unlockedBadgeIds.length} 個獲得
+                {unlockedBadgeIds.length} 個獲得 →
               </span>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
@@ -126,9 +127,9 @@ export function DashboardSidebar() {
           <span className="text-xs text-text-light">過去30日</span>
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {heatmapCells.map((cell, index) => (
+          {heatmapCells.map((cell) => (
             <span
-              key={`${cell.date}-${index}`}
+              key={cell.date}
               className={`h-3 w-3 rounded-sm ${heatmapColor(cell.level)}`}
               role="img"
               aria-label={`${cell.date}: ${cell.count}回学習`}
@@ -150,7 +151,7 @@ export function DashboardSidebar() {
           </div>
         </div>
         {isLoadingHeatmap ? <div className="mt-2 flex justify-center"><Spinner size="sm" /></div> : null}
-        {error ? <p className="mt-2 text-center text-[11px] text-rose-600">{error}</p> : null}
+        {error ? <p className="mt-2 text-center text-[11px] text-rose-600" role="alert">{error}</p> : null}
       </section>
 
     </aside>

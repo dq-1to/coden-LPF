@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Lock, Trophy } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useGreetingName } from '../hooks/useGreetingName'
+import { useSignOut } from '../hooks/useSignOut'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { useAchievementContext } from '../contexts/AchievementContext'
@@ -10,20 +12,18 @@ import { useLearningContext } from '../contexts/LearningContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { supabaseConfigError } from '../lib/supabaseClient'
 import { BADGE_DEFINITIONS } from '../services/achievementService'
-import { getPointHistory, getProfile, upsertDisplayName, type PointHistoryRecord } from '../services/profileService'
+import { getPointHistory, upsertDisplayName, type PointHistoryRecord } from '../services/profileService'
 import { Spinner } from '../components/Spinner'
 import { formatDateTime, formatStudyDate } from '../shared/utils/dateTime'
-import { getDisplayName } from '../shared/utils/getDisplayName'
 
 export function ProfilePage() {
   useDocumentTitle('プロフィール')
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const { stats, completedStepsCount } = useLearningContext()
   const { unlockedBadgeIds, isLoadingAchievements } = useAchievementContext()
-  const navigate = useNavigate()
   const userId = user?.id ?? null
+  const { greetingName: headerDisplayName, displayName, setDisplayName } = useGreetingName()
 
-  const [displayName, setDisplayName] = useState<string | null>(null)
   const [displayNameInput, setDisplayNameInput] = useState('')
   const [pointHistory, setPointHistory] = useState<PointHistoryRecord[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -31,22 +31,12 @@ export function ProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
-  const headerDisplayName = useMemo(
-    () =>
-      getDisplayName(
-        user
-          ? {
-              ...user,
-              user_metadata: {
-                ...user.user_metadata,
-                display_name: displayName ?? user.user_metadata?.display_name,
-              },
-            }
-          : null,
-      ),
-    [displayName, user],
-  )
+  // displayName が取得されたら入力フィールドを同期
+  useEffect(() => {
+    setDisplayNameInput(displayName ?? '')
+  }, [displayName])
 
+  // ポイント履歴の取得
   useEffect(() => {
     if (!userId || supabaseConfigError) {
       setIsLoading(false)
@@ -57,15 +47,12 @@ export function ProfilePage() {
     setIsLoading(true)
     setError(null)
 
-    Promise.all([getProfile(userId), getPointHistory(userId, 30)])
-      .then(([profile, history]) => {
+    getPointHistory(userId, 30)
+      .then((history) => {
         if (!isMounted) {
           return
         }
 
-        const currentDisplayName = profile?.display_name ?? null
-        setDisplayName(currentDisplayName)
-        setDisplayNameInput(currentDisplayName ?? '')
         setPointHistory(history)
       })
       .catch((loadError) => {
@@ -73,7 +60,7 @@ export function ProfilePage() {
           return
         }
 
-        const message = loadError instanceof Error ? loadError.message : 'プロフィール情報の取得に失敗しました。'
+        const message = loadError instanceof Error ? loadError.message : 'ポイント履歴の取得に失敗しました。'
         setError(message)
       })
       .finally(() => {
@@ -87,15 +74,8 @@ export function ProfilePage() {
     }
   }, [userId])
 
-  async function handleSignOut() {
-    const signOutError = await signOut()
-    if (signOutError) {
-      setError(signOutError)
-      return
-    }
-
-    navigate('/login', { replace: true })
-  }
+  const onSignOutError = useCallback((msg: string) => setError(msg), [])
+  const handleSignOut = useSignOut(onSignOutError)
 
   async function handleDisplayNameSave() {
     if (!userId) {
@@ -202,7 +182,7 @@ export function ProfilePage() {
               {unlockedBadgeIds.length} / {BADGE_DEFINITIONS.length} 獲得
             </span>
           </div>
-          {isLoadingAchievements ? <p className="mb-3 text-xs text-text-light">バッジ状態を更新中...</p> : null}
+          {isLoadingAchievements ? <p className="mb-3 text-xs text-text-light" role="status" aria-live="polite">バッジ状態を更新中...</p> : null}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {BADGE_DEFINITIONS.map((badge) => {
               const unlocked = unlockedBadgeIds.includes(badge.id)
@@ -214,7 +194,7 @@ export function ProfilePage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <h3 className={`text-sm font-bold ${unlocked ? 'text-amber-900' : 'text-slate-600'}`}>{badge.name}</h3>
-                    <span className="text-lg">{unlocked ? <Trophy className="h-5 w-5 text-amber-600" /> : <Lock className="h-5 w-5 text-slate-400" />}</span>
+                    <span className="text-lg">{unlocked ? <Trophy className="h-5 w-5 text-amber-600" aria-hidden="true" /> : <Lock className="h-5 w-5 text-slate-400" aria-hidden="true" />}</span>
                   </div>
                   <p className={`mt-1 text-xs ${unlocked ? 'text-amber-700' : 'text-slate-500'}`}>{badge.description}</p>
                 </article>

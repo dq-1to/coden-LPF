@@ -20,6 +20,8 @@ import { useChallengeSubmission } from '../features/learning/hooks/useChallengeS
 import { useLearningStep } from '../features/learning/hooks/useLearningStep'
 import { useRecentChallengeSubmissions } from '../features/learning/hooks/useRecentChallengeSubmissions'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useSignOut } from '../hooks/useSignOut'
+import { PULSE_ANIMATION_MS } from '../shared/constants'
 import { getDisplayName } from '../shared/utils/getDisplayName'
 
 const MODE_META: Record<
@@ -64,9 +66,10 @@ const MODE_META: Record<
 
 export function StepPage() {
   const { stepId = '' } = useParams()
-  const { signOut, user } = useAuth()
+  const { user } = useAuth()
   const { completedStepIds, isLoadingStats } = useLearningContext()
   const navigate = useNavigate()
+  const handleSignOut = useSignOut()
   const [activeMode, setActiveMode] = useState<LearningMode>('read')
   const [pulseModes, setPulseModes] = useState<Record<LearningMode, boolean>>({
     read: false,
@@ -137,7 +140,7 @@ export function StepPage() {
             ...current,
             [mode]: false,
           }))
-        }, 750)
+        }, PULSE_ANIMATION_MS)
 
         pulseTimeoutsRef.current.push(timeoutId)
       }
@@ -159,15 +162,6 @@ export function StepPage() {
       }
     }
   }, [])
-
-  async function handleSignOut() {
-    const errorMessage = await signOut()
-    if (errorMessage) {
-      return
-    }
-
-    navigate('/login', { replace: true })
-  }
 
   function handleNextStep() {
     if (!nextStep) {
@@ -207,8 +201,8 @@ export function StepPage() {
     <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
       <AppHeader displayName={headerDisplayName} onSignOut={() => void handleSignOut()} />
 
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-6 sm:px-6">
-        <nav className="flex flex-wrap items-center gap-1.5 rounded-lg bg-slate-50 px-4 py-2 text-sm text-slate-500" aria-label="パンくずリスト">
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-3 py-4 sm:gap-4 sm:px-6 sm:py-6">
+        <nav className="flex flex-wrap items-center gap-1.5 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-500 sm:px-4" aria-label="パンくずリスト">
           <Link className="font-medium text-primary-dark hover:underline" to="/curriculum">
             カリキュラム
           </Link>
@@ -238,7 +232,7 @@ export function StepPage() {
               Step {step.order} / {TOTAL_STEP_COUNT}
             </span>
           </div>
-          <h1 className="text-3xl font-bold">{step.title}</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">{step.title}</h1>
           <p className="break-words text-slate-600">{step.summary}</p>
         </section>
 
@@ -247,8 +241,8 @@ export function StepPage() {
 
           <ErrorBoundary>
           <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <nav className="mt-4 border-b border-slate-200 pb-4" aria-label="学習モードステッパー">
-              <ol className="flex items-center gap-0">
+            <nav className="sticky top-0 z-10 -mx-5 mt-4 border-b border-slate-200 bg-white px-5 pb-4 pt-2" aria-label="学習モードステッパー">
+              <ol className="flex items-center gap-0" role="tablist" aria-label="学習モード">
                 {modeButtons.map((mode, index) => {
                   const isActive = activeMode === mode.id
                   const isDone = modeStatus[mode.id]
@@ -273,8 +267,10 @@ export function StepPage() {
                               : 'border-slate-200 bg-slate-100 text-slate-500 hover:border-slate-300 hover:bg-slate-200 hover:text-slate-700'
                         } ${pulseModes[mode.id] ? 'animate-pulseMint' : ''}`}
                         type="button"
+                        role="tab"
                         title={mode.description}
                         aria-label={mode.label}
+                        aria-selected={isActive}
                         aria-current={isActive ? 'step' : undefined}
                         onClick={() => setActiveMode(mode.id)}
                       >
@@ -287,7 +283,7 @@ export function StepPage() {
                                 : 'bg-slate-200 text-slate-500'
                           }`}
                         >
-                          {isDone ? <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> : index + 1}
+                          {isDone ? <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" aria-hidden="true" /> : index + 1}
                         </span>
                         <ModeIcon className="hidden h-3.5 w-3.5 sm:block" aria-hidden="true" />
                         <span className="hidden sm:inline">{mode.label}</span>

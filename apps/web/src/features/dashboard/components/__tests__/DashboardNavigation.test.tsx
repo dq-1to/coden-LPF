@@ -45,7 +45,7 @@ describe('AppHeader ナビゲーション', () => {
 
     await user.click(screen.getByRole('button', { name: /カリキュラム/ }))
 
-    const reactLink = screen.getByRole('link', { name: 'React' })
+    const reactLink = screen.getByRole('menuitem', { name: 'React' })
     expect(reactLink.getAttribute('href')).toBe('/curriculum#react')
   })
 
@@ -60,7 +60,7 @@ describe('AppHeader ナビゲーション', () => {
     const nav = screen.getByRole('navigation', { name: 'メインナビゲーション' })
     await user.click(within(nav).getByRole('button', { name: /カリキュラム/ }))
 
-    expect(screen.getByRole('link', { name: 'デイリーチャレンジ' }).getAttribute('href')).toBe('/daily')
-    expect(screen.getByRole('link', { name: 'コードドクター' }).getAttribute('href')).toBe('/practice/code-doctor')
+    expect(screen.getByRole('menuitem', { name: 'デイリーチャレンジ' }).getAttribute('href')).toBe('/daily')
+    expect(screen.getByRole('menuitem', { name: 'コードドクター' }).getAttribute('href')).toBe('/practice/code-doctor')
   })
 })

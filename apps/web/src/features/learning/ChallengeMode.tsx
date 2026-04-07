@@ -1,12 +1,11 @@
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button } from '../../components/Button'
+import { CodeEditor } from '../../components/CodeEditor'
 import { ErrorBanner } from '../../components/ErrorBanner'
-import { ErrorBoundary } from '../../components/ErrorBoundary'
+import { useIsMobile } from '../../hooks/useIsMobile'
 import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
 import { JudgmentResult } from './components/JudgmentResult'
-import { MONACO_EDITOR_HEIGHT } from '../../shared/constants'
-
-const MonacoEditor = lazy(() => import('@monaco-editor/react'))
+import { getMissingKeywords } from './utils/keywordMatcher'
 
 interface ChallengeModeProps {
   stepId: string
@@ -23,6 +22,7 @@ function getRandomPattern(task: ChallengeTask): ChallengePattern {
 }
 
 export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: ChallengeModeProps) {
+  const isMobile = useIsMobile()
   const [pattern, setPattern] = useState<ChallengePattern>(() => getRandomPattern(task))
   const [code, setCode] = useState(() => pattern.starterCode)
   const [checked, setChecked] = useState(false)
@@ -39,7 +39,7 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
   }, [stepId, task])
 
   const missingKeywords = useMemo(
-    () => pattern.expectedKeywords.filter((keyword) => !code.toLowerCase().includes(keyword.toLowerCase())),
+    () => getMissingKeywords(code, pattern.expectedKeywords),
     [code, pattern.expectedKeywords],
   )
   const hasSatisfiedRequirements = missingKeywords.length === 0
@@ -71,9 +71,9 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     }
   }
 
-  function handleCodeChange(nextValue: string | undefined) {
+  function handleCodeChange(nextValue: string) {
     setChecked(false)
-    setCode(nextValue ?? '')
+    setCode(nextValue)
   }
 
   return (
@@ -88,18 +88,13 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
       </ul>
 
       <div className="overflow-hidden rounded-lg border border-slate-300">
-        <ErrorBoundary fallback={<div className="bg-slate-900 p-4 text-sm text-red-300">エディタの読み込みに失敗しました。ページを再読み込みしてください。</div>}>
-          <Suspense fallback={<div className="bg-slate-900 p-4 text-sm text-slate-100">エディタを読み込み中...</div>}>
-            <MonacoEditor
-              defaultLanguage="typescript"
-              height={MONACO_EDITOR_HEIGHT}
-              theme="vs-dark"
-              value={code}
-              options={{ minimap: { enabled: false }, fontSize: 14 }}
-              onChange={handleCodeChange}
-            />
-          </Suspense>
-        </ErrorBoundary>
+        <CodeEditor
+          value={code}
+          onChange={handleCodeChange}
+          language="typescript"
+          height={isMobile ? 'min(50vh, 300px)' : '320px'}
+          toolbarKeywords={pattern.expectedKeywords}
+        />
       </div>
 
       <div className="flex flex-col items-start gap-4 pt-4 sm:flex-row sm:items-center">
@@ -120,7 +115,7 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
       {submissionError ? <ErrorBanner>{submissionError}</ErrorBanner> : null}
 
       {checked && !isPassed ? (
-        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4">
+        <div className="rounded-lg border border-rose-200 bg-rose-50 p-4" role="alert">
           <p className="text-sm font-semibold text-rose-800">以下の要件が未達成です:</p>
           <ul className="mt-2 list-inside list-disc text-sm text-rose-700">
             {missingKeywords.map((keyword) => (

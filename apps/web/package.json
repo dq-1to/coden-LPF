@@ -16,8 +16,13 @@
     "types:supabase": "npx supabase gen types typescript --project-id texpfxcqwfvcccgrqomf > src/shared/types/database.types.ts"
   },
   "dependencies": {
-    "@monaco-editor/react": "^4.7.0",
+    "@codemirror/autocomplete": "^6.20.1",
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@codemirror/state": "^6.6.0",
+    "@codemirror/theme-one-dark": "^6.1.3",
+    "@codemirror/view": "^6.41.0",
     "@supabase/supabase-js": "^2.57.4",
+    "@uiw/react-codemirror": "^4.25.9",
     "lucide-react": "^0.577.0",
     "prismjs": "^1.30.0",
     "react": "^19.1.1",

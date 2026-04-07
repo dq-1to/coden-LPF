@@ -14,7 +14,7 @@ export function PracticeModeNav() {
   return (
     <>
       {/* デスクトップ: サイドバー */}
-      <nav className="hidden w-44 shrink-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:block">
+      <nav className="hidden w-44 shrink-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:block" aria-label="練習モード">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-light">
           練習モード
         </p>
@@ -33,7 +33,7 @@ export function PracticeModeNav() {
                   ].join(' ')}
                   aria-current={isActive ? 'page' : undefined}
                 >
-                  <Icon size={16} />
+                  <Icon size={16} aria-hidden="true" />
                   {label}
                 </Link>
               </li>
@@ -58,7 +58,7 @@ export function PracticeModeNav() {
               ].join(' ')}
               aria-current={isActive ? 'page' : undefined}
             >
-              <Icon size={14} />
+              <Icon size={14} aria-hidden="true" />
               {label}
             </Link>
           )

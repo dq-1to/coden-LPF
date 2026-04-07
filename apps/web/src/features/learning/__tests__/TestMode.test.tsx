@@ -9,6 +9,19 @@ import { previewByStepId } from '../testModePreview'
 const addToReviewList = vi.fn()
 const removeFromReviewList = vi.fn()
 
+vi.mock('@/hooks/useIsMobile', () => ({
+  useIsMobile: () => false,
+}))
+
+vi.mock('prismjs', () => ({
+  default: {
+    highlight: (code: string) => code,
+    languages: { tsx: {}, javascript: {} },
+  },
+}))
+vi.mock('prismjs/components/prism-typescript', () => ({}))
+vi.mock('prismjs/components/prism-tsx', () => ({}))
+
 vi.mock('../../../services/reviewListService', () => ({
   addToReviewList: (...args: unknown[]) => addToReviewList(...args),
   removeFromReviewList: (...args: unknown[]) => removeFromReviewList(...args),

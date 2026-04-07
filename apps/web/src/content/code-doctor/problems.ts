@@ -376,6 +376,7 @@ function App() {
     hint: '毎レンダリングで新しいオブジェクトが生成されています。プリミティブ値を依存配列に入れましょう。',
     requiredKeywords: ['filters.query'],
     ngKeywords: ['], [filters]'],
+    buggyLineNumbers: [10, 16],
     explanation: 'App が毎レンダリングで { query: "React" } という新しいオブジェクトを生成するため、依存配列の filters は毎回「変化した」と判断され無限ループになります。依存配列には filters.query のようなプリミティブ値を入れます。',
   },
 
@@ -545,6 +546,7 @@ function Form() {
     hint: 'useCallback のコールバック内で参照している変数は依存配列に含める必要があります。',
     requiredKeywords: ['[name]'],
     ngKeywords: ['useCallback(() => {', '], [])'],
+    buggyLineNumbers: [6, 8],
     explanation: '空の依存配列 [] のため handleSubmit は初回レンダリング時の name（空文字）をキャプチャします。name が変化しても handleSubmit は再生成されないため、常に古い値で動作します。依存配列に name を追加します。',
   },
 

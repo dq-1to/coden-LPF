@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
@@ -8,16 +8,8 @@ import { ProjectCard } from '../features/mini-projects/components/ProjectCard'
 import { PracticePageLayout } from '../components/PracticePageLayout'
 import { Spinner } from '../components/Spinner'
 import { MINI_PROJECTS } from '../content/mini-projects/projects'
-import type { MiniProjectDifficulty, MiniProjectProgress } from '../content/mini-projects/types'
-
-type FilterValue = 'all' | MiniProjectDifficulty
-
-const FILTER_OPTIONS: { value: FilterValue; label: string }[] = [
-  { value: 'all', label: '全て' },
-  { value: 'beginner', label: '初級' },
-  { value: 'intermediate', label: '中級' },
-  { value: 'advanced', label: '上級' },
-]
+import type { MiniProjectProgress } from '../content/mini-projects/types'
+import { DIFFICULTY_FILTER_OPTIONS, type DifficultyFilterValue } from '../shared/constants'
 
 export function MiniProjectsPage() {
   useDocumentTitle('ミニプロジェクト')
@@ -26,27 +18,28 @@ export function MiniProjectsPage() {
   const navigate = useNavigate()
 
   const [progressMap, setProgressMap] = useState<Map<string, MiniProjectProgress>>(new Map())
-  const [filter, setFilter] = useState<FilterValue>('all')
+  const [filter, setFilter] = useState<DifficultyFilterValue>('all')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadProgress = useCallback(async () => {
-    if (!user) return
-    setIsLoading(true)
-    setError(null)
-    try {
-      const map = await getProjectProgressMap(user.id)
-      setProgressMap(map)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'データの取得に失敗しました')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [user])
-
   useEffect(() => {
-    void loadProgress()
-  }, [loadProgress])
+    if (!user) return
+    let isMounted = true
+    const load = async () => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const map = await getProjectProgressMap(user.id)
+        if (isMounted) setProgressMap(map)
+      } catch (e) {
+        if (isMounted) setError(e instanceof Error ? e.message : 'データの取得に失敗しました')
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+    void load()
+    return () => { isMounted = false }
+  }, [user])
 
   const filteredProjects =
     filter === 'all' ? MINI_PROJECTS : MINI_PROJECTS.filter((p) => p.difficulty === filter)
@@ -66,14 +59,16 @@ export function MiniProjectsPage() {
             </div>
 
             {/* フィルター */}
-            <div className="flex gap-2">
-              {FILTER_OPTIONS.map(({ value, label }) => (
+            <div className="flex gap-2" role="tablist" aria-label="難易度フィルター">
+              {DIFFICULTY_FILTER_OPTIONS.map(({ value, label }) => (
                 <button
                   key={value}
                   type="button"
+                  role="tab"
+                  aria-selected={filter === value}
                   onClick={() => setFilter(value)}
                   className={[
-                    'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
+                    'rounded-full px-4 py-2.5 min-h-[44px] text-sm font-medium transition-colors',
                     filter === value
                       ? 'bg-amber-500 text-white'
                       : 'border border-border text-text-muted hover:border-amber-400 hover:text-amber-600',

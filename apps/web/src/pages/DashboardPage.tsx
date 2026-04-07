@@ -1,123 +1,28 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Atom, BookOpen, FileCode, Puzzle, Stethoscope, Zap } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Atom, BookOpen, Zap } from 'lucide-react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useGreetingName } from '../hooks/useGreetingName'
+import { useSignOut } from '../hooks/useSignOut'
 import { ConfigErrorView } from '../components/ConfigErrorView'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { CATEGORIES, type CategoryMeta, getFirstImplementedStep } from '../content/courseData'
-import { useAuth } from '../contexts/AuthContext'
 import { useLearningContext } from '../contexts/LearningContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { DashboardSidebar } from '../features/dashboard/components/DashboardSidebar'
 import { WelcomeBanner } from '../features/dashboard/components/WelcomeBanner'
 import { isCourseCompleted } from '../lib/courseLock'
 import { supabaseConfigError } from '../lib/supabaseClient'
-import { getProfile } from '../services/profileService'
-import { getDisplayName } from '../shared/utils/getDisplayName'
-
-const CATEGORY_ICONS: Record<string, typeof Atom> = { Atom, FileCode }
-
-const SKILL_UP_CARDS = [
-  {
-    to: '/daily',
-    icon: Zap,
-    title: 'デイリーチャレンジ',
-    description: '日替わり1問で知識を定着',
-    color: 'text-amber-600 bg-amber-50 border-amber-200',
-  },
-  {
-    to: '/practice/code-doctor',
-    icon: Stethoscope,
-    title: 'コードドクター',
-    description: 'バグ入りコードを修正',
-    color: 'text-rose-600 bg-rose-50 border-rose-200',
-  },
-  {
-    to: '/practice/mini-projects',
-    icon: Puzzle,
-    title: 'ミニプロジェクト',
-    description: '仕様からゼロ実装',
-    color: 'text-violet-600 bg-violet-50 border-violet-200',
-  },
-  {
-    to: '/practice/code-reading',
-    icon: BookOpen,
-    title: 'コードリーディング',
-    description: 'コードを読んで理解度テスト',
-    color: 'text-sky-600 bg-sky-50 border-sky-200',
-  },
-] as const
+import { CATEGORY_ICONS, PRACTICE_MODE_CARDS } from '../shared/constants'
 
 export function DashboardPage() {
   useDocumentTitle('ダッシュボード')
-  const { user, signOut } = useAuth()
   const { completedStepIds, completedStepsCount } = useLearningContext()
-  const navigate = useNavigate()
-  const userId = user?.id ?? null
-  const [displayName, setDisplayName] = useState<string | null>(null)
+  const { greetingName } = useGreetingName()
   const [error, setError] = useState<string | null>(null)
+  const onSignOutError = useCallback((msg: string) => setError(msg), [])
+  const handleSignOut = useSignOut(onSignOutError)
   const firstImplementedStep = getFirstImplementedStep()
-
-  const greetingName = useMemo(
-    () =>
-      getDisplayName(
-        user
-          ? {
-              ...user,
-              user_metadata: {
-                ...user.user_metadata,
-                display_name: displayName ?? user.user_metadata?.display_name,
-              },
-            }
-          : null,
-      ),
-    [displayName, user],
-  )
-
-  useEffect(() => {
-    if (!userId || supabaseConfigError) {
-      return
-    }
-    const currentUserId = userId
-
-    let isMounted = true
-
-    async function loadDashboard() {
-      try {
-        const profile = await getProfile(currentUserId)
-
-        if (!isMounted) {
-          return
-        }
-
-        setDisplayName(profile?.display_name ?? null)
-      } catch (loadError) {
-        if (!isMounted) {
-          return
-        }
-
-        const message = loadError instanceof Error ? loadError.message : 'ダッシュボードの取得に失敗しました。'
-        setError(message)
-      }
-    }
-
-    void loadDashboard()
-
-    return () => {
-      isMounted = false
-    }
-  }, [userId])
-
-  async function handleSignOut() {
-    const signOutError = await signOut()
-
-    if (signOutError) {
-      setError(signOutError)
-      return
-    }
-
-    navigate('/login', { replace: true })
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
@@ -162,7 +67,7 @@ export function DashboardPage() {
               >
                 <div className="flex items-center gap-3">
                   <div className="rounded-lg bg-sky-100 p-2.5">
-                    <BookOpen className="h-5 w-5 text-sky-600" />
+                    <BookOpen className="h-5 w-5 text-sky-600" aria-hidden="true" />
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-900">ベースヌック</h3>
@@ -176,7 +81,7 @@ export function DashboardPage() {
               >
                 <div className="flex items-center gap-3">
                   <div className="rounded-lg bg-amber-100 p-2.5">
-                    <Zap className="h-5 w-5 text-amber-600" />
+                    <Zap className="h-5 w-5 text-amber-600" aria-hidden="true" />
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-900">デイリーチャレンジ</h3>
@@ -190,14 +95,14 @@ export function DashboardPage() {
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-slate-900">スキルアップ</h2>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {SKILL_UP_CARDS.filter((c) => c.to !== '/daily').map((card) => (
+                {PRACTICE_MODE_CARDS.filter((c) => c.to !== '/daily').map((card) => (
                   <Link
                     key={card.to}
                     to={card.to}
                     className="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md"
                   >
                     <div className={`inline-flex rounded-lg border p-2 ${card.color}`}>
-                      <card.icon className="h-4 w-4" />
+                      <card.icon className="h-4 w-4" aria-hidden="true" />
                     </div>
                     <h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-primary-dark">
                       {card.title}
@@ -240,7 +145,7 @@ function CategoryCard({
     >
       <div className="flex items-center gap-3">
         <div className="rounded-lg bg-primary-mint/10 p-2.5">
-          <IconComponent className="h-5 w-5 text-primary-dark" />
+          <IconComponent className="h-5 w-5 text-primary-dark" aria-hidden="true" />
         </div>
         <div>
           <h3 className="font-bold text-slate-900 group-hover:text-primary-dark">{category.title}</h3>
@@ -255,7 +160,7 @@ function CategoryCard({
             <span className="font-medium text-slate-600">
               {completedCount}/{totalCount} ステップ
             </span>
-            <span className="text-slate-400">{progressPercent}%</span>
+            <span className="text-slate-400" aria-live="polite">{progressPercent}%</span>
           </div>
           <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
             <div

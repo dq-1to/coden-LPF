@@ -17,6 +17,8 @@ export interface CodeDoctorProblem {
   ngKeywords: string[]
   /** 正解後に表示する解説 */
   explanation: string
+  /** 推定で不十分な場合の手動オーバーライド（1-indexed） */
+  buggyLineNumbers?: number[]
 }
 
 export interface CodeDoctorProgress {

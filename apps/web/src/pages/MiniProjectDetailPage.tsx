@@ -1,19 +1,20 @@
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { CodeEditor } from '../components/CodeEditor'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useIsMobile } from '../hooks/useIsMobile'
 import { getProjectProgressMap, submitProject } from '../services/miniProjectService'
 import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
+import { MilestoneGuide } from '../features/mini-projects/components/MilestoneGuide'
 import { PracticePageLayout } from '../components/PracticePageLayout'
-import { Spinner } from '../components/Spinner'
 import { MINI_PROJECTS } from '../content/mini-projects/projects'
 import type { MilestoneJudgeResult, MiniProjectProgress, MiniProjectStatus, SubmitProjectResult } from '../content/mini-projects/types'
-
-const MonacoEditor = lazy(() => import('@monaco-editor/react'))
 
 export function MiniProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>()
   const { user } = useAuth()
+  const isMobile = useIsMobile()
 
   const project = MINI_PROJECTS.find((p) => p.id === projectId)
 
@@ -25,22 +26,51 @@ export function MiniProjectDetailPage() {
   const [submitResult, setSubmitResult] = useState<SubmitProjectResult | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  const loadProgress = useCallback(async () => {
-    if (!user || !project) return
-    try {
-      const map = await getProjectProgressMap(user.id)
-      const prog = map.get(project.id) ?? null
-      setProgress(prog)
-      setCode(prog?.code ?? project.initialCode)
-    } catch {
-      setCode(project.initialCode)
-    }
-  }, [user, project])
+  // ガイドモード: 現在フォーカスしているマイルストーン
+  const [currentMilestoneIndex, setCurrentMilestoneIndex] = useState(0)
+
+  const milestoneKeywords = useMemo(
+    () => project?.milestones.flatMap((m) => m.requiredKeywords) ?? [],
+    [project?.milestones],
+  )
+
+  // モバイルガイドモード: 現在のマイルストーンのキーワードのみ
+  const currentMilestoneKeywords = useMemo(
+    () => project?.milestones[currentMilestoneIndex]?.requiredKeywords ?? [],
+    [project?.milestones, currentMilestoneIndex],
+  )
+
+  // 現在のマイルストーンの編集可能範囲
+  const currentEditableRange = useMemo(
+    () => project?.milestones[currentMilestoneIndex]?.editableRange ?? undefined,
+    [project?.milestones, currentMilestoneIndex],
+  )
 
   useEffect(() => {
-    void loadProgress()
-  }, [loadProgress])
+    if (!user || !project) return
+    const userId = user.id
+    const proj = project
+    let isMounted = true
+
+    async function load() {
+      try {
+        const map = await getProjectProgressMap(userId)
+        if (!isMounted) return
+        const prog = map.get(proj.id) ?? null
+        setProgress(prog)
+        setCode(prog?.code ?? proj.initialCode)
+      } catch (e) {
+        if (!isMounted) return
+        setLoadError(e instanceof Error ? e.message : '進捗の取得に失敗しました')
+        setCode(proj.initialCode)
+      }
+    }
+
+    void load()
+    return () => { isMounted = false }
+  }, [user, project])
 
   if (!project) {
     return <Navigate to="/practice/mini-projects" replace />
@@ -58,11 +88,16 @@ export function MiniProjectDetailPage() {
       const result = await submitProject(user.id, project, code, previousStatus)
       setSubmitResult(result)
       setMilestoneResults(result.milestoneResults)
+      // ガイドモード: 最初の未達成マイルストーンにフォーカスを移動
+      const firstFailing = result.milestoneResults.findIndex((r) => !r.passed)
+      if (firstFailing !== -1) {
+        setCurrentMilestoneIndex(firstFailing)
+      }
       setProgress((prev) => ({
         projectId: project.id,
         status: result.newStatus,
         code,
-        completedAt: result.allPassed ? new Date().toISOString() : (prev?.completedAt ?? null),
+        completedAt: prev?.completedAt ?? null,
       }))
     } catch (e) {
       setSubmitError(e instanceof Error ? e.message : '送信に失敗しました')
@@ -129,7 +164,7 @@ export function MiniProjectDetailPage() {
                 {submitResult.allPassed ? (
                   <>
                     <p className="font-semibold text-emerald-800">
-                      ✅ 全マイルストーン達成！
+                      <span aria-hidden="true">✅</span> 全マイルストーン達成！
                       {submitResult.pointsEarned > 0 && ` +${submitResult.pointsEarned} Pt`}
                     </p>
                     <p className="mt-1 text-xs text-emerald-700">
@@ -157,37 +192,44 @@ export function MiniProjectDetailPage() {
                 {submitError}
               </p>
             )}
+
+            {loadError && (
+              <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+                {loadError}
+              </div>
+            )}
           </div>
 
-          {/* 右エリア: Monaco Editor */}
+          {/* 右エリア: エディタ */}
           <div className="flex min-w-0 flex-1 flex-col gap-4">
             {isCompleted && !submitResult && (
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-                ✅ このプロジェクトは完了済みです。コードを確認・編集できます。
+                <span aria-hidden="true">✅</span> このプロジェクトは完了済みです。コードを確認・編集できます。
               </div>
             )}
 
+            {/* モバイル: ガイドモード UI */}
+            {isMobile && (
+              <MilestoneGuide
+                milestones={project.milestones}
+                currentIndex={currentMilestoneIndex}
+                milestoneResults={milestoneResults}
+              />
+            )}
+
             <div className="overflow-hidden rounded-xl border border-border">
-              <Suspense
-                fallback={
-                  <div className="flex h-80 items-center justify-center bg-slate-900 text-sm text-slate-300">
-                    <Spinner />
-                  </div>
-                }
-              >
-                <MonacoEditor
-                  height="520px"
-                  defaultLanguage="typescript"
-                  theme="vs-dark"
-                  value={code}
-                  options={{ minimap: { enabled: false }, fontSize: 14, scrollBeyondLastLine: false }}
-                  onChange={(v) => {
-                    setCode(v ?? '')
-                    setMilestoneResults(null)
-                    setSubmitResult(null)
-                  }}
-                />
-              </Suspense>
+              <CodeEditor
+                value={code}
+                onChange={(v) => {
+                  setCode(v)
+                  setMilestoneResults(null)
+                  setSubmitResult(null)
+                }}
+                language="typescript"
+                height={isMobile ? 'min(50vh, 300px)' : '520px'}
+                toolbarKeywords={isMobile ? currentMilestoneKeywords : milestoneKeywords}
+                {...(isMobile && currentEditableRange ? { editableLineRange: currentEditableRange } : {})}
+              />
             </div>
 
             <div className="flex items-center gap-4">
@@ -197,7 +239,7 @@ export function MiniProjectDetailPage() {
                 disabled={isSubmitting || isCompleted}
                 className="rounded-lg bg-amber-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isSubmitting ? '判定中...' : isCompleted ? '✅ 完了済み' : '判定する'}
+                {isSubmitting ? '判定中...' : isCompleted ? (<><span aria-hidden="true">✅</span> 完了済み</>) : '判定する'}
               </button>
               {isCompleted && (
                 <Link

@@ -57,7 +57,7 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
             {part}
             {index < parts.length - 1 && (
               <input
-                className={`mx-1 inline-block w-full max-w-xs rounded bg-slate-800 px-2 py-0.5 text-emerald-300 outline-none ring-1 placeholder:text-slate-500 focus:ring-2 sm:w-64 ${isJudged
+                className={`mx-1 inline-block w-full max-w-xs min-h-[44px] rounded bg-slate-800 px-2 py-0.5 text-emerald-300 outline-none ring-1 placeholder:text-slate-500 focus:ring-2 sm:w-64 ${isJudged
                   ? isPassed
                     ? 'ring-emerald-500 focus:ring-emerald-400'
                     : 'ring-rose-500 focus:ring-rose-400'

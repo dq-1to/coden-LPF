@@ -34,13 +34,13 @@ describe('AppHeader モバイルドロワー', () => {
   it('ハンバーガーボタンをクリックするとドロワーが開く', () => {
     renderHeader()
     fireEvent.click(screen.getByRole('button', { name: 'メニューを開く' }))
-    expect(screen.getByRole('navigation', { name: 'モバイルナビゲーション' })).toBeTruthy()
+    expect(screen.getByRole('dialog', { name: 'モバイルナビゲーション' })).toBeTruthy()
   })
 
   it('ドロワー内にナビゲーションリンクが表示される', () => {
     renderHeader()
     fireEvent.click(screen.getByRole('button', { name: 'メニューを開く' }))
-    const nav = screen.getByRole('navigation', { name: 'モバイルナビゲーション' })
+    const nav = screen.getByRole('dialog', { name: 'モバイルナビゲーション' })
     expect(nav.querySelector('a[href="/"]')).toBeTruthy()
     expect(nav.querySelector('a[href="/profile"]')).toBeTruthy()
   })
@@ -48,19 +48,17 @@ describe('AppHeader モバイルドロワー', () => {
   it('ドロワー内にユーザー情報が表示される', () => {
     renderHeader()
     fireEvent.click(screen.getByRole('button', { name: 'メニューを開く' }))
-    // ドロワー内のユーザー名 — ヘッダーにもあるのでドロワーのnavを基準にする
-    const drawer = screen.getByRole('navigation', { name: 'モバイルナビゲーション' })
-    expect(drawer.parentElement?.textContent).toContain('テストユーザー')
-    expect(drawer.parentElement?.textContent).toContain('200 Pt')
-    expect(drawer.parentElement?.textContent).toContain('5日連続')
+    const drawer = screen.getByRole('dialog', { name: 'モバイルナビゲーション' })
+    expect(drawer.textContent).toContain('テストユーザー')
+    expect(drawer.textContent).toContain('200 Pt')
+    expect(drawer.textContent).toContain('5日連続')
   })
 
   it('ドロワー内にログアウトボタンがある', () => {
     renderHeader()
     fireEvent.click(screen.getByRole('button', { name: 'メニューを開く' }))
-    // ドロワー内のログアウトボタン
-    const nav = screen.getByRole('navigation', { name: 'モバイルナビゲーション' })
-    const buttons = nav.parentElement?.querySelectorAll('button') ?? []
+    const nav = screen.getByRole('dialog', { name: 'モバイルナビゲーション' })
+    const buttons = nav.querySelectorAll('button')
     const logoutButtons = Array.from(buttons).filter(b => b.textContent === 'ログアウト')
     expect(logoutButtons.length).toBeGreaterThan(0)
   })
@@ -68,30 +66,36 @@ describe('AppHeader モバイルドロワー', () => {
   it('閉じるボタンでドロワーが閉じる', () => {
     renderHeader()
     fireEvent.click(screen.getByRole('button', { name: 'メニューを開く' }))
-    expect(screen.getByRole('navigation', { name: 'モバイルナビゲーション' })).toBeTruthy()
+    expect(screen.getByRole('dialog', { name: 'モバイルナビゲーション' })).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: 'メニューを閉じる' }))
-    expect(screen.queryByRole('navigation', { name: 'モバイルナビゲーション' })).toBeNull()
+    expect(screen.queryByRole('dialog', { name: 'モバイルナビゲーション' })).toBeNull()
   })
 
   it('ESCキーでドロワーが閉じる', () => {
     renderHeader()
     fireEvent.click(screen.getByRole('button', { name: 'メニューを開く' }))
-    expect(screen.getByRole('navigation', { name: 'モバイルナビゲーション' })).toBeTruthy()
+    expect(screen.getByRole('dialog', { name: 'モバイルナビゲーション' })).toBeTruthy()
 
     fireEvent.keyDown(document, { key: 'Escape' })
-    expect(screen.queryByRole('navigation', { name: 'モバイルナビゲーション' })).toBeNull()
+    expect(screen.queryByRole('dialog', { name: 'モバイルナビゲーション' })).toBeNull()
   })
 
-  it('オーバーレイクリックでドロワーが閉じる', () => {
+  it('ドロワーがフルスクリーンで表示される', () => {
     renderHeader()
     fireEvent.click(screen.getByRole('button', { name: 'メニューを開く' }))
-    expect(screen.getByRole('navigation', { name: 'モバイルナビゲーション' })).toBeTruthy()
+    const nav = screen.getByRole('dialog', { name: 'モバイルナビゲーション' })
+    expect(nav.className).toContain('fixed')
+    expect(nav.className).toContain('inset-0')
+  })
 
-    // aria-hidden="true" のオーバーレイをクリック
-    const overlay = screen.getByRole('navigation', { name: 'モバイルナビゲーション' }).parentElement?.querySelector('[aria-hidden="true"]')
-    expect(overlay).toBeTruthy()
-    fireEvent.click(overlay!)
-    expect(screen.queryByRole('navigation', { name: 'モバイルナビゲーション' })).toBeNull()
+  it('ドロワー内にセクションヘッダーが表示される', () => {
+    renderHeader()
+    fireEvent.click(screen.getByRole('button', { name: 'メニューを開く' }))
+    const nav = screen.getByRole('dialog', { name: 'モバイルナビゲーション' })
+    expect(nav.textContent).toContain('メイン')
+    expect(nav.textContent).toContain('学習コース')
+    expect(nav.textContent).toContain('練習モード')
+    expect(nav.textContent).toContain('その他')
   })
 })

@@ -79,11 +79,11 @@ function CourseSection({
         aria-expanded={isOpen}
       >
         <span className="flex items-center gap-1.5">
-          {lockStatus.locked && <Lock className="h-3 w-3 text-slate-400" />}
+          {lockStatus.locked && <Lock className="h-3 w-3 text-slate-400" aria-hidden="true" />}
           {course.title}
         </span>
         {!lockStatus.locked && (
-          <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
         )}
       </button>
 
@@ -108,7 +108,7 @@ function CourseSection({
                   <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
                     isDone ? 'bg-emerald-500 text-white' : 'border border-slate-300 text-slate-400'
                   }`}>
-                    {isDone ? <Check className="h-2.5 w-2.5" /> : step.order}
+                    {isDone ? <Check className="h-2.5 w-2.5" aria-hidden="true" /> : step.order}
                   </span>
                   <span className="truncate">{step.title}</span>
                 </Link>

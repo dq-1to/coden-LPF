@@ -11,14 +11,14 @@ export function WeeklyStatus({ entries, todayStr }: WeeklyStatusProps) {
   const completedCount = entries.filter((e) => e.completed).length
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-sm font-semibold text-text-dark">今週の達成状況</h3>
         <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">
           {completedCount} / {entries.length} 日
         </span>
       </div>
-      <div className="flex items-center justify-between gap-1">
+      <div className="flex items-center justify-between gap-1.5 sm:gap-2">
         {entries.map((entry, i) => {
           const isToday = entry.date === todayStr
           return (
@@ -26,7 +26,7 @@ export function WeeklyStatus({ entries, todayStr }: WeeklyStatusProps) {
               <span className="text-xs font-medium text-slate-400">{DAY_LABELS[i]}</span>
               <div
                 className={[
-                  'flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold transition-colors',
+                  'flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-colors sm:h-10 sm:w-10',
                   entry.completed
                     ? 'bg-amber-400 text-white shadow-sm shadow-amber-200'
                     : isToday

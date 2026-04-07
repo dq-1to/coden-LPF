@@ -1,24 +1,20 @@
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { CodeEditor } from '../components/CodeEditor'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useIsMobile } from '../hooks/useIsMobile'
 import { getProblemProgressMap, submitDoctorSolution } from '../services/codeDoctorService'
 import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
 import { ProblemCard } from '../features/code-doctor/components/ProblemCard'
+import { Pagination } from '../components/Pagination'
 import { PracticePageLayout } from '../components/PracticePageLayout'
 import { Spinner } from '../components/Spinner'
 import { CODE_DOCTOR_PROBLEMS } from '../content/code-doctor/problems'
+import { estimateBuggyLines } from '../content/code-doctor/estimateBuggyLines'
 import type { CodeDoctorDifficulty, CodeDoctorProblem, CodeDoctorProgress, SubmitDoctorResult } from '../content/code-doctor/types'
+import { DIFFICULTY_FILTER_OPTIONS, type DifficultyFilterValue } from '../shared/constants'
 
-const MonacoEditor = lazy(() => import('@monaco-editor/react'))
-
-type FilterValue = 'all' | CodeDoctorDifficulty
-
-const FILTER_OPTIONS: { value: FilterValue; label: string }[] = [
-  { value: 'all', label: '全て' },
-  { value: 'beginner', label: '初級' },
-  { value: 'intermediate', label: '中級' },
-  { value: 'advanced', label: '上級' },
-]
+const ITEMS_PER_PAGE = 9
 
 const DIFFICULTY_STARS: Record<CodeDoctorDifficulty, string> = {
   beginner: '★☆☆',
@@ -30,9 +26,11 @@ export function CodeDoctorPage() {
   useDocumentTitle('コードドクター')
 
   const { user } = useAuth()
+  const isMobile = useIsMobile()
 
   const [progressMap, setProgressMap] = useState<Map<string, CodeDoctorProgress>>(new Map())
-  const [filter, setFilter] = useState<FilterValue>('all')
+  const [filter, setFilter] = useState<DifficultyFilterValue>('all')
+  const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,23 +42,29 @@ export function CodeDoctorPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const loadProgress = useCallback(async () => {
-    if (!user) return
-    setIsLoading(true)
-    setError(null)
-    try {
-      const map = await getProblemProgressMap(user.id)
-      setProgressMap(map)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'データの取得に失敗しました')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [user])
-
   useEffect(() => {
-    void loadProgress()
-  }, [loadProgress])
+    if (!user) return
+    const userId = user.id
+    let isMounted = true
+
+    async function load() {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const map = await getProblemProgressMap(userId)
+        if (!isMounted) return
+        setProgressMap(map)
+      } catch (e) {
+        if (!isMounted) return
+        setError(e instanceof Error ? e.message : 'データの取得に失敗しました')
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+
+    void load()
+    return () => { isMounted = false }
+  }, [user])
 
   function handleSelectProblem(problem: CodeDoctorProblem) {
     setSelectedProblem(problem)
@@ -90,7 +94,7 @@ export function CodeDoctorPage() {
             problemId: selectedProblem.id,
             solved: true,
             attempts: (prev.get(selectedProblem.id)?.attempts ?? 0) + 1,
-            solvedAt: new Date().toISOString(),
+            solvedAt: null,
           })
           return next
         })
@@ -102,10 +106,21 @@ export function CodeDoctorPage() {
     }
   }
 
+  const buggyLines = useMemo(
+    () => (selectedProblem ? estimateBuggyLines(selectedProblem) : []),
+    [selectedProblem],
+  )
+
   const filteredProblems =
     filter === 'all'
       ? CODE_DOCTOR_PROBLEMS
       : CODE_DOCTOR_PROBLEMS.filter((p) => p.difficulty === filter)
+
+  const totalPages = Math.ceil(filteredProblems.length / ITEMS_PER_PAGE)
+  const paginatedProblems = filteredProblems.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  )
 
   // ─── 問題ビュー ─────────────────────────────────────────
   if (selectedProblem) {
@@ -142,7 +157,7 @@ export function CodeDoctorPage() {
                 onClick={() => setShowHint((v) => !v)}
                 className="text-sm font-medium text-amber-600 hover:text-amber-700"
               >
-                💡 {showHint ? 'ヒントを隠す' : 'ヒントを表示'}
+                <span aria-hidden="true">💡</span> {showHint ? 'ヒントを隠す' : 'ヒントを表示'}
               </button>
 
               {showHint && (
@@ -159,13 +174,13 @@ export function CodeDoctorPage() {
                   {result.passed ? (
                     <>
                       <p className="font-semibold text-emerald-800">
-                        ✅ 正解！ +{result.pointsEarned} Pt
+                        <span aria-hidden="true">✅</span> 正解！ +{result.pointsEarned} Pt
                       </p>
                       <p className="mt-2 text-emerald-700">{result.explanation}</p>
                     </>
                   ) : (
                     <>
-                      <p className="font-semibold text-rose-800">❌ まだバグが残っています</p>
+                      <p className="font-semibold text-rose-800"><span aria-hidden="true">❌</span> まだバグが残っています</p>
                       {result.missingKeywords.length > 0 && (
                         <div className="mt-2">
                           <p className="text-xs text-rose-700">不足している修正:</p>
@@ -198,25 +213,17 @@ export function CodeDoctorPage() {
               )}
             </div>
 
-            {/* Monaco エディタ */}
+            {/* コードエディタ */}
             <div className="flex min-w-0 flex-1 flex-col gap-4">
               <div className="overflow-hidden rounded-xl border border-border">
-                <Suspense
-                  fallback={
-                    <div className="flex h-80 items-center justify-center bg-slate-900 text-sm text-slate-300">
-                      エディタを読み込み中...
-                    </div>
-                  }
-                >
-                  <MonacoEditor
-                    height="480px"
-                    defaultLanguage="typescript"
-                    theme="vs-dark"
-                    value={code}
-                    options={{ minimap: { enabled: false }, fontSize: 14, scrollBeyondLastLine: false }}
-                    onChange={(v) => { setCode(v ?? ''); setResult(null) }}
-                  />
-                </Suspense>
+                <CodeEditor
+                  value={code}
+                  onChange={(v) => { setCode(v); setResult(null) }}
+                  language="typescript"
+                  height={isMobile ? 'min(50vh, 300px)' : '480px'}
+                  toolbarKeywords={selectedProblem.requiredKeywords}
+                  highlightLines={buggyLines}
+                />
               </div>
 
               <div className="flex items-center gap-4">
@@ -261,12 +268,14 @@ export function CodeDoctorPage() {
             </div>
 
             {/* フィルタ */}
-            <div className="flex gap-2">
-              {FILTER_OPTIONS.map(({ value, label }) => (
+            <div className="flex gap-2" role="tablist" aria-label="難易度フィルター">
+              {DIFFICULTY_FILTER_OPTIONS.map(({ value, label }) => (
                 <button
                   key={value}
                   type="button"
-                  onClick={() => setFilter(value)}
+                  role="tab"
+                  aria-selected={filter === value}
+                  onClick={() => { setFilter(value); setCurrentPage(1) }}
                   className={[
                     'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
                     filter === value
@@ -288,16 +297,24 @@ export function CodeDoctorPage() {
                 {error}
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredProblems.map((problem) => (
-                  <ProblemCard
-                    key={problem.id}
-                    problem={problem}
-                    progress={progressMap.get(problem.id)}
-                    onClick={() => handleSelectProblem(problem)}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {paginatedProblems.map((problem) => (
+                    <ProblemCard
+                      key={problem.id}
+                      problem={problem}
+                      progress={progressMap.get(problem.id)}
+                      onClick={() => handleSelectProblem(problem)}
+                    />
+                  ))}
+                </div>
+
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </>
             )}
           </div>
         </div>

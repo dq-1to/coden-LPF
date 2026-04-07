@@ -39,13 +39,13 @@ function CopyButton({ text }: { text: string }) {
       await navigator.clipboard.writeText(text)
       setCopied(true)
     } catch {
-      // コピー失敗時は何もしない
+      // Clipboard API 未対応環境やセキュリティ制約による失敗は無視（補助機能のため）
     }
   }, [text])
 
   return (
     <button
-      className="rounded bg-slate-700 px-2 py-1 text-slate-100 hover:bg-slate-600"
+      className="min-h-[44px] rounded bg-slate-700 px-3 py-2 text-sm text-slate-100 hover:bg-slate-600"
       type="button"
       onClick={() => void handleCopy()}
     >
@@ -72,7 +72,7 @@ export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
         {completeButton}
       </div>
 
-      <article className="prose prose-slate max-w-none overflow-x-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <article className="prose prose-slate prose-sm max-w-none overflow-x-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:prose-base sm:p-5">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
@@ -95,7 +95,7 @@ export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
                     <span>{language}</span>
                     <CopyButton text={codeText} />
                   </div>
-                  <pre className="m-0 overflow-x-auto p-4 font-mono text-sm">
+                  <pre className="m-0 overflow-x-auto p-3 font-mono text-[13px] leading-relaxed sm:p-4 sm:text-sm">
                     <code className={`language-${language}`} {...props}>
                       {codeText}
                     </code>
@@ -106,8 +106,8 @@ export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
             blockquote({ children }) {
               return (
                 <div className="not-prose my-4 flex gap-3 rounded-lg border-l-4 border-primary-mint bg-secondary-bg px-4 py-3">
-                  <Lightbulb className="mt-0.5 size-5 shrink-0 text-primary-mint" />
-                  <div className="text-sm text-text-dark [&>p]:m-0">{children}</div>
+                  <Lightbulb className="mt-0.5 size-5 shrink-0 text-primary-mint" aria-hidden="true" />
+                  <div className="text-sm leading-relaxed text-text-dark [&>p]:m-0">{children}</div>
                 </div>
               )
             },

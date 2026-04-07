@@ -62,7 +62,7 @@ export default function FormPreview() {
         送信
       </button>
       {!isValid && (name.length > 0 || email.length > 0) && (
-        <p className="text-xs text-amber-600">名前と有効なメールアドレスを入力してください</p>
+        <p className="text-xs text-amber-600" role="alert">名前と有効なメールアドレスを入力してください</p>
       )}
     </form>
   )

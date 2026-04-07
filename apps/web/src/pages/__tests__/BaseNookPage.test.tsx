@@ -69,7 +69,7 @@ describe('BaseNookPage', () => {
     expect(spinner).toBeTruthy()
   })
 
-  it('トピックカードが12件レンダリングされること', async () => {
+  it('1ページ目にトピックカードが9件表示されること（12件中）', async () => {
     getAllProgressMock.mockResolvedValue([])
 
     render(
@@ -78,10 +78,9 @@ describe('BaseNookPage', () => {
       </MemoryRouter>,
     )
 
-    // TopicCard スタブが topic.title をテキストとして表示する
-    // BASE_NOOK_TOPICS の最初のトピックタイトルが現れるまで待つ
+    // Pagination により1ページ目は最大9件表示
     const cards = await screen.findAllByTestId('topic-card')
-    expect(cards).toHaveLength(12)
+    expect(cards).toHaveLength(9)
   })
 
   it('エラー時にエラーメッセージが role="alert" で表示されること', async () => {

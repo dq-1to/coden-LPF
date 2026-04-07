@@ -29,8 +29,12 @@ vi.mock('@/features/daily/components/PracticeModeNav', () => ({
   PracticeModeNav: () => <nav>PracticeModeNav</nav>,
 }))
 
-vi.mock('@monaco-editor/react', () => ({
-  default: () => <div>MonacoEditor</div>,
+vi.mock('@/components/CodeEditor', () => ({
+  CodeEditor: () => <div>CodeEditor</div>,
+}))
+
+vi.mock('@/hooks/useIsMobile', () => ({
+  useIsMobile: () => false,
 }))
 
 describe('CodeDoctorPage', () => {

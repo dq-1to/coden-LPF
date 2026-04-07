@@ -16,7 +16,7 @@ const SIZE_STYLES = {
 } as const
 
 const BASE_STYLES =
-  'inline-flex items-center justify-center rounded-md font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-mint/30'
+  'inline-flex items-center justify-center rounded-md font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-mint/30 min-h-[44px]'
 
 const DISABLED_STYLES =
   'disabled:bg-slate-200 disabled:text-slate-400 disabled:border-slate-200 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:bg-slate-200'
