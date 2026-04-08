@@ -27,7 +27,7 @@ export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallen
   const formattedDate = dateStr.replace(/-/g, '/')
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
       <div className="mb-5 flex items-center justify-between">
         <span className="text-sm font-medium text-slate-500">{formattedDate}</span>
         <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-0.5 text-xs font-semibold text-amber-700">
@@ -50,7 +50,11 @@ export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallen
                 if (e.key === 'Enter') void handleSubmit()
               }}
               placeholder="答えを入力..."
-              className="mb-4 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-text-dark placeholder-slate-400 transition-colors focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+              autoComplete="off"
+              autoCorrect="off"
+              spellCheck={false}
+              autoCapitalize="off"
+              className="mb-4 min-h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-text-dark placeholder-slate-400 transition-colors focus:border-amber-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
             />
           ) : (
             <div className="mb-4 space-y-2" role="radiogroup" aria-label="選択肢">
@@ -58,7 +62,7 @@ export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallen
                 <label
                   key={choice}
                   className={[
-                    'flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition-all',
+                    'flex min-h-[44px] cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition-all',
                     answer === choice
                       ? 'border-amber-400 bg-amber-50 text-amber-700 shadow-sm'
                       : 'border-slate-200 bg-white text-text-dark hover:border-amber-200 hover:bg-amber-50/30',
@@ -82,13 +86,13 @@ export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallen
             <button
               onClick={() => void handleSubmit()}
               disabled={!answer.trim() || isSubmitting}
-              className="rounded-lg bg-amber-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-h-[44px] rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? '判定中...' : '判定する'}
             </button>
             <button
               onClick={() => setShowHint((v) => !v)}
-              className="text-sm text-slate-500 transition-colors hover:text-amber-600"
+              className="min-h-[44px] px-2 text-sm text-slate-500 transition-colors hover:text-amber-600"
             >
               {showHint ? 'ヒントを隠す' : 'ヒントを見る'}
             </button>
