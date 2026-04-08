@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronDown, Code2 } from 'lucide-react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useGreetingName } from '../hooks/useGreetingName'
 import { useSignOut } from '../hooks/useSignOut'
+import { ErrorBanner } from '../components/ErrorBanner'
 import { CATEGORIES, type CategoryMeta, type CourseMeta } from '../content/courseData'
 import { useLearningContext } from '../contexts/LearningContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
@@ -14,7 +15,9 @@ export function CurriculumPage() {
   useDocumentTitle('カリキュラム')
   const { completedStepIds, isLoadingStats } = useLearningContext()
   const { greetingName } = useGreetingName()
-  const handleSignOut = useSignOut()
+  const [error, setError] = useState<string | null>(null)
+  const onSignOutError = useCallback((msg: string) => setError(msg), [])
+  const handleSignOut = useSignOut(onSignOutError)
 
   // ハッシュからスクロール
   useEffect(() => {
@@ -29,6 +32,7 @@ export function CurriculumPage() {
       <AppHeader displayName={greetingName} onSignOut={() => void handleSignOut()} />
 
       <main className="mx-auto w-full max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
+        {error ? <ErrorBanner className="mb-4">{error}</ErrorBanner> : null}
         <h1 className="text-2xl font-bold text-slate-900">カリキュラム</h1>
         <p className="mt-1 text-sm text-slate-500">カテゴリ・コース・ステップを一覧して学習を始めましょう</p>
 
@@ -45,7 +49,7 @@ export function CurriculumPage() {
         </div>
 
         {/* 練習モードセクション */}
-        <section id="practice" className="mt-12">
+        <section id="practice" className="mt-6 border-t border-slate-200 pt-6">
           <h2 className="text-xl font-bold text-slate-900">練習モード</h2>
           <p className="mt-1 text-sm text-slate-500">繰り返し学習で知識を定着させましょう</p>
 
@@ -85,7 +89,7 @@ function CategorySection({
 
   return (
     <section id={category.id}>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 border-l-4 border-emerald-400 pl-3">
         <div className="rounded-lg bg-primary-mint/10 p-2">
           <IconComponent className="h-5 w-5 text-primary-dark" aria-hidden="true" />
         </div>
@@ -145,7 +149,7 @@ function CourseAccordion({
     <div className={`rounded-xl border bg-white shadow-sm ${lockStatus.locked ? 'border-slate-200 opacity-60' : 'border-slate-200'}`}>
       <button
         type="button"
-        className="flex w-full items-center justify-between px-5 py-4 text-left"
+        className="flex w-full items-center justify-between px-4 py-3 text-left sm:px-5 sm:py-4"
         onClick={() => !lockStatus.locked && setIsOpen((prev) => !prev)}
         disabled={lockStatus.locked}
         aria-expanded={isOpen}
@@ -180,7 +184,7 @@ function CourseAccordion({
       </button>
 
       {isOpen && !lockStatus.locked && hasSteps && (
-        <div className="border-t border-slate-100 px-5 py-3">
+        <div className="border-t border-slate-100 px-4 py-3 sm:px-5">
           {!lockStatus.locked && lockStatus.warning && (
             <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
               {lockStatus.warning}
@@ -193,7 +197,7 @@ function CourseAccordion({
                 <li key={step.id}>
                   <Link
                     to={`/step/${step.id}`}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition hover:bg-slate-50"
+                    className="flex min-h-[44px] items-center gap-3 rounded-lg px-3 py-2 text-sm transition hover:bg-slate-50"
                   >
                     <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold ${done ? 'bg-emerald-500 text-white' : 'border border-slate-300 text-slate-400'}`}>
                       {done ? '✓' : step.order}

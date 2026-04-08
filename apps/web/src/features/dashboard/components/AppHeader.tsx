@@ -122,7 +122,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
             <span className="font-display text-2xl font-bold tracking-tight text-primary-mint">Coden</span>
           </Link>
 
-          <nav className="hidden items-center gap-5 text-sm font-medium lg:flex" aria-label="メインナビゲーション">
+          <nav className="hidden items-center gap-5 text-sm font-medium md:flex" aria-label="メインナビゲーション">
             <Link
               to="/"
               className={navLinkClass(location.pathname === '/')}
@@ -205,7 +205,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
           </div>
           <div className="hidden text-sm font-medium text-slate-600 sm:block">{displayName}</div>
           <button
-            className="hidden rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 lg:block"
+            className="hidden rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 md:block"
             type="button"
             onClick={onSignOut}
           >
@@ -215,7 +215,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
           {/* モバイル: ハンバーガーボタン */}
           <button
             ref={menuButtonRef}
-            className="rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 lg:hidden"
+            className="rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 md:hidden"
             type="button"
             onClick={() => setIsDrawerOpen(true)}
             aria-label="メニューを開く"
@@ -232,7 +232,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
         ref={drawerRef}
         role="dialog"
         aria-modal="true"
-        className="fixed inset-0 z-50 flex flex-col bg-white lg:hidden"
+        className="fixed inset-0 z-50 flex flex-col bg-white md:hidden"
         aria-label="モバイルナビゲーション"
       >
         {/* ヘッダー */}
