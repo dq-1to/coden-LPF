@@ -21,7 +21,7 @@ export function LearningSidebar({ category, currentStepId }: LearningSidebarProp
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{category.title}</p>
         <button
-          className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 lg:hidden"
+          className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 lg:hidden"
           type="button"
           aria-expanded={!isCollapsed}
           aria-controls="learning-sidebar-list"
@@ -71,7 +71,7 @@ function CourseSection({
     <div>
       <button
         type="button"
-        className={`flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs font-semibold transition ${
+        className={`flex w-full min-h-[44px] items-center justify-between rounded-lg px-2 py-1.5 text-xs font-semibold transition ${
           containsCurrent ? 'text-primary-dark' : 'text-slate-600 hover:bg-slate-50'
         } ${lockStatus.locked ? 'opacity-50' : ''}`}
         onClick={() => !lockStatus.locked && setIsOpen((prev) => !prev)}
@@ -96,7 +96,7 @@ function CourseSection({
             return (
               <li key={step.id}>
                 <Link
-                  className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition ${
+                  className={`flex min-h-[44px] items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition ${
                     isCurrent
                       ? 'border border-primary-mint/30 bg-secondary-bg text-primary-dark'
                       : 'text-slate-600 hover:bg-slate-50'
