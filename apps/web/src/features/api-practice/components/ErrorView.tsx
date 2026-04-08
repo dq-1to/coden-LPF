@@ -14,7 +14,7 @@ export function ErrorView({ message, onRetry }: ErrorViewProps) {
       <p className="text-sm font-medium text-rose-700">{message}</p>
       {onRetry ? (
         <button
-          className="mt-2 text-xs font-medium text-rose-600 underline hover:text-rose-800"
+          className="mt-2 min-h-[44px] text-xs font-medium text-rose-600 underline hover:text-rose-800"
           type="button"
           onClick={onRetry}
         >
