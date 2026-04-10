@@ -58,7 +58,7 @@ export function MultiBlankCodeContext({ code, blanks, activeIndex, onBlankTap }:
             aria-label={blank.label}
             aria-pressed={isActive}
           >
-            {hasTokens ? blank.tokens.join(' ') : `${blank.label}`}
+            {hasTokens ? `\u2713 ${blank.label}` : blank.label}
           </button>
         )
       })}
