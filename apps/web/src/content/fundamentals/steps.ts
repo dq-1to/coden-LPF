@@ -16,6 +16,28 @@ export interface TestTask {
   explanation?: string
 }
 
+export interface ChallengeMobilePuzzleSimple {
+  type: 'simple'
+  codeContext: string
+  correctTokens: string[]
+  distractorTokens: string[]
+}
+
+export interface ChallengeMobilePuzzleMultiBlank {
+  id: string
+  label: string
+  correctTokens: string[]
+  distractorTokens: string[]
+}
+
+export interface ChallengeMobilePuzzleMulti {
+  type: 'multi'
+  codeContext: string
+  blanks: ChallengeMobilePuzzleMultiBlank[]
+}
+
+export type ChallengeMobilePuzzle = ChallengeMobilePuzzleSimple | ChallengeMobilePuzzleMulti
+
 export interface ChallengePattern {
   id: string
   prompt: string
@@ -23,6 +45,7 @@ export interface ChallengePattern {
   hints: string[]
   expectedKeywords: string[]
   starterCode: string
+  mobilePuzzle?: ChallengeMobilePuzzle
 }
 
 export interface ChallengeTask {
@@ -159,7 +182,13 @@ return <button onClick={() => ____}>-1 ({count})</button>`,
           requirements: ['初期値0から開始する', 'クリックで+1される', '現在値を表示する'],
           hints: ['まず state を 1 つ定義する', 'イベントハンドラで setter を呼ぶ'],
           expectedKeywords: ['useState', 'setCount', 'onClick'],
-          starterCode: `import { useState } from 'react';\n\nexport function LikeButton() {\n  // TODO: useStateを使って、いいね数(count)と更新関数(setCount)を定義してください。\n  // 初期値は 0 にします。\n\n  return (\n    // TODO: buttonのonClickに、クリックされたら count を +1 する処理を書いてください。\n    <button>\n      {/* TODO: ここに現在のいいね数(count)を表示してください */}\n      いいね 0\n    </button>\n  );\n}`
+          starterCode: `import { useState } from 'react';\n\nexport function LikeButton() {\n  // TODO: useStateを使って、いいね数(count)と更新関数(setCount)を定義してください。\n  // 初期値は 0 にします。\n\n  return (\n    // TODO: buttonのonClickに、クリックされたら count を +1 する処理を書いてください。\n    <button>\n      {/* TODO: ここに現在のいいね数(count)を表示してください */}\n      いいね 0\n    </button>\n  );\n}`,
+          mobilePuzzle: {
+            type: 'simple',
+            codeContext: `import { useState } from 'react';\n\nexport function LikeButton() {\n  ____\n}`,
+            correctTokens: ['const', '[', 'count', ',', 'setCount', ']', '=', 'useState', '(', '0', ')', 'return', '(', '<button', 'onClick', '=', '{', '(', ')', '=>', 'setCount', '(', 'count', '+', '1', ')', '}', '>', '{', 'count', '}', '</button>', ')'],
+            distractorTokens: ['let', 'useEffect', 'useRef', 'getCount', '-', '2'],
+          },
         },
         {
           id: 'usestate-toggle',
@@ -167,7 +196,13 @@ return <button onClick={() => ____}>-1 ({count})</button>`,
           requirements: ['初期値は false', 'クリックで値を反転する', 'ONまたはOFFのテキストを表示する'],
           hints: ['boolean の state を使う', 'setter で 現在値の反転 (!prev) を渡す'],
           expectedKeywords: ['useState', 'setIsOn', 'onClick'],
-          starterCode: `import { useState } from 'react';\n\nexport function Toggle() {\n  // TODO: useStateを使って、ON/OFFを表す boolean 値(isOn)と更新関数(setIsOn)を定義してください。\n  // 初期値は false にします。\n\n  return (\n    // TODO: buttonのonClickに、クリックされたら isOn の値を反転反転(!isOn)させる処理を書いてください。\n    <button>\n      {/* TODO: isOn が true なら "ON"、false なら "OFF" を表示するように変更してください */}\n      OFF\n    </button>\n  );\n}`
+          starterCode: `import { useState } from 'react';\n\nexport function Toggle() {\n  // TODO: useStateを使って、ON/OFFを表す boolean 値(isOn)と更新関数(setIsOn)を定義してください。\n  // 初期値は false にします。\n\n  return (\n    // TODO: buttonのonClickに、クリックされたら isOn の値を反転反転(!isOn)させる処理を書いてください。\n    <button>\n      {/* TODO: isOn が true なら "ON"、false なら "OFF" を表示するように変更してください */}\n      OFF\n    </button>\n  );\n}`,
+          mobilePuzzle: {
+            type: 'simple',
+            codeContext: `import { useState } from 'react';\n\nexport function Toggle() {\n  ____\n}`,
+            correctTokens: ['const', '[', 'isOn', ',', 'setIsOn', ']', '=', 'useState', '(', 'false', ')', 'return', '(', '<button', 'onClick', '=', '{', '(', ')', '=>', 'setIsOn', '(', '!', 'isOn', ')', '}', '>', '{', 'isOn', '?', '"ON"', ':', '"OFF"', '}', '</button>', ')'],
+            distractorTokens: ['let', 'useEffect', 'true', 'getIsOn', '&&', 'null'],
+          },
         }
       ]
     },
@@ -284,7 +319,31 @@ export function NameInput() {
           requirements: ['入力欄を1つ置く', '入力値を下に表示する', '表示は即時反映される'],
           hints: ['onChange で値を受け取る', 'useStateで保持する'],
           expectedKeywords: ['onChange', 'target.value', 'useState'],
-          starterCode: `import { useState } from 'react';\n\nexport function LiveInput() {\n  // TODO: 入力文字列を保持する text というstateを作成してください。\n  \n  return (\n    <div>\n      {/* TODO: inputにonChangeイベントを設定し、入力値(e.target.value)で text を更新してください */}\n      <input placeholder="入力してください" />\n      <p>入力内容: {/* TODO: text変数をここに表示してください */}</p>\n    </div>\n  );\n}`
+          starterCode: `import { useState } from 'react';\n\nexport function LiveInput() {\n  // TODO: 入力文字列を保持する text というstateを作成してください。\n  \n  return (\n    <div>\n      {/* TODO: inputにonChangeイベントを設定し、入力値(e.target.value)で text を更新してください */}\n      <input placeholder="入力してください" />\n      <p>入力内容: {/* TODO: text変数をここに表示してください */}</p>\n    </div>\n  );\n}`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useState } from 'react';\n\nexport function LiveInput() {\n  ____0\n  return (\n    <div>\n      <input ____1 placeholder="入力してください" />\n      <p>入力内容: ____2</p>\n    </div>\n  );\n}`,
+            blanks: [
+              {
+                id: 'state',
+                label: 'state定義',
+                correctTokens: ['const', '[', 'text', ',', 'setText', ']', '=', 'useState', '(', "''", ')'],
+                distractorTokens: ['let', 'useEffect', 'name', 'setName', '0'],
+              },
+              {
+                id: 'onchange',
+                label: 'onChange設定',
+                correctTokens: ['onChange', '=', '{', '(', 'e', ')', '=>', 'setText', '(', 'e.target.value', ')', '}'],
+                distractorTokens: ['onClick', 'onSubmit', 'e.target.name', 'value'],
+              },
+              {
+                id: 'display',
+                label: '表示',
+                correctTokens: ['{', 'text', '}'],
+                distractorTokens: ['{', 'name', '}', 'count'],
+              },
+            ],
+          },
         },
         {
           id: 'events-submit',
@@ -292,7 +351,25 @@ export function NameInput() {
           requirements: ['onSubmitを使用する', 'event.preventDefault()を呼ぶ'],
           hints: ['formタグのonSubmitイベントを使う', 'onSubmit内で e.preventDefault() を呼ぶ'],
           expectedKeywords: ['onSubmit', 'preventDefault'],
-          starterCode: `export function SimpleForm() {\n  // TODO: handleSubmit という関数を作り、引数で event (e) を受け取るようにしてください。\n  // その中で e.preventDefault() を呼び出して送信時のページリロードを防いでください。\n\n  return (\n    // TODO: formタグの onSubmit イベントに、作成した関数を渡してください。\n    <form>\n      <button type="submit">送信</button>\n    </form>\n  );\n}`
+          starterCode: `export function SimpleForm() {\n  // TODO: handleSubmit という関数を作り、引数で event (e) を受け取るようにしてください。\n  // その中で e.preventDefault() を呼び出して送信時のページリロードを防いでください。\n\n  return (\n    // TODO: formタグの onSubmit イベントに、作成した関数を渡してください。\n    <form>\n      <button type="submit">送信</button>\n    </form>\n  );\n}`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `export function SimpleForm() {\n  ____0\n\n  return (\n    <form ____1>\n      <button type="submit">送信</button>\n    </form>\n  );\n}`,
+            blanks: [
+              {
+                id: 'handler',
+                label: 'ハンドラ定義',
+                correctTokens: ['function', 'handleSubmit', '(', 'e', ')', '{', 'e.preventDefault', '(', ')', '}'],
+                distractorTokens: ['const', 'handleClick', 'e.stopPropagation', 'return'],
+              },
+              {
+                id: 'onsubmit',
+                label: 'onSubmit設定',
+                correctTokens: ['onSubmit', '=', '{', 'handleSubmit', '}'],
+                distractorTokens: ['onClick', 'onChange', 'handleClick'],
+              },
+            ],
+          },
         }
       ]
     },
