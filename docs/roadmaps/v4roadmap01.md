@@ -146,11 +146,11 @@ v3 の Challenge モードはモバイルでフルエディタ + キーボード
 
 4ステップ・8パターン
 
-- [ ] ts-react-props × 2パターンに `mobilePuzzle` 追加
-- [ ] ts-react-state × 2パターンに `mobilePuzzle` 追加
-- [ ] ts-react-hooks × 2パターンに `mobilePuzzle` 追加
-- [ ] ts-react-events × 2パターンに `mobilePuzzle` 追加
-- [ ] CI 通過確認
+- [x] ts-react-props × 2パターンに `mobilePuzzle` 追加
+- [x] ts-react-state × 2パターンに `mobilePuzzle` 追加
+- [x] ts-react-hooks × 2パターンに `mobilePuzzle` 追加
+- [x] ts-react-events × 2パターンに `mobilePuzzle` 追加
+- [x] CI 通過確認
 
 ### M7: Reactモダン（react-modern）12パターン
 
