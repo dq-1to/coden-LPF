@@ -231,6 +231,24 @@ import type { ReactNode } from 'react'
 function ThemeProvider({ children }: { children: ReactNode }) {
   // TODO: theme state と toggleTheme を実装
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { createContext, useContext, useState } from 'react'\\nimport type { ReactNode } from 'react'\\n\\n____0\\n\\nconst ThemeContext = createContext<ThemeContextType | null>(null)\\n\\n____1\\n\\nfunction ThemeProvider({ children }: { children: ReactNode }) {\\n  const [theme, setTheme] = useState<'light' | 'dark'>('light')\\n  const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light')\\n  return (\\n    <ThemeContext.Provider value={{ theme, toggleTheme }}>\\n      {children}\\n    </ThemeContext.Provider>\\n  )\\n}`,
+            blanks: [
+              {
+                id: 'theme-context-type',
+                label: 'Context型',
+                correctTokens: ['interface', 'ThemeContextType', '{', 'theme', ':', "'light' | 'dark'", ';', 'toggleTheme', ':', '() => void', '}'],
+                distractorTokens: ['useState', 'useReducer', 'any', 'string'],
+              },
+              {
+                id: 'use-theme',
+                label: 'useTheme',
+                correctTokens: ['function', 'useTheme', '()', ':', 'ThemeContextType', '{', 'const', 'ctx', '=', 'useContext(ThemeContext)', 'if', '(!ctx)', 'throw', "new Error('ThemeProvider外です')", 'return', 'ctx', '}'],
+                distractorTokens: ['null', 'useReducer', 'useState', 'createContext'],
+              },
+            ],
+          },
       },
       {
         id: 'ts-react-hooks-2',
@@ -265,6 +283,24 @@ function App() {
     </div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useState } from 'react'\\n\\nfunction useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {\\n  ____0\\n\\n  ____1\\n\\n  return [storedValue, setValue]\\n}\\n\\nfunction App() {\\n  const [name, setName] = useLocalStorage<string>('name', '')\\n  return <input value={name} onChange={e => setName(e.target.value)} />\\n}`,
+            blanks: [
+              {
+                id: 'hook-state',
+                label: 'state初期化',
+                correctTokens: ['const', '[storedValue, setStoredValue]', '=', 'useState<T>', '(', '() => {', 'const item = localStorage.getItem(key)', 'return item ?', 'JSON.parse(item)', ':', 'initialValue', '}', ')'],
+                distractorTokens: ['sessionStorage', 'useRef', 'useEffect', 'any'],
+              },
+              {
+                id: 'set-value',
+                label: 'setValue',
+                correctTokens: ['const', 'setValue', '=', '(value: T)', '=>', '{', 'setStoredValue(value)', 'localStorage.setItem(key, JSON.stringify(value))', '}'],
+                distractorTokens: ['sessionStorage', 'useRef', 'JSON.parse', 'getItem'],
+              },
+            ],
+          },
       },
     ],
   },
