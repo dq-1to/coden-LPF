@@ -110,11 +110,11 @@ v3 の Challenge モードはモバイルでフルエディタ + キーボード
 
 4ステップ・4パターン
 
-- [ ] custom-hooks × 1パターンに `mobilePuzzle` 追加
-- [ ] api-fetch × 1パターンに `mobilePuzzle` 追加
-- [ ] performance × 1パターンに `mobilePuzzle` 追加
-- [ ] testing × 1パターンに `mobilePuzzle` 追加
-- [ ] CI 通過確認
+- [x] custom-hooks × 1パターンに `mobilePuzzle` 追加
+- [x] api-fetch × 1パターンに `mobilePuzzle` 追加
+- [x] performance × 1パターンに `mobilePuzzle` 追加
+- [x] testing × 1パターンに `mobilePuzzle` 追加
+- [x] CI 通過確認
 
 ### M4: API連携実践（api-practice）8パターン
 
