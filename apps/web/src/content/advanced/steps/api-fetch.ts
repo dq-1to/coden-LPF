@@ -275,6 +275,30 @@ export function PostList() {
     </div>
   );
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useState, useEffect } from 'react';\n\nfunction useFetch<T>(url: string) {\n  const [data, setData] = useState<T | null>(null);\n  const [isLoading, setIsLoading] = useState(true);\n  const [error, setError] = useState<string | null>(null);\n\n  useEffect(() => {\n    ____0\n    async function fetchData() {\n      try {\n        ____1\n        const json = await res.json();\n        setData(json);\n      } catch (err) {\n        if ((err as Error).name !== 'AbortError') {\n          setError((err as Error).message);\n        }\n      } finally {\n        setIsLoading(false);\n      }\n    }\n    void fetchData();\n    ____2\n  }, [url]);\n\n  return { data, isLoading, error };\n}\n\ninterface Post { id: number; title: string; }\n\nexport function PostList() {\n  const [postId, setPostId] = useState(1);\n  const { data, isLoading, error } = useFetch<Post>(\n    \`https://jsonplaceholder.typicode.com/posts/\${postId}\`\n  );\n\n  return (\n    <div>\n      <button onClick={() => setPostId(id => Math.max(1, id - 1))}>前の記事</button>\n      <span> 記事 #{postId} </span>\n      <button onClick={() => setPostId(id => id + 1)}>次の記事</button>\n      {isLoading && <p>読み込み中...</p>}\n      {error && <p>エラー: {error}</p>}\n      {data && <h2>{data.title}</h2>}\n    </div>\n  );\n}`,
+            blanks: [
+              {
+                id: 'abort-controller',
+                label: 'AbortController作成',
+                correctTokens: ['const', 'controller', '=', 'new', 'AbortController', '(', ')'],
+                distractorTokens: ['XMLHttpRequest', 'useCallback', 'EventEmitter', 'let'],
+              },
+              {
+                id: 'fetch',
+                label: 'fetch実行',
+                correctTokens: ['const', 'res', '=', 'await', 'fetch', '(', 'url', ',', '{', 'signal', ':', 'controller.signal', '}', ')'],
+                distractorTokens: ['XMLHttpRequest', 'axios', 'method', "'GET'", 'useCallback'],
+              },
+              {
+                id: 'cleanup',
+                label: 'クリーンアップ',
+                correctTokens: ['return', '(', ')', '=>', 'controller.abort', '(', ')'],
+                distractorTokens: ['controller.cancel', 'clearInterval', 'removeEventListener', 'useMemo'],
+              },
+            ],
+          },
         },
       ],
     },
