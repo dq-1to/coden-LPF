@@ -499,7 +499,19 @@ function Notifications({ unreadCount }) {
           requirements: ['trueなら「ようこそ」を描画', 'falseならログインボタンを描画', '三項演算子を使う'],
           hints: ['isLoggedIn ? A : B を使う'],
           expectedKeywords: ['isLoggedIn', '?', ':'],
-          starterCode: `import { useState } from 'react';\n\nexport function AuthPanel() {\n  const [isLoggedIn, setIsLoggedIn] = useState(false);\n\n  return (\n    <div>\n      {/* TODO: 以下のコメント部分を三項演算子(?と:)に置き換え、\n          isLoggedInが true なら <p>ようこそ！</p> を、\n          false なら <button onClick={() => setIsLoggedIn(true)}>ログイン</button> を表示してください。 \n      */}\n      {/* ここに三項演算子を書く */}\n    </div>\n  );\n}`
+          starterCode: `import { useState } from 'react';\n\nexport function AuthPanel() {\n  const [isLoggedIn, setIsLoggedIn] = useState(false);\n\n  return (\n    <div>\n      {/* TODO: 以下のコメント部分を三項演算子(?と:)に置き換え、\n          isLoggedInが true なら <p>ようこそ！</p> を、\n          false なら <button onClick={() => setIsLoggedIn(true)}>ログイン</button> を表示してください。 \n      */}\n      {/* ここに三項演算子を書く */}\n    </div>\n  );\n}`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useState } from 'react';\n\nexport function AuthPanel() {\n  const [isLoggedIn, setIsLoggedIn] = useState(false);\n\n  return (\n    <div>\n      ____0\n    </div>\n  );\n}`,
+            blanks: [
+              {
+                id: 'ternary',
+                label: '条件分岐',
+                correctTokens: ['{', 'isLoggedIn', '?', '<p>', 'ようこそ！', '</p>', ':', '<button', 'onClick', '=', '{', '(', ')', '=>', 'setIsLoggedIn', '(', 'true', ')', '}', '>', 'ログイン', '</button>', '}'],
+                distractorTokens: ['&&', '||', 'if', 'isActive', 'false'],
+              },
+            ],
+          },
         },
         {
           id: 'conditional-badge',
@@ -507,7 +519,19 @@ function Notifications({ unreadCount }) {
           requirements: ['&&演算子を使う', 'hasNewMessageがtrueの時のみ表示'],
           hints: ['条件 && 要素 の形を使う'],
           expectedKeywords: ['&&', 'hasNewMessage'],
-          starterCode: `export function Notification({ hasNewMessage }) {\n  return (\n    <div>\n      メッセージ\n      {/* TODO: hasNewMessage が true のときだけ <span>New!</span> が表示されるように論理積(&&)演算子を使って記述してください */}\n      \n    </div>\n  );\n}`
+          starterCode: `export function Notification({ hasNewMessage }) {\n  return (\n    <div>\n      メッセージ\n      {/* TODO: hasNewMessage が true のときだけ <span>New!</span> が表示されるように論理積(&&)演算子を使って記述してください */}\n      \n    </div>\n  );\n}`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `export function Notification({ hasNewMessage }) {\n  return (\n    <div>\n      メッセージ\n      ____0\n    </div>\n  );\n}`,
+            blanks: [
+              {
+                id: 'conditional',
+                label: '条件付き表示',
+                correctTokens: ['{', 'hasNewMessage', '&&', '<span>', 'New!', '</span>', '}'],
+                distractorTokens: ['||', 'isRead', '?', ':', 'if'],
+              },
+            ],
+          },
         }
       ]
     },
@@ -608,7 +632,19 @@ export function List() {
           requirements: ['mapメソッドを使う', 'keyプロパティを指定する', 'todoのtitleを表示する'],
           hints: ['todos.map(todo => ...) とする', 'key={todo.id} のように一意な値を渡す'],
           expectedKeywords: ['map', 'key=', 'todo.id'],
-          starterCode: `export function TodoList() {\n  const todos = [\n    { id: 1, title: 'Reactを学ぶ' },\n    { id: 2, title: 'TypeScriptを学ぶ' },\n  ];\n\n  return (\n    <ul>\n      {/* TODO: todos を map し、それぞれ <li> タグとして描画してください。\n          <li> には必ず key に todo.id を指定し、中身に todo.title を表示してください。 \n      */}\n      \n    </ul>\n  );\n}`
+          starterCode: `export function TodoList() {\n  const todos = [\n    { id: 1, title: 'Reactを学ぶ' },\n    { id: 2, title: 'TypeScriptを学ぶ' },\n  ];\n\n  return (\n    <ul>\n      {/* TODO: todos を map し、それぞれ <li> タグとして描画してください。\n          <li> には必ず key に todo.id を指定し、中身に todo.title を表示してください。 \n      */}\n      \n    </ul>\n  );\n}`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `export function TodoList() {\n  const todos = [\n    { id: 1, title: 'Reactを学ぶ' },\n    { id: 2, title: 'TypeScriptを学ぶ' },\n  ];\n\n  return (\n    <ul>\n      ____0\n    </ul>\n  );\n}`,
+            blanks: [
+              {
+                id: 'map',
+                label: 'リスト描画',
+                correctTokens: ['{', 'todos.map', '(', '(', 'todo', ')', '=>', '<li', 'key', '=', '{', 'todo.id', '}', '>', '{', 'todo.title', '}', '</li>', ')', '}'],
+                distractorTokens: ['forEach', 'filter', 'index', 'todo.name', 'reduce'],
+              },
+            ],
+          },
         },
         {
           id: 'lists-filter',
@@ -616,7 +652,25 @@ export function List() {
           requirements: ['filterとmapを組み合わせて使う', 'keyを指定する'],
           hints: ['todos.filter(t => t.isCompleted).map(...)'],
           expectedKeywords: ['filter', 'map', 'key='],
-          starterCode: `export function CompletedTasks() {\n  const todos = [\n    { id: 1, title: '掃除', isCompleted: true },\n    { id: 2, title: '洗濯', isCompleted: false },\n    { id: 3, title: '買い物', isCompleted: true },\n  ];\n\n  return (\n    <ul>\n      {/* TODO: todosから isCompleted が true なものだけを filter で抽出し、\n          その後 map で <li> として描画してください。key の指定も忘れずに！ */}\n      \n    </ul>\n  );\n}`
+          starterCode: `export function CompletedTasks() {\n  const todos = [\n    { id: 1, title: '掃除', isCompleted: true },\n    { id: 2, title: '洗濯', isCompleted: false },\n    { id: 3, title: '買い物', isCompleted: true },\n  ];\n\n  return (\n    <ul>\n      {/* TODO: todosから isCompleted が true なものだけを filter で抽出し、\n          その後 map で <li> として描画してください。key の指定も忘れずに！ */}\n      \n    </ul>\n  );\n}`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `export function CompletedTasks() {\n  const todos = [\n    { id: 1, title: '掃除', isCompleted: true },\n    { id: 2, title: '洗濯', isCompleted: false },\n    { id: 3, title: '買い物', isCompleted: true },\n  ];\n\n  return (\n    <ul>\n      {todos\n        ____0\n        ____1}\n    </ul>\n  );\n}`,
+            blanks: [
+              {
+                id: 'filter',
+                label: 'フィルタリング',
+                correctTokens: ['.filter', '(', '(', 't', ')', '=>', 't.isCompleted', ')'],
+                distractorTokens: ['find', 'some', 'forEach', 't.isDone', 'includes'],
+              },
+              {
+                id: 'map',
+                label: 'リスト描画',
+                correctTokens: ['.map', '(', '(', 't', ')', '=>', '<li', 'key', '=', '{', 't.id', '}', '>', '{', 't.title', '}', '</li>', ')'],
+                distractorTokens: ['index', 't.name', 'forEach', 'reduce'],
+              },
+            ],
+          },
         }
       ]
     },
