@@ -15,7 +15,18 @@ vi.mock('@/components/CodeEditor', () => ({
 }))
 
 vi.mock('@/hooks/useIsMobile', () => ({
-  useIsMobile: () => false,
+  useIsMobile: vi.fn(() => false),
+}))
+
+vi.mock('../ChallengePuzzle/ChallengePuzzleMulti', () => ({
+  ChallengePuzzleMulti: ({ puzzle, onCodeChange }: { puzzle: { codeContext: string; blanks: Array<{ label: string }> }; onCodeChange: (code: string) => void }) => (
+    <div data-testid="puzzle-multi">
+      <div role="region" aria-label="組み立てエリア" />
+      <div role="region" aria-label="使えるパーツ" />
+      <p>{puzzle.blanks[0]?.label}:</p>
+      <button type="button" onClick={() => onCodeChange(puzzle.codeContext)}>mock-assemble</button>
+    </div>
+  ),
 }))
 
 const firstTask: ChallengeTask = {
@@ -155,4 +166,63 @@ describe('ChallengeMode', () => {
     expect((screen.getByLabelText('challenge-editor') as HTMLTextAreaElement).value).toBe('const nextStep = true;')
     expect(screen.getByText('次の課題')).toBeTruthy()
   })
+})
+
+describe('ChallengeMode モバイルパズル', () => {
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
+  })
+
+  it('mobilePuzzle 未定義のパターンではデスクトップ・モバイル問わず従来エディタが表示される', () => {
+    render(<ChallengeMode stepId="step-a" task={firstTask} onComplete={vi.fn()} />)
+    expect(screen.getByLabelText('challenge-editor')).toBeTruthy()
+  })
+
+  it('モバイル + multi: 複数ブランクのパズルUIが表示される', async () => {
+    const { useIsMobile } = await import('@/hooks/useIsMobile')
+    vi.mocked(useIsMobile).mockReturnValue(true)
+
+    const puzzleTask: ChallengeTask = {
+      patterns: [
+        {
+          id: 'multi-test',
+          prompt: '複数ブランクテスト',
+          requirements: ['要件B'],
+          hints: ['ヒントB'],
+          expectedKeywords: ['onChange', 'useState'],
+          starterCode: '',
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: 'function App() {\n  ____0\n  return <input ____1 />\n}',
+            blanks: [
+              {
+                id: 'state',
+                label: 'state定義',
+                correctTokens: ['const', 'x', '=', 'useState', '(', "''", ')'],
+                distractorTokens: ['let'],
+              },
+              {
+                id: 'handler',
+                label: 'onChange設定',
+                correctTokens: ['onChange', '=', '{', 'handleChange', '}'],
+                distractorTokens: ['onClick'],
+              },
+            ],
+          },
+        },
+      ],
+    }
+
+    render(<ChallengeMode stepId="step-multi" task={puzzleTask} onComplete={vi.fn()} />)
+
+    // パズルUIが表示される
+    expect(screen.getByRole('region', { name: '組み立てエリア' })).toBeTruthy()
+    expect(screen.getByRole('region', { name: '使えるパーツ' })).toBeTruthy()
+    // ブランクラベルが表示される
+    expect(screen.getByText('state定義:')).toBeTruthy()
+    // 従来エディタは表示されない
+    expect(screen.queryByLabelText('challenge-editor')).toBeNull()
+  })
+
 })

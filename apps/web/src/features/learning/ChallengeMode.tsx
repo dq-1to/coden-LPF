@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button } from '../../components/Button'
 import { CodeEditor } from '../../components/CodeEditor'
 import { ErrorBanner } from '../../components/ErrorBanner'
@@ -6,6 +6,7 @@ import { useIsMobile } from '../../hooks/useIsMobile'
 import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
 import { JudgmentResult } from './components/JudgmentResult'
 import { getMissingKeywords } from './utils/keywordMatcher'
+import { ChallengePuzzleMulti } from './ChallengePuzzle/ChallengePuzzleMulti'
 
 interface ChallengeModeProps {
   stepId: string
@@ -28,6 +29,8 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
   const [checked, setChecked] = useState(false)
   const [reported, setReported] = useState(false)
   const [submissionError, setSubmissionError] = useState<string | null>(null)
+
+  const hasMobilePuzzle = isMobile && pattern.mobilePuzzle != null
 
   useEffect(() => {
     const nextPattern = getRandomPattern(task)
@@ -71,10 +74,10 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     }
   }
 
-  function handleCodeChange(nextValue: string) {
+  const handleCodeChange = useCallback((nextValue: string) => {
     setChecked(false)
     setCode(nextValue)
-  }
+  }, [])
 
   return (
     <section className="mt-4 space-y-4">
@@ -87,15 +90,19 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
         ))}
       </ul>
 
-      <div className="overflow-hidden rounded-lg border border-slate-300">
-        <CodeEditor
-          value={code}
-          onChange={handleCodeChange}
-          language="typescript"
-          height={isMobile ? 'min(50vh, 300px)' : '320px'}
-          toolbarKeywords={pattern.expectedKeywords}
-        />
-      </div>
+      {hasMobilePuzzle && pattern.mobilePuzzle ? (
+        <ChallengePuzzleMulti puzzle={pattern.mobilePuzzle} onCodeChange={handleCodeChange} />
+      ) : (
+        <div className="overflow-hidden rounded-lg border border-slate-300">
+          <CodeEditor
+            value={code}
+            onChange={handleCodeChange}
+            language="typescript"
+            height={isMobile ? 'min(50vh, 300px)' : '320px'}
+            toolbarKeywords={pattern.expectedKeywords}
+          />
+        </div>
+      )}
 
       <div className="flex flex-col items-start gap-4 pt-4 sm:flex-row sm:items-center">
         <Button size="lg" onClick={() => void handleCheck()}>

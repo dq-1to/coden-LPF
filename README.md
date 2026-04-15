@@ -1,7 +1,7 @@
 # Coden
 
 React 初学者向けの段階的学習プラットフォーム。
-「読める」から「書ける」への成長を、4段階の学習フローと全20ステップで支援します。
+「読める」から「書ける」への成長を、4段階の学習フローと全40ステップ + 多彩な練習モードで支援します。
 
 ## 特徴
 
@@ -14,7 +14,7 @@ React 初学者向けの段階的学習プラットフォーム。
 | **Test** | 確認テストで理解度をチェック（不正解時は解説表示） |
 | **Challenge** | 応用課題に挑戦し、実践力を養う |
 
-### 学習コンテンツ（4コース / 20ステップ）
+### 学習コンテンツ（10コース / 40ステップ）
 
 | コース | ステップ数 | 主なトピック |
 |--------|-----------|-------------|
@@ -22,6 +22,23 @@ React 初学者向けの段階的学習プラットフォーム。
 | React 応用 | 4 | useEffect、フォーム、useContext、useReducer |
 | React 実践 | 4 | カスタムフック、API取得、パフォーマンス、テスト |
 | API 連携実践 | 8 | GET/POST/PATCH/DELETE、カスタムフック、エラー/ローディング |
+| TypeScript 基礎 | 6 | 型、関数、オブジェクト、Union/Narrowing、Generics、ユーティリティ型 |
+| TypeScript×React | 4 | Props 型定義、State 型、Hooks 型、イベント型 |
+| React モダン | 6 | ErrorBoundary、Suspense/lazy、Concurrent、useOptimistic、Portals、forwardRef |
+| 実務パターン | 4 | RHF+Zod、ページネーション、無限スクロール、認証フロー |
+
+### 練習モード
+
+| モード | 内容 |
+|--------|------|
+| **デイリーチャレンジ** | 毎日3問出題。7日連続でボーナスポイント |
+| **コードドクター** | バグのあるコードを診断・修正（初級/中級/上級 各10問） |
+| **ミニプロジェクト** | 段階的に完成させる実践プロジェクト（8プロジェクト） |
+| **コードリーディング** | 他人のコードを読み解く力を養う（5問） |
+
+### ベースヌック（Base Nook）
+
+「基礎がわかると、コードが読める」をコンセプトに、JavaScript / React / Web の基礎概念を解説記事 + 理解度クイズで学べるコンテンツ。全12トピック。
 
 ### ゲーミフィケーション
 
@@ -64,14 +81,15 @@ coden-monorepo/
 │   └── web/                    # フロントエンドアプリケーション
 │       ├── src/
 │       │   ├── components/     # 共通 UI コンポーネント
-│       │   ├── content/        # 学習コンテンツ（4コース分）
+│       │   ├── content/        # 学習コンテンツ（10コース + 練習モード + ベースヌック）
 │       │   ├── contexts/       # AuthContext / LearningContext / AchievementContext
-│       │   ├── features/       # 機能別 UI（learning / dashboard）
+│       │   ├── features/       # 機能別 UI（learning / dashboard / base-nook）
 │       │   ├── pages/          # ページコンポーネント
 │       │   ├── services/       # ビジネスロジック
+│       │   ├── shared/         # 共有型定義・バリデーション・ユーティリティ
 │       │   └── main.tsx        # エントリポイント + ルーティング
 │       ├── mock-api/           # json-server 用データ
-│       └── supabase/sql/       # DB スキーマ・シード
+│       └── supabase/sql/       # DB スキーマ・シード・マイグレーション
 └── package.json                # ワークスペース設定
 ```
 
@@ -114,12 +132,22 @@ VITE_API_BASE_URL=http://localhost:3001
 
 ### Supabase SQL の適用
 
-以下の順で SQL を実行:
+`apps/web/supabase/sql/` 内の SQL を番号順に実行:
 
-1. `apps/web/supabase/sql/001_schema_and_rls.sql` — スキーマと RLS
-2. `apps/web/supabase/sql/002_seed_test_users.sql` — テストユーザー
-3. `apps/web/supabase/sql/003_gamification.sql` — ゲーミフィケーション
-4. `apps/web/supabase/sql/004_award_points_rpc.sql` — ポイント付与 RPC
+| # | ファイル | 内容 |
+|---|---------|------|
+| 001 | `001_schema_and_rls.sql` | スキーマと RLS |
+| 002 | `002_seed_test_users.sql` | テストユーザー |
+| 003 | `003_gamification.sql` | ゲーミフィケーション |
+| 004 | `004_award_points_rpc.sql` | ポイント付与 RPC |
+| 005 | `005_seed_test_progress.sql` | テスト用進捗データ |
+| 006 | `006_daily_challenge.sql` | デイリーチャレンジ |
+| 007 | `007_code_doctor.sql` | コードドクター |
+| 008 | `008_mini_projects.sql` | ミニプロジェクト |
+| 009 | `009_code_reading.sql` | コードリーディング |
+| 010 | `010_record_study_activity_rpc.sql` | 学習活動記録 RPC |
+| 011 | `011_base_nook.sql` | ベースヌック |
+| 012 | `012_base_nook_timestamp_trigger.sql` | ベースヌック タイムスタンプトリガー |
 
 ### 起動
 
