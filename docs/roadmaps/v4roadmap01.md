@@ -134,13 +134,13 @@ v3 の Challenge モードはモバイルでフルエディタ + キーボード
 
 6ステップ・12パターン
 
-- [ ] ts-types × 2パターンに `mobilePuzzle` 追加
-- [ ] ts-functions × 2パターンに `mobilePuzzle` 追加
-- [ ] ts-objects × 2パターンに `mobilePuzzle` 追加
-- [ ] ts-union-narrowing × 2パターンに `mobilePuzzle` 追加
-- [ ] ts-generics × 2パターンに `mobilePuzzle` 追加
-- [ ] ts-utility-types × 2パターンに `mobilePuzzle` 追加
-- [ ] CI 通過確認
+- [x] ts-types × 2パターンに `mobilePuzzle` 追加
+- [x] ts-functions × 2パターンに `mobilePuzzle` 追加
+- [x] ts-objects × 2パターンに `mobilePuzzle` 追加
+- [x] ts-union-narrowing × 2パターンに `mobilePuzzle` 追加
+- [x] ts-generics × 2パターンに `mobilePuzzle` 追加
+- [x] ts-utility-types × 2パターンに `mobilePuzzle` 追加
+- [x] CI 通過確認
 
 ### M6: TypeScript×React（typescript-react）8パターン
 
