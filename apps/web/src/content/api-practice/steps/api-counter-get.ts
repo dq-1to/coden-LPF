@@ -196,6 +196,24 @@ export function CounterDisplay() {
     </div>
   );
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useEffect, useState } from 'react';\n\nexport function CounterDisplay() {\n  const [value, setValue] = useState<number | null>(null);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState<string | null>(null);\n\n  async function loadCounter() {\n    try {\n      setLoading(true);\n      ____0\n    } catch {\n      setError('エラーが発生しました');\n    } finally {\n      setLoading(false);\n    }\n  }\n\n  useEffect(() => {\n    void loadCounter();\n  }, []);\n\n  if (loading) return <p>読み込み中...</p>;\n  if (error) return (\n    <div>\n      <p>{error}</p>\n      ____1\n    </div>\n  );\n  return (\n    <div>\n      <p>カウンター: {value}</p>\n      ____1\n    </div>\n  );\n}`,
+            blanks: [
+              {
+                id: 'fetch-set',
+                label: 'fetch処理',
+                correctTokens: ['const', 'res', '=', 'await', 'fetch', '(', "'/counter'", ')', 'const', 'data', '=', 'await', 'res.json', '(', ')', 'setValue', '(', 'data.value', ')'],
+                distractorTokens: ['axios', 'XMLHttpRequest', 'data.count', 'setData', 'useCallback'],
+              },
+              {
+                id: 'reload-btn',
+                label: '再読み込み',
+                correctTokens: ['<button onClick={loadCounter}>', '再読み込み', '</button>'],
+                distractorTokens: ['<button onClick={fetch}>', '<a href="/">', 'onSubmit', 'refetch', 'useEffect'],
+              },
+            ],
+          },
         },
       ],
     },

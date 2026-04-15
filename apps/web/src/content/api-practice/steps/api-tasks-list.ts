@@ -193,6 +193,24 @@ export function TaskList() {
     </ul>
   );
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useEffect, useState } from 'react';\n\ninterface Task {\n  id: string;\n  title: string;\n  completed: boolean;\n}\n\nexport function TaskList() {\n  const [tasks, setTasks] = useState<Task[]>([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState<string | null>(null);\n\n  ____0\n\n  if (loading) return <p>読み込み中...</p>;\n  if (error) return <p>{error}</p>;\n  if (tasks.length === 0) return <p>タスクはありません</p>;\n\n  return (\n    <ul>\n      {tasks.map((task) => (\n        <li key={task.id} style={____1}>\n          {task.title}\n        </li>\n      ))}\n    </ul>\n  );\n}`,
+            blanks: [
+              {
+                id: 'fetch-effect',
+                label: 'fetch+useEffect',
+                correctTokens: ['useEffect', '(', '(', ')', '=>', '{', 'fetch', '(', "'/tasks'", ')', '.then', '(', 'res', '=>', 'res.json', '(', ')', ')', '.then', '(', 'data', '=>', 'setTasks', '(', 'data', ')', ')', '.catch', '(', '(', ')', '=>', 'setError', '(', "'取得失敗'", ')', ')', '.finally', '(', '(', ')', '=>', 'setLoading', '(', 'false', ')', ')', '}', ',', '[', ']', ')'],
+                distractorTokens: ['axios', 'useCallback', 'setData', 'XMLHttpRequest', 'async'],
+              },
+              {
+                id: 'completed-style',
+                label: 'completed表示',
+                correctTokens: ['{', 'textDecoration', ':', 'task.completed', '?', "'line-through'", ':', "'none'", '}'],
+                distractorTokens: ["'underline'", 'task.done', 'color', "'red'", 'task.id'],
+              },
+            ],
+          },
         },
       ],
     },

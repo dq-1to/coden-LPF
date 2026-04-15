@@ -225,6 +225,30 @@ export function useTasks() {
 
   return { tasks, loading, error, createTask, toggleTask, deleteTask };
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useCallback, useEffect, useState } from 'react';\n\ninterface Task { id: string; title: string; completed: boolean; }\n\nexport function useTasks() {\n  const [tasks, setTasks] = useState<Task[]>([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState<string | null>(null);\n\n  ____0\n\n  useEffect(() => {\n    void fetchTasks();\n  }, [fetchTasks]);\n\n  ____1\n\n  ____2\n\n  return { tasks, loading, error, fetchTasks, createTask, deleteTask };\n}`,
+            blanks: [
+              {
+                id: 'fetch-tasks',
+                label: 'fetchTasks',
+                correctTokens: ['const', 'fetchTasks', '=', 'useCallback', '(', 'async', '(', ')', '=>', '{', 'setLoading', '(', 'true', ')', 'try', '{', 'const', 'res', '=', 'await', 'fetch', '(', "'/tasks'", ')', 'const', 'data', '=', 'await', 'res.json', '(', ')', 'setTasks', '(', 'data', ')', '}', 'catch', '{', 'setError', '(', "'取得失敗'", ')', '}', 'finally', '{', 'setLoading', '(', 'false', ')', '}', '}', ',', '[', ']', ')'],
+                distractorTokens: ['useMemo', 'useEffect', 'axios', 'XMLHttpRequest', 'setData'],
+              },
+              {
+                id: 'create-task',
+                label: 'createTask',
+                correctTokens: ['const', 'createTask', '=', 'useCallback', '(', 'async', '(', 'title', ':', 'string', ')', '=>', '{', 'const', 'res', '=', 'await', 'fetch', '(', "'/tasks'", ',', '{', 'method', ':', "'POST'", ',', 'headers', ':', '{', "'Content-Type'", ':', "'application/json'", '}', ',', 'body', ':', 'JSON.stringify', '(', '{', 'title', ',', 'completed', ':', 'false', '}', ')', '}', ')', 'const', 'newTask', '=', 'await', 'res.json', '(', ')', 'setTasks', '(', 'prev', '=>', '[', '...prev', ',', 'newTask', ']', ')', '}', ',', '[', ']', ')'],
+                distractorTokens: ["'PUT'", 'useMemo', 'axios', 'JSON.parse', 'setData'],
+              },
+              {
+                id: 'delete-task',
+                label: 'deleteTask',
+                correctTokens: ['const', 'deleteTask', '=', 'useCallback', '(', 'async', '(', 'id', ':', 'string', ')', '=>', '{', 'await', 'fetch', '(', '`/tasks/${id}`', ',', '{', 'method', ':', "'DELETE'", '}', ')', 'setTasks', '(', 'prev', '=>', 'prev.filter', '(', 't', '=>', 't.id', '!==', 'id', ')', ')', '}', ',', '[', ']', ')'],
+                distractorTokens: ["'PATCH'", 'prev.map', 'useMemo', 'axios', 'splice'],
+              },
+            ],
+          },
         },
       ],
     },
