@@ -100,7 +100,25 @@ export function Timer() {
                     requirements: ['useEffect を使う', 'setInterval で毎秒ログを出す', 'クリーンアップ関数で clearInterval する', '初回のみセットする依存配列にする'],
                     hints: ['useEffect(() => { const id = setInterval(...); return () => clearInterval(id); }, []);'],
                     expectedKeywords: ['useEffect', 'setInterval', 'clearInterval', 'return ()'],
-                    starterCode: `import { useEffect } from 'react';\n\nexport function LogTimer() {\n  // TODO: useEffectを使って、毎秒 (1000ms間隔) console.log('tick') を実行するようにしてください。\n  // TODO: 第二引数を適切に設定し、初回マウント時だけタイマーが作動するようにしてください。\n  // TODO: クリーンアップ関数を返し、その中で clearInterval(タイマーID) を実行してメモリリークを防いでください。\n\n  return <div>Check console for ticks!</div>;\n}`
+                    starterCode: `import { useEffect } from 'react';\n\nexport function LogTimer() {\n  // TODO: useEffectを使って、毎秒 (1000ms間隔) console.log('tick') を実行するようにしてください。\n  // TODO: 第二引数を適切に設定し、初回マウント時だけタイマーが作動するようにしてください。\n  // TODO: クリーンアップ関数を返し、その中で clearInterval(タイマーID) を実行してメモリリークを防いでください。\n\n  return <div>Check console for ticks!</div>;\n}`,
+                    mobilePuzzle: {
+                        type: 'multi',
+                        codeContext: `import { useEffect } from 'react';\n\nexport function LogTimer() {\n  ____0\n  ____1\n\n  return <div>Check console for ticks!</div>;\n}`,
+                        blanks: [
+                            {
+                                id: 'effect',
+                                label: 'タイマー設定',
+                                correctTokens: ['useEffect', '(', '(', ')', '=>', '{', 'const', 'id', '=', 'setInterval', '(', '(', ')', '=>', 'console.log', '(', "'tick'", ')', ',', '1000', ')'],
+                                distractorTokens: ['setTimeout', 'useCallback', 'useMemo', '500'],
+                            },
+                            {
+                                id: 'cleanup',
+                                label: 'クリーンアップ',
+                                correctTokens: ['return', '(', ')', '=>', 'clearInterval', '(', 'id', ')', '}', ',', '[', ']', ')'],
+                                distractorTokens: ['removeInterval', 'setTimeout', 'useCallback'],
+                            },
+                        ],
+                    },
                 },
                 {
                     id: 'useeffect-fetch',
@@ -108,7 +126,31 @@ export function Timer() {
                     requirements: ['useEffect と useState を使用する', 'setTimeout等で擬似的な非同期処理を行う', '状態を更新して画面表示する'],
                     hints: ['useEffect 内で setState を呼ぶ'],
                     expectedKeywords: ['useEffect', 'useState', 'setTimeout'],
-                    starterCode: `import { useState, useEffect } from 'react';\n\nexport function DataFetcher() {\n  // TODO: データを保持する string の state を定義してください (初期値: "Loading...")\n  \n  // TODO: useEffect と setTimeout を使い、初回マウントから2秒後に state を "Data Loaded!" に変更してください\n  \n  return <div>{/* TODO: stateをここに表示してください */}</div>;\n}`
+                    starterCode: `import { useState, useEffect } from 'react';\n\nexport function DataFetcher() {\n  // TODO: データを保持する string の state を定義してください (初期値: "Loading...")\n  \n  // TODO: useEffect と setTimeout を使い、初回マウントから2秒後に state を "Data Loaded!" に変更してください\n  \n  return <div>{/* TODO: stateをここに表示してください */}</div>;\n}`,
+                    mobilePuzzle: {
+                        type: 'multi',
+                        codeContext: `import { useState, useEffect } from 'react';\n\nexport function DataFetcher() {\n  ____0\n\n  ____1\n\n  return <div>____2</div>;\n}`,
+                        blanks: [
+                            {
+                                id: 'state',
+                                label: 'state定義',
+                                correctTokens: ['const', '[', 'data', ',', 'setData', ']', '=', 'useState', '(', '"Loading..."', ')'],
+                                distractorTokens: ['let', 'useRef', 'useEffect', 'getData'],
+                            },
+                            {
+                                id: 'effect',
+                                label: 'Effect処理',
+                                correctTokens: ['useEffect', '(', '(', ')', '=>', '{', 'setTimeout', '(', '(', ')', '=>', 'setData', '(', '"Data Loaded!"', ')', ',', '2000', ')', '}', ',', '[', ']', ')'],
+                                distractorTokens: ['setInterval', 'useCallback', 'clearTimeout', '1000'],
+                            },
+                            {
+                                id: 'display',
+                                label: '表示',
+                                correctTokens: ['{', 'data', '}'],
+                                distractorTokens: ['text', 'loading', 'result'],
+                            },
+                        ],
+                    },
                 }
             ]
         },
@@ -210,7 +252,31 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
                     requirements: ['制御された input を実装', 'onChange で state を同期', '文字数による disabled 制御'],
                     hints: ['value に state を、onChange で setState にイベント値を渡す'],
                     expectedKeywords: ['useState', 'value=', 'onChange', 'disabled='],
-                    starterCode: `import { useState } from 'react';\n\nexport function ValidationForm() {\n  // TODO: 文字列の state (text) を定義してください\n  \n  return (\n    <form>\n      {/* TODO: 制御されたコンポーネントとして input を実装してください */}\n      <input placeholder="5文字以上入力" />\n      {/* TODO: text の長さが 5 文字未満の場合、disabled になるボタンを実装してください */}\n      <button type="submit">送信</button>\n    </form>\n  );\n}`
+                    starterCode: `import { useState } from 'react';\n\nexport function ValidationForm() {\n  // TODO: 文字列の state (text) を定義してください\n  \n  return (\n    <form>\n      {/* TODO: 制御されたコンポーネントとして input を実装してください */}\n      <input placeholder="5文字以上入力" />\n      {/* TODO: text の長さが 5 文字未満の場合、disabled になるボタンを実装してください */}\n      <button type="submit">送信</button>\n    </form>\n  );\n}`,
+                    mobilePuzzle: {
+                        type: 'multi',
+                        codeContext: `import { useState } from 'react';\n\nexport function ValidationForm() {\n  ____0\n\n  return (\n    <form>\n      <input ____1 placeholder="5文字以上入力" />\n      <button type="submit" ____2>送信</button>\n    </form>\n  );\n}`,
+                        blanks: [
+                            {
+                                id: 'state',
+                                label: 'state定義',
+                                correctTokens: ['const', '[', 'text', ',', 'setText', ']', '=', 'useState', '(', "''", ')'],
+                                distractorTokens: ['let', 'useRef', 'useEffect', 'getText'],
+                            },
+                            {
+                                id: 'input',
+                                label: '制御input',
+                                correctTokens: ['value', '=', '{', 'text', '}', 'onChange', '=', '{', '(', 'e', ')', '=>', 'setText', '(', 'e.target.value', ')', '}'],
+                                distractorTokens: ['onClick', 'onBlur', 'e.target.name', 'name'],
+                            },
+                            {
+                                id: 'disabled',
+                                label: 'disabled条件',
+                                correctTokens: ['disabled', '=', '{', 'text.length', '<', '5', '}'],
+                                distractorTokens: ['text.size', '>', '3', 'enabled'],
+                            },
+                        ],
+                    },
                 },
                 {
                     id: 'forms-multiple',
@@ -218,7 +284,31 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
                     requirements: ['2つの state または オブジェクト state を利用', 'それぞれの入力状態を同期', '両方の値が入力済みかチェックする'],
                     hints: ['disabled={!name || !email}'],
                     expectedKeywords: ['useState', 'value=', 'onChange', 'disabled='],
-                    starterCode: `import { useState } from 'react';\n\nexport function UserForm() {\n  // TODO: name と email を管理する state を定義してください\n\n  return (\n    <form>\n      {/* TODO: name 用の controlled input を作成 */}\n      \n      {/* TODO: email 用の controlled input を作成 */}\n      \n      {/* TODO: どちらか一方でも空文字なら disabled になる送信ボタンを実装 */}\n      <button type="submit">登録</button>\n    </form>\n  );\n}`
+                    starterCode: `import { useState } from 'react';\n\nexport function UserForm() {\n  // TODO: name と email を管理する state を定義してください\n\n  return (\n    <form>\n      {/* TODO: name 用の controlled input を作成 */}\n      \n      {/* TODO: email 用の controlled input を作成 */}\n      \n      {/* TODO: どちらか一方でも空文字なら disabled になる送信ボタンを実装 */}\n      <button type="submit">登録</button>\n    </form>\n  );\n}`,
+                    mobilePuzzle: {
+                        type: 'multi',
+                        codeContext: `import { useState } from 'react';\n\nexport function UserForm() {\n  ____0\n\n  return (\n    <form>\n      <input ____1 placeholder="ユーザー名" />\n      <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="メール" />\n      <button type="submit" ____2>登録</button>\n    </form>\n  );\n}`,
+                        blanks: [
+                            {
+                                id: 'state',
+                                label: 'state定義',
+                                correctTokens: ['const', '[', 'name', ',', 'setName', ']', '=', 'useState', '(', "''", ')', 'const', '[', 'email', ',', 'setEmail', ']', '=', 'useState', '(', "''", ')'],
+                                distractorTokens: ['let', 'useRef', 'useEffect', 'getName'],
+                            },
+                            {
+                                id: 'input',
+                                label: 'name入力',
+                                correctTokens: ['value', '=', '{', 'name', '}', 'onChange', '=', '{', '(', 'e', ')', '=>', 'setName', '(', 'e.target.value', ')', '}'],
+                                distractorTokens: ['onClick', 'onBlur', 'email', 'e.target.name'],
+                            },
+                            {
+                                id: 'disabled',
+                                label: '送信制御',
+                                correctTokens: ['disabled', '=', '{', '!', 'name', '||', '!', 'email', '}'],
+                                distractorTokens: ['&&', 'name.length', 'enabled', 'text'],
+                            },
+                        ],
+                    },
                 }
             ]
         },
@@ -322,7 +412,25 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
                     requirements: ['useContext を使用する', 'UserContext から値を取り出す', '取得した値を画面に表示する'],
                     hints: ['useContext(UserContext) で Context の値を取得できます', '取得した変数を JSX で描画します'],
                     expectedKeywords: ['useContext', 'UserContext'],
-                    starterCode: `import { createContext, useContext } from 'react';\n\nexport const UserContext = createContext('Guest');\n\nexport function Greeting() {\n  // TODO: useContext を使って UserContext から値を取り出し、変数 user に格納してください。\n  \n  return (\n    <div>\n      {/* TODO: user 変数を表示してください */}\n      こんにちは、！\n    </div>\n  );\n}`
+                    starterCode: `import { createContext, useContext } from 'react';\n\nexport const UserContext = createContext('Guest');\n\nexport function Greeting() {\n  // TODO: useContext を使って UserContext から値を取り出し、変数 user に格納してください。\n  \n  return (\n    <div>\n      {/* TODO: user 変数を表示してください */}\n      こんにちは、！\n    </div>\n  );\n}`,
+                    mobilePuzzle: {
+                        type: 'multi',
+                        codeContext: `import { createContext, useContext } from 'react';\n\nexport const UserContext = createContext('Guest');\n\nexport function Greeting() {\n  ____0\n\n  return (\n    <div>\n      こんにちは、____1！\n    </div>\n  );\n}`,
+                        blanks: [
+                            {
+                                id: 'context',
+                                label: 'Context取得',
+                                correctTokens: ['const', 'user', '=', 'useContext', '(', 'UserContext', ')'],
+                                distractorTokens: ['createContext', 'useReducer', 'useState', 'props'],
+                            },
+                            {
+                                id: 'display',
+                                label: '表示',
+                                correctTokens: ['{', 'user', '}'],
+                                distractorTokens: ['name', 'Guest', 'context'],
+                            },
+                        ],
+                    },
                 },
                 {
                     id: 'usecontext-provider',
@@ -330,7 +438,19 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
                     requirements: ['ThemeContext.Provider で子要素をラップする', 'valueプロパティを渡す'],
                     hints: ['<ThemeContext.Provider value="dark">'],
                     expectedKeywords: ['Provider', 'value=', '"dark"'],
-                    starterCode: `import { createContext, useContext } from 'react';\n\nexport const ThemeContext = createContext('light');\n\nfunction ComponentDeepDown() {\n  const theme = useContext(ThemeContext);\n  return <p>現在のテーマは {theme} です。</p>;\n}\n\nexport function App() {\n  return (\n    // TODO: ComponentDeepDown が "dark" テーマを受け取れるように、\n    // ThemeContext の Provider で ComponentDeepDown を囲み、value プロパティに "dark" を渡してください。\n    <div>\n      <ComponentDeepDown />\n    </div>\n  );\n}`
+                    starterCode: `import { createContext, useContext } from 'react';\n\nexport const ThemeContext = createContext('light');\n\nfunction ComponentDeepDown() {\n  const theme = useContext(ThemeContext);\n  return <p>現在のテーマは {theme} です。</p>;\n}\n\nexport function App() {\n  return (\n    // TODO: ComponentDeepDown が "dark" テーマを受け取れるように、\n    // ThemeContext の Provider で ComponentDeepDown を囲み、value プロパティに "dark" を渡してください。\n    <div>\n      <ComponentDeepDown />\n    </div>\n  );\n}`,
+                    mobilePuzzle: {
+                        type: 'multi',
+                        codeContext: `import { createContext, useContext } from 'react';\n\nexport const ThemeContext = createContext('light');\n\nfunction ComponentDeepDown() {\n  const theme = useContext(ThemeContext);\n  return <p>現在のテーマは {theme} です。</p>;\n}\n\nexport function App() {\n  return (\n    <div>\n      ____0\n    </div>\n  );\n}`,
+                        blanks: [
+                            {
+                                id: 'provider',
+                                label: 'Provider設定',
+                                correctTokens: ['<ThemeContext.Provider', 'value', '=', '"dark"', '>', '<ComponentDeepDown', '/>', '</ThemeContext.Provider>'],
+                                distractorTokens: ['Consumer', 'useContext', '"light"', 'createContext', '<ThemeContext.Consumer>'],
+                            },
+                        ],
+                    },
                 }
             ]
         },
@@ -442,7 +562,19 @@ export function CounterApp() {
                     requirements: ['switch文に STEP_UP 用の case を追加する', '現在の count に 5 加算して返す'],
                     hints: ['case "STEP_UP": return { count: state.count + 5 };'],
                     expectedKeywords: ['case', 'STEP_UP', 'state.count + 5'],
-                    starterCode: `function reducer(state, action) {\n  switch (action.type) {\n    case 'INCREMENT':\n      return { count: state.count + 1 };\n    // TODO: ここに 'STEP_UP' アクションを受け取った場合、\n    // state.count に 5 を足した新しいオブジェクトを返す case ブロックを追記してください\n\n    default:\n      return state;\n  }\n}`
+                    starterCode: `function reducer(state, action) {\n  switch (action.type) {\n    case 'INCREMENT':\n      return { count: state.count + 1 };\n    // TODO: ここに 'STEP_UP' アクションを受け取った場合、\n    // state.count に 5 を足した新しいオブジェクトを返す case ブロックを追記してください\n\n    default:\n      return state;\n  }\n}`,
+                    mobilePuzzle: {
+                        type: 'multi',
+                        codeContext: `function reducer(state, action) {\n  switch (action.type) {\n    case 'INCREMENT':\n      return { count: state.count + 1 };\n    ____0\n    default:\n      return state;\n  }\n}`,
+                        blanks: [
+                            {
+                                id: 'case',
+                                label: 'caseブロック',
+                                correctTokens: ['case', "'STEP_UP'", ':', 'return', '{', 'count', ':', 'state.count', '+', '5', '}'],
+                                distractorTokens: ["'INCREMENT'", "'DECREMENT'", '1', 'state.value'],
+                            },
+                        ],
+                    },
                 },
                 {
                     id: 'usereducer-dispatch',
@@ -450,7 +582,19 @@ export function CounterApp() {
                     requirements: ['onClickを使用する', 'dispatch関数を呼び、適切なActionを渡す'],
                     hints: ['onClick={() => dispatch({ type: "DECREMENT" })}'],
                     expectedKeywords: ['onClick', 'dispatch', 'type:', '"DECREMENT"'],
-                    starterCode: `import { useReducer } from 'react';\n\n// (reducerの実装等がある前提)\n\nexport function CounterApp() {\n  // const [state, dispatch] = useReducer(reducer, { count: 0 });\n  // ...\n\n  return (\n    <div>\n      {/* TODO: クリック時(onClick)に、dispatch を使って { type: 'DECREMENT' } のアクションを送出してください */}\n      <button>減らす</button>\n    </div>\n  );\n}`
+                    starterCode: `import { useReducer } from 'react';\n\n// (reducerの実装等がある前提)\n\nexport function CounterApp() {\n  // const [state, dispatch] = useReducer(reducer, { count: 0 });\n  // ...\n\n  return (\n    <div>\n      {/* TODO: クリック時(onClick)に、dispatch を使って { type: 'DECREMENT' } のアクションを送出してください */}\n      <button>減らす</button>\n    </div>\n  );\n}`,
+                    mobilePuzzle: {
+                        type: 'multi',
+                        codeContext: `import { useReducer } from 'react';\n\nexport function CounterApp() {\n  const [state, dispatch] = useReducer(reducer, { count: 0 });\n\n  return (\n    <div>\n      <button ____0>減らす</button>\n    </div>\n  );\n}`,
+                        blanks: [
+                            {
+                                id: 'dispatch',
+                                label: 'dispatch呼び出し',
+                                correctTokens: ['onClick', '=', '{', '(', ')', '=>', 'dispatch', '(', '{', 'type', ':', "'DECREMENT'", '}', ')', '}'],
+                                distractorTokens: ['setState', 'emit', "'INCREMENT'", "'RESET'", 'onChange'],
+                            },
+                        ],
+                    },
                 }
             ]
         },
