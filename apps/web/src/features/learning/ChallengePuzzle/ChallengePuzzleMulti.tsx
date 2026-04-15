@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { ChallengeMobilePuzzleMulti } from '../../../content/fundamentals/steps'
+import type { ChallengeMobilePuzzle } from '../../../content/fundamentals/steps'
 import { seededShuffle } from '../CodePuzzle/useTokenGenerator'
 import { MultiBlankCodeContext } from './MultiBlankCodeContext'
 import { AssemblyArea } from '../CodePuzzle/AssemblyArea'
@@ -7,7 +7,7 @@ import { TokenPool } from '../CodePuzzle/TokenPool'
 import { Button } from '../../../components/Button'
 
 interface ChallengePuzzleMultiProps {
-  puzzle: ChallengeMobilePuzzleMulti
+  puzzle: ChallengeMobilePuzzle
   onCodeChange: (code: string) => void
 }
 

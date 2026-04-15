@@ -6,7 +6,6 @@ import { useIsMobile } from '../../hooks/useIsMobile'
 import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
 import { JudgmentResult } from './components/JudgmentResult'
 import { getMissingKeywords } from './utils/keywordMatcher'
-import { ChallengePuzzleSimple } from './ChallengePuzzle/ChallengePuzzleSimple'
 import { ChallengePuzzleMulti } from './ChallengePuzzle/ChallengePuzzleMulti'
 
 interface ChallengeModeProps {
@@ -91,12 +90,8 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
         ))}
       </ul>
 
-      {hasMobilePuzzle ? (
-        pattern.mobilePuzzle?.type === 'simple' ? (
-          <ChallengePuzzleSimple puzzle={pattern.mobilePuzzle} onCodeChange={handleCodeChange} />
-        ) : pattern.mobilePuzzle?.type === 'multi' ? (
-          <ChallengePuzzleMulti puzzle={pattern.mobilePuzzle} onCodeChange={handleCodeChange} />
-        ) : null
+      {hasMobilePuzzle && pattern.mobilePuzzle ? (
+        <ChallengePuzzleMulti puzzle={pattern.mobilePuzzle} onCodeChange={handleCodeChange} />
       ) : (
         <div className="overflow-hidden rounded-lg border border-slate-300">
           <CodeEditor

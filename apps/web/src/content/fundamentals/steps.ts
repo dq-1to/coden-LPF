@@ -16,13 +16,6 @@ export interface TestTask {
   explanation?: string
 }
 
-export interface ChallengeMobilePuzzleSimple {
-  type: 'simple'
-  codeContext: string
-  correctTokens: string[]
-  distractorTokens: string[]
-}
-
 export interface ChallengeMobilePuzzleMultiBlank {
   id: string
   label: string
@@ -30,13 +23,11 @@ export interface ChallengeMobilePuzzleMultiBlank {
   distractorTokens: string[]
 }
 
-export interface ChallengeMobilePuzzleMulti {
+export interface ChallengeMobilePuzzle {
   type: 'multi'
   codeContext: string
   blanks: ChallengeMobilePuzzleMultiBlank[]
 }
-
-export type ChallengeMobilePuzzle = ChallengeMobilePuzzleSimple | ChallengeMobilePuzzleMulti
 
 export interface ChallengePattern {
   id: string
@@ -184,10 +175,22 @@ return <button onClick={() => ____}>-1 ({count})</button>`,
           expectedKeywords: ['useState', 'setCount', 'onClick'],
           starterCode: `import { useState } from 'react';\n\nexport function LikeButton() {\n  // TODO: useStateを使って、いいね数(count)と更新関数(setCount)を定義してください。\n  // 初期値は 0 にします。\n\n  return (\n    // TODO: buttonのonClickに、クリックされたら count を +1 する処理を書いてください。\n    <button>\n      {/* TODO: ここに現在のいいね数(count)を表示してください */}\n      いいね 0\n    </button>\n  );\n}`,
           mobilePuzzle: {
-            type: 'simple',
-            codeContext: `import { useState } from 'react';\n\nexport function LikeButton() {\n  ____\n}`,
-            correctTokens: ['const', '[', 'count', ',', 'setCount', ']', '=', 'useState', '(', '0', ')', 'return', '(', '<button', 'onClick', '=', '{', '(', ')', '=>', 'setCount', '(', 'count', '+', '1', ')', '}', '>', '{', 'count', '}', '</button>', ')'],
-            distractorTokens: ['let', 'useEffect', 'useRef', 'getCount', '-', '2'],
+            type: 'multi',
+            codeContext: `import { useState } from 'react';\n\nexport function LikeButton() {\n  ____0\n\n  ____1\n}`,
+            blanks: [
+              {
+                id: 'state',
+                label: 'state定義',
+                correctTokens: ['const', '[', 'count', ',', 'setCount', ']', '=', 'useState', '(', '0', ')'],
+                distractorTokens: ['let', 'useEffect', 'useRef', 'getCount'],
+              },
+              {
+                id: 'return',
+                label: 'return文',
+                correctTokens: ['return', '(', '<button', 'onClick', '=', '{', '(', ')', '=>', 'setCount', '(', 'count', '+', '1', ')', '}', '>', '{', 'count', '}', '</button>', ')'],
+                distractorTokens: ['-', '2', 'useEffect'],
+              },
+            ],
           },
         },
         {
@@ -198,10 +201,22 @@ return <button onClick={() => ____}>-1 ({count})</button>`,
           expectedKeywords: ['useState', 'setIsOn', 'onClick'],
           starterCode: `import { useState } from 'react';\n\nexport function Toggle() {\n  // TODO: useStateを使って、ON/OFFを表す boolean 値(isOn)と更新関数(setIsOn)を定義してください。\n  // 初期値は false にします。\n\n  return (\n    // TODO: buttonのonClickに、クリックされたら isOn の値を反転反転(!isOn)させる処理を書いてください。\n    <button>\n      {/* TODO: isOn が true なら "ON"、false なら "OFF" を表示するように変更してください */}\n      OFF\n    </button>\n  );\n}`,
           mobilePuzzle: {
-            type: 'simple',
-            codeContext: `import { useState } from 'react';\n\nexport function Toggle() {\n  ____\n}`,
-            correctTokens: ['const', '[', 'isOn', ',', 'setIsOn', ']', '=', 'useState', '(', 'false', ')', 'return', '(', '<button', 'onClick', '=', '{', '(', ')', '=>', 'setIsOn', '(', '!', 'isOn', ')', '}', '>', '{', 'isOn', '?', '"ON"', ':', '"OFF"', '}', '</button>', ')'],
-            distractorTokens: ['let', 'useEffect', 'true', 'getIsOn', '&&', 'null'],
+            type: 'multi',
+            codeContext: `import { useState } from 'react';\n\nexport function Toggle() {\n  ____0\n\n  ____1\n}`,
+            blanks: [
+              {
+                id: 'state',
+                label: 'state定義',
+                correctTokens: ['const', '[', 'isOn', ',', 'setIsOn', ']', '=', 'useState', '(', 'false', ')'],
+                distractorTokens: ['let', 'useEffect', 'true', 'getIsOn'],
+              },
+              {
+                id: 'return',
+                label: 'return文',
+                correctTokens: ['return', '(', '<button', 'onClick', '=', '{', '(', ')', '=>', 'setIsOn', '(', '!', 'isOn', ')', '}', '>', '{', 'isOn', '?', '"ON"', ':', '"OFF"', '}', '</button>', ')'],
+                distractorTokens: ['&&', 'null', 'useEffect'],
+              },
+            ],
           },
         }
       ]
