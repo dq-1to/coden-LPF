@@ -234,6 +234,24 @@ export function TaskListWithState() {
 
   return <p>実装してください</p>;
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useCallback, useEffect, useReducer } from 'react';\n\ninterface Task { id: string; title: string; completed: boolean; }\ntype ApiStatus = 'idle' | 'loading' | 'success' | 'error';\ninterface ApiState { status: ApiStatus; data: Task[] | null; error: string | null; }\ntype Action =\n  | { type: 'FETCH_START' }\n  | { type: 'FETCH_SUCCESS'; payload: Task[] }\n  | { type: 'FETCH_ERROR'; payload: string };\n\nfunction apiReducer(state: ApiState, action: Action): ApiState {\n  switch (action.type) {\n    case 'FETCH_START': return { ...state, status: 'loading', error: null };\n    case 'FETCH_SUCCESS': return { status: 'success', data: action.payload, error: null };\n    case 'FETCH_ERROR': return { status: 'error', data: null, error: action.payload };\n    default: return state;\n  }\n}\n\nexport function TaskListWithState() {\n  const [state, dispatch] = useReducer(apiReducer, { status: 'idle', data: null, error: null });\n\n  const load = useCallback(async () => {\n    ____0\n  }, []);\n\n  useEffect(() => { void load(); }, [load]);\n\n  ____1\n\n  return (\n    <ul>\n      {state.data?.map((task) => (\n        <li key={task.id}>{task.title}</li>\n      ))}\n    </ul>\n  );\n}`,
+            blanks: [
+              {
+                id: 'load-body',
+                label: 'load関数',
+                correctTokens: ['dispatch', '(', '{', 'type', ':', "'FETCH_START'", '}', ')', 'try', '{', 'const', 'res', '=', 'await', 'fetch', '(', "'/tasks'", ')', 'const', 'data', '=', 'await', 'res.json', '(', ')', 'dispatch', '(', '{', 'type', ':', "'FETCH_SUCCESS'", ',', 'payload', ':', 'data', '}', ')', '}', 'catch', '(', 'e', ')', '{', 'dispatch', '(', '{', 'type', ':', "'FETCH_ERROR'", ',', 'payload', ':', '(', 'e', 'as', 'Error', ')', '.message', '}', ')', '}'],
+                distractorTokens: ['setState', 'setLoading', 'axios', 'useCallback', "'FETCH_RESET'"],
+              },
+              {
+                id: 'state-ui',
+                label: '状態別UI',
+                correctTokens: ['if', '(', 'state.status', '===', "'loading'", ')', 'return', '(', '<ul>', '{', '[', '1', ',', '2', ',', '3', ']', '.map', '(', 'i', '=>', '(', '<li', 'key', '=', '{', 'i', '}', 'className', '=', '"animate-pulse bg-gray-200 h-6 rounded mb-2"', '/>', ')', ')', '}', '</ul>', ')', 'if', '(', 'state.status', '===', "'error'", ')', 'return', '(', '<div>', '<p>', '{', 'state.error', '}', '</p>', '<button onClick={() => void load()}>', '再試行', '</button>', '</div>', ')'],
+                distractorTokens: ['state.loading', 'isLoading', "'idle'", 'retry', 'setError', 'console.log'],
+              },
+            ],
+          },
         },
       ],
     },

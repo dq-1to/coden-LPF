@@ -120,15 +120,15 @@ v3 の Challenge モードはモバイルでフルエディタ + キーボード
 
 8ステップ・8パターン
 
-- [ ] api-counter-get × 1パターンに `mobilePuzzle` 追加
-- [ ] api-counter-post × 1パターンに `mobilePuzzle` 追加
-- [ ] api-tasks-list × 1パターンに `mobilePuzzle` 追加
-- [ ] api-tasks-create × 1パターンに `mobilePuzzle` 追加
-- [ ] api-tasks-update × 1パターンに `mobilePuzzle` 追加
-- [ ] api-tasks-delete × 1パターンに `mobilePuzzle` 追加
-- [ ] api-custom-hook × 1パターンに `mobilePuzzle` 追加
-- [ ] api-error-loading × 1パターンに `mobilePuzzle` 追加
-- [ ] CI 通過確認
+- [x] api-counter-get × 1パターンに `mobilePuzzle` 追加
+- [x] api-counter-post × 1パターンに `mobilePuzzle` 追加
+- [x] api-tasks-list × 1パターンに `mobilePuzzle` 追加
+- [x] api-tasks-create × 1パターンに `mobilePuzzle` 追加
+- [x] api-tasks-update × 1パターンに `mobilePuzzle` 追加
+- [x] api-tasks-delete × 1パターンに `mobilePuzzle` 追加
+- [x] api-custom-hook × 1パターンに `mobilePuzzle` 追加
+- [x] api-error-loading × 1パターンに `mobilePuzzle` 追加
+- [x] CI 通過確認
 
 ### M5: TypeScript基礎（typescript）12パターン
 
