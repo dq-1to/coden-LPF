@@ -247,6 +247,24 @@ function LikeButton({ post, toggleLike }) {
     </button>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useOptimistic, useTransition } from 'react'\n\nfunction LikeButton({ post, toggleLike }) {\n  const [isPending, startTransition] = useTransition()\n  ____0\n\n  function handleClick() {\n    startTransition(async () => {\n      ____1\n    })\n  }\n\n  return (\n    <button onClick={handleClick} disabled={isPending}>\n      {optimisticPost.liked ? '❤️' : '🤍'} {optimisticPost.likes}\n    </button>\n  )\n}`,
+            blanks: [
+              {
+                id: 'use-optimistic',
+                label: 'useOptimistic',
+                correctTokens: ['const', '[optimisticPost, addOptimisticLike]', '=', 'useOptimistic', '(', 'post', ',', '(state) => ({', '...state,', 'likes: state.likes + 1,', 'liked: !state.liked', '})', ')'],
+                distractorTokens: ['useState', 'useReducer', 'setState', 'dispatch'],
+              },
+              {
+                id: 'optimistic-update',
+                label: '楽観的更新',
+                correctTokens: ['addOptimisticLike()', 'await', 'toggleLike(post.id)'],
+                distractorTokens: ['setState', 'dispatch', 'useState', 'useReducer'],
+              },
+            ],
+          },
       },
       {
         id: 'use-optimistic-2',
@@ -290,6 +308,24 @@ function TodoList({ todos, createTodo }) {
     </div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useOptimistic } from 'react'\n\nfunction TodoList({ todos, createTodo }) {\n  ____0\n\n  async function handleSubmit(e) {\n    e.preventDefault()\n    const title = e.target.title.value\n    e.target.reset()\n    addOptimisticTodo(title)\n    await createTodo(title)\n  }\n\n  return (\n    <div>\n      <ul>\n        {optimisticTodos.map((todo) => (\n          ____1\n        ))}\n      </ul>\n      <form onSubmit={handleSubmit}>\n        <input name="title" placeholder="新しい Todo" />\n        <button type="submit">追加</button>\n      </form>\n    </div>\n  )\n}`,
+            blanks: [
+              {
+                id: 'use-optimistic',
+                label: 'useOptimistic',
+                correctTokens: ['const', '[optimisticTodos, addOptimisticTodo]', '=', 'useOptimistic', '(', 'todos', ',', '(state, title) => [', '...state,', '{', 'id: `temp-${Date.now()}`,', 'title,', 'pending: true', '}', ']', ')'],
+                distractorTokens: ['useState', 'useTransition', 'filter', 'reduce'],
+              },
+              {
+                id: 'pending-item',
+                label: 'pending表示',
+                correctTokens: ['<li', 'key={todo.id}', "className={todo.pending ? 'opacity-50' : ''}>", '{todo.title}', '</li>'],
+                distractorTokens: ['<div>', 'className', 'hidden', 'disabled'],
+              },
+            ],
+          },
       },
     ],
   },
