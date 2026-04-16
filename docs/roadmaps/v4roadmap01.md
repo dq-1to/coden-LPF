@@ -156,13 +156,13 @@ v3 の Challenge モードはモバイルでフルエディタ + キーボード
 
 6ステップ・12パターン
 
-- [ ] error-boundary × 2パターンに `mobilePuzzle` 追加
-- [ ] suspense-lazy × 2パターンに `mobilePuzzle` 追加
-- [ ] concurrent-features × 2パターンに `mobilePuzzle` 追加
-- [ ] use-optimistic × 2パターンに `mobilePuzzle` 追加
-- [ ] portals × 2パターンに `mobilePuzzle` 追加
-- [ ] forward-ref × 2パターンに `mobilePuzzle` 追加
-- [ ] CI 通過確認
+- [x] error-boundary × 2パターンに `mobilePuzzle` 追加
+- [x] suspense-lazy × 2パターンに `mobilePuzzle` 追加
+- [x] concurrent-features × 2パターンに `mobilePuzzle` 追加
+- [x] use-optimistic × 2パターンに `mobilePuzzle` 追加
+- [x] portals × 2パターンに `mobilePuzzle` 追加
+- [x] forward-ref × 2パターンに `mobilePuzzle` 追加
+- [x] CI 通過確認
 
 ### M8: 実務パターン（react-patterns）8パターン
 
