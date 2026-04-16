@@ -151,16 +151,88 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          is_admin: boolean
         }
         Insert: {
           created_at?: string
           display_name?: string | null
           id: string
+          is_admin?: boolean
         }
         Update: {
           created_at?: string
           display_name?: string | null
           id?: string
+          is_admin?: boolean
+        }
+        Relationships: []
+      }
+      user_feedback: {
+        Row: {
+          admin_note: string | null
+          category: string
+          created_at: string
+          id: string
+          message: string
+          page_url: string | null
+          status: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          category: string
+          created_at?: string
+          id?: string
+          message: string
+          page_url?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          page_url?: string | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_id: string | null
+          created_at: string
+          id: string
+          payload: Json | null
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          target_id?: string | null
+          target_type?: string | null
         }
         Relationships: []
       }
@@ -290,6 +362,10 @@ export type Database = {
       record_study_activity: {
         Args: Record<string, never>
         Returns: undefined
+      }
+      is_admin: {
+        Args: Record<string, never>
+        Returns: boolean
       }
     }
     Enums: {
