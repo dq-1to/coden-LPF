@@ -1,0 +1,263 @@
+import { supabase } from '../lib/supabaseClient'
+import { fromSupabaseError } from '../shared/errors'
+import { assertMaxLength, assertOneOf, assertUuid } from '../shared/validation'
+import type { Json, Tables } from '../shared/types/database.types'
+
+export type UserFeedback = Tables<'user_feedback'>
+
+export type FeedbackCategory = 'bug' | 'review' | 'request' | 'other'
+export type FeedbackStatus = 'new' | 'in_progress' | 'resolved' | 'archived'
+
+export const FEEDBACK_CATEGORIES: ReadonlySet<string> = new Set([
+  'bug',
+  'review',
+  'request',
+  'other',
+])
+
+export const FEEDBACK_STATUSES: ReadonlySet<string> = new Set([
+  'new',
+  'in_progress',
+  'resolved',
+  'archived',
+])
+
+export const FEEDBACK_CATEGORY_LABELS: Record<FeedbackCategory, string> = {
+  bug: '不具合報告',
+  review: 'レビュー',
+  request: '要望',
+  other: 'その他',
+}
+
+export const FEEDBACK_STATUS_LABELS: Record<FeedbackStatus, string> = {
+  new: '新規',
+  in_progress: '対応中',
+  resolved: '対応済み',
+  archived: 'アーカイブ',
+}
+
+/** 本文の最大文字数（DB 側制約 4000 と一致させる） */
+export const MAX_FEEDBACK_MESSAGE_LENGTH = 4000
+/** page_url の最大文字数（長大な URL で DB を肥大化させないため短めに丸める） */
+export const MAX_PAGE_URL_LENGTH = 500
+/** user_agent の最大文字数 */
+export const MAX_USER_AGENT_LENGTH = 500
+/** admin_note の最大文字数 */
+export const MAX_ADMIN_NOTE_LENGTH = 2000
+
+type AuditAction =
+  | 'feedback.status_updated'
+  | 'feedback.note_updated'
+
+/**
+ * admin_audit_log に INSERT する。
+ * 監査ログの失敗はユーザー向け操作を巻き戻したくないため、呼び出し側で例外を握り潰さず
+ * そのままスローする（= 監査ログに記録できないときは元操作も失敗扱いにする）。
+ *
+ * RLS: `admin_audit_log_insert_admin` により `auth.uid() = admin_id` が強制される。
+ */
+async function insertAuditLog(entry: {
+  adminId: string
+  action: AuditAction
+  targetType: string
+  targetId: string
+  payload: Record<string, unknown>
+}): Promise<void> {
+  assertUuid(entry.adminId, 'adminId')
+  const { error } = await supabase.from('admin_audit_log').insert({
+    admin_id: entry.adminId,
+    action: entry.action,
+    target_type: entry.targetType,
+    target_id: entry.targetId,
+    payload: entry.payload as Json,
+  })
+  if (error) {
+    throw fromSupabaseError(error, '監査ログの記録に失敗しました')
+  }
+}
+
+// ─── ユーザー操作 ────────────────────────────────────────
+
+export interface SubmitFeedbackInput {
+  userId: string
+  category: FeedbackCategory
+  message: string
+  pageUrl?: string | null
+  userAgent?: string | null
+}
+
+/**
+ * ユーザーがフィードバックを送信する。
+ * RLS `user_feedback_insert_own` により `auth.uid() = user_id` が強制されるため、
+ * クライアント側で user_id を詐称しても DB 側で弾かれる。
+ */
+export async function submitFeedback(input: SubmitFeedbackInput): Promise<UserFeedback> {
+  assertUuid(input.userId, 'userId')
+  assertOneOf(input.category, FEEDBACK_CATEGORIES, 'category')
+
+  const trimmedMessage = input.message.trim()
+  if (trimmedMessage.length === 0) {
+    throw new Error('message must not be empty')
+  }
+  assertMaxLength(trimmedMessage, MAX_FEEDBACK_MESSAGE_LENGTH, 'message')
+
+  const normalizedPageUrl = normalizeOptionalText(input.pageUrl, MAX_PAGE_URL_LENGTH)
+  const normalizedUserAgent = normalizeOptionalText(input.userAgent, MAX_USER_AGENT_LENGTH)
+
+  const { data, error } = await supabase
+    .from('user_feedback')
+    .insert({
+      user_id: input.userId,
+      category: input.category,
+      message: trimmedMessage,
+      page_url: normalizedPageUrl,
+      user_agent: normalizedUserAgent,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    throw fromSupabaseError(error, 'フィードバックの送信に失敗しました')
+  }
+
+  return data
+}
+
+function normalizeOptionalText(value: string | null | undefined, maxLength: number): string | null {
+  if (value === null || value === undefined) return null
+  const trimmed = value.trim()
+  if (trimmed.length === 0) return null
+  return trimmed.length > maxLength ? trimmed.slice(0, maxLength) : trimmed
+}
+
+// ─── 管理者操作 ───────────────────────────────────────────
+
+export interface ListFeedbackFilter {
+  category?: FeedbackCategory
+  status?: FeedbackStatus
+  limit?: number
+}
+
+/** admin 向けにフィードバック一覧を取得する（新着順） */
+export async function listFeedback(filter: ListFeedbackFilter = {}): Promise<UserFeedback[]> {
+  let query = supabase
+    .from('user_feedback')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (filter.category) {
+    assertOneOf(filter.category, FEEDBACK_CATEGORIES, 'category')
+    query = query.eq('category', filter.category)
+  }
+  if (filter.status) {
+    assertOneOf(filter.status, FEEDBACK_STATUSES, 'status')
+    query = query.eq('status', filter.status)
+  }
+  if (filter.limit !== undefined) {
+    const safeLimit = Math.max(1, Math.min(filter.limit, 500))
+    query = query.limit(safeLimit)
+  }
+
+  const { data, error } = await query
+  if (error) {
+    throw fromSupabaseError(error, 'フィードバック一覧の取得に失敗しました')
+  }
+  return data ?? []
+}
+
+/** 単一のフィードバックを取得する */
+export async function getFeedback(id: string): Promise<UserFeedback | null> {
+  assertUuid(id, 'id')
+  const { data, error } = await supabase
+    .from('user_feedback')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle()
+  if (error) {
+    throw fromSupabaseError(error, 'フィードバックの取得に失敗しました')
+  }
+  return data
+}
+
+/**
+ * フィードバックのステータスを更新し、同時に admin_audit_log に記録する。
+ * - adminId は必ず `auth.uid()` と一致させる必要がある（RLS で強制）
+ * - UPDATE と監査ログ INSERT は 2 クエリで実行するが、
+ *   監査ログ側のエラーは握り潰さず例外を投げる（追跡不能を防ぐ）
+ */
+export async function updateFeedbackStatus(
+  id: string,
+  nextStatus: FeedbackStatus,
+  adminId: string,
+): Promise<UserFeedback> {
+  assertUuid(id, 'id')
+  assertUuid(adminId, 'adminId')
+  assertOneOf(nextStatus, FEEDBACK_STATUSES, 'status')
+
+  const { data, error } = await supabase
+    .from('user_feedback')
+    .update({ status: nextStatus })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    throw fromSupabaseError(error, 'フィードバックのステータス更新に失敗しました')
+  }
+
+  await insertAuditLog({
+    adminId,
+    action: 'feedback.status_updated',
+    targetType: 'user_feedback',
+    targetId: id,
+    payload: { status: nextStatus },
+  })
+
+  return data
+}
+
+/** フィードバックの admin_note を更新し、同時に admin_audit_log に記録する */
+export async function updateFeedbackNote(
+  id: string,
+  nextNote: string | null,
+  adminId: string,
+): Promise<UserFeedback> {
+  assertUuid(id, 'id')
+  assertUuid(adminId, 'adminId')
+
+  const normalizedNote = normalizeOptionalText(nextNote, MAX_ADMIN_NOTE_LENGTH)
+
+  const { data, error } = await supabase
+    .from('user_feedback')
+    .update({ admin_note: normalizedNote })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    throw fromSupabaseError(error, 'フィードバックのメモ更新に失敗しました')
+  }
+
+  await insertAuditLog({
+    adminId,
+    action: 'feedback.note_updated',
+    targetType: 'user_feedback',
+    targetId: id,
+    payload: { note_length: normalizedNote?.length ?? 0 },
+  })
+
+  return data
+}
+
+// ─── ユーティリティ ──────────────────────────────────────
+
+/** 現在のページ情報から送信元メタデータを取得する（クライアント専用） */
+export function captureClientMeta(): { pageUrl: string; userAgent: string } {
+  const pathname = typeof window === 'undefined' ? '' : window.location.pathname
+  const search = typeof window === 'undefined' ? '' : window.location.search
+  const userAgent = typeof navigator === 'undefined' ? '' : navigator.userAgent
+  return {
+    pageUrl: `${pathname}${search}`.slice(0, MAX_PAGE_URL_LENGTH),
+    userAgent: userAgent.slice(0, MAX_USER_AGENT_LENGTH),
+  }
+}
