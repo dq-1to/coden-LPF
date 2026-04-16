@@ -215,6 +215,30 @@ describe('LoginForm', () => {
     // TODO: メールを入力して送信し、onLogin が正しく呼ばれることを検証する
   });
 });`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { render, screen } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { vi } from 'vitest';\nimport { LoginForm } from './LoginForm';\n\ndescribe('LoginForm', () => {\n  it('初期状態でエラーメッセージは表示されない', () => {\n    render(<LoginForm onLogin={vi.fn()} />);\n    ____0\n  });\n\n  it('空欄のまま送信するとエラーメッセージが表示される', async () => {\n    const user = userEvent.setup();\n    render(<LoginForm onLogin={vi.fn()} />);\n    await user.click(screen.getByRole('button', { name: 'ログイン' }));\n    ____1\n  });\n\n  it('メールを入力して送信するとonLoginが呼ばれる', async () => {\n    const user = userEvent.setup();\n    const mockOnLogin = vi.fn();\n    render(<LoginForm onLogin={mockOnLogin} />);\n    await user.type(screen.getByLabelText('メールアドレス'), 'test@example.com');\n    await user.click(screen.getByRole('button', { name: 'ログイン' }));\n    ____2\n  });\n});`,
+            blanks: [
+              {
+                id: 'initial-check',
+                label: '初期検証',
+                correctTokens: ['expect', '(', 'screen.queryByText', '(', "'メールアドレスを入力してください'", ')', ')', '.toBeNull', '(', ')'],
+                distractorTokens: ['screen.getByTestId', 'screen.findByText', '.toBeFalsy', 'container'],
+              },
+              {
+                id: 'error-check',
+                label: 'エラー検証',
+                correctTokens: ['expect', '(', 'screen.getByText', '(', "'メールアドレスを入力してください'", ')', ')', '.toBeInTheDocument', '(', ')'],
+                distractorTokens: ['screen.getByTestId', 'screen.findByText', '.toBeCalled', 'container'],
+              },
+              {
+                id: 'mock-check',
+                label: 'mock検証',
+                correctTokens: ['expect', '(', 'mockOnLogin', ')', '.toHaveBeenCalledWith', '(', "'test@example.com'", ')'],
+                distractorTokens: ['screen.getByTestId', '.toBeCalled', 'container', 'screen.findByText'],
+              },
+            ],
+          },
         },
       ],
     },

@@ -273,6 +273,24 @@ function PaginatedList() {
     </div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `const items = Array.from({ length: 23 }, (_, i) => ({ id: i + 1, name: "アイテム " + (i + 1) }))\nconst ITEMS_PER_PAGE = 5\n\nfunction PaginatedList() {\n  const [currentPage, setCurrentPage] = useState(1)\n\n  ____0\n\n  return (\n    <div>\n      <ul>\n        {currentItems.map((item) => (\n          <li key={item.id}>{item.name}</li>\n        ))}\n      </ul>\n      <button onClick={() => setCurrentPage((p) => p - 1)} ____1>前へ</button>\n      <span>{currentPage} / {totalPages}</span>\n      <button onClick={() => setCurrentPage((p) => p + 1)} disabled={currentPage >= totalPages}>次へ</button>\n    </div>\n  )\n}`,
+            blanks: [
+              {
+                id: 'page-calc',
+                label: 'ページ計算',
+                correctTokens: ['const totalPages', '=', 'Math.ceil', '(', 'items.length / ITEMS_PER_PAGE', ')', 'const startIndex', '=', '(currentPage - 1) * ITEMS_PER_PAGE', 'const currentItems', '=', 'items.slice(startIndex, startIndex + ITEMS_PER_PAGE)'],
+                distractorTokens: ['Math.floor', 'Math.round', 'splice', 'filter', 'forEach'],
+              },
+              {
+                id: 'prev-disabled',
+                label: '前へdisabled',
+                correctTokens: ['disabled={currentPage <= 1}'],
+                distractorTokens: ['disabled={!currentPage}', 'hidden', 'readOnly', 'disabled'],
+              },
+            ],
+          },
       },
       {
         id: 'pagination-2',
@@ -312,6 +330,24 @@ function PaginatedList() {
     </div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useSearchParams } from 'react-router-dom'\n\nconst items = Array.from({ length: 30 }, (_, i) => "アイテム " + (i + 1))\nconst ITEMS_PER_PAGE = 8\n\nfunction PaginatedList() {\n  ____0\n\n  const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE)\n  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE\n  const currentItems = items.slice(startIndex, startIndex + ITEMS_PER_PAGE)\n\n  return (\n    <div>\n      <ul>\n        {currentItems.map((item, i) => (<li key={i}>{item}</li>))}\n      </ul>\n      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (\n        <button key={page} ____1>{page}</button>\n      ))}\n    </div>\n  )\n}`,
+            blanks: [
+              {
+                id: 'use-search-params',
+                label: 'useSearchParams',
+                correctTokens: ['const', '[searchParams, setSearchParams]', '=', 'useSearchParams()', 'const currentPage', '=', "Number(searchParams.get('page') ?? '1')"],
+                distractorTokens: ['useParams', 'useNavigate', 'useLocation', 'window.location'],
+              },
+              {
+                id: 'page-change',
+                label: 'ページ変更',
+                correctTokens: ['onClick={() => setSearchParams({ page: String(page) })}'],
+                distractorTokens: ['useNavigate', 'history.push', 'window.location', 'onChange'],
+              },
+            ],
+          },
       },
     ],
   },

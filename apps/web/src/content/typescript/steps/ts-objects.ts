@@ -205,6 +205,24 @@ const draft = createDraft("TypeScriptの学習", "TypeScriptは型安全なJavaS
 console.log(draft.title);       // "TypeScriptの学習"
 console.log(draft.tags);        // []
 console.log(draft.publishedAt); // undefined`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `____0\n\nfunction createDraft(title: string, content: string): Article {\n  ____1\n}\n\nconst draft = createDraft("TypeScriptの学習", "TypeScriptは型安全なJavaScriptです。");\nconsole.log(draft.title);\nconsole.log(draft.tags);\nconsole.log(draft.publishedAt);`,
+            blanks: [
+              {
+                id: 'article-interface',
+                label: 'Article定義',
+                correctTokens: ['interface', 'Article', '{', 'readonly', 'id', ':', 'number', ';', 'title', ':', 'string', ';', 'content', ':', 'string', ';', 'tags', ':', 'string[]', ';', 'publishedAt?', ':', 'Date', '}'],
+                distractorTokens: ['type', 'class', 'const', 'mutable'],
+              },
+              {
+                id: 'create-draft',
+                label: 'createDraft',
+                correctTokens: ['return', '{', 'id', ':', 'Date.now()', ',', 'title', ',', 'content', ',', 'tags', ':', '[', ']', '}'],
+                distractorTokens: ['new Article()', 'Object.create', 'publishedAt', 'new Date()'],
+              },
+            ],
+          },
       },
       {
         id: 'ts-objects-2',
@@ -234,6 +252,24 @@ const admin: AdminUser = { id: 2, name: "Alice", email: "alice@example.com", rol
 
 console.log(isAdmin(regular)); // false
 console.log(isAdmin(admin));   // true`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `interface User {\n  id: number;\n  name: string;\n  email: string;\n}\n\n____0\n\nfunction isAdmin(user: User | AdminUser): user is AdminUser {\n  ____1\n}\n\nconst regular: User = { id: 1, name: "Bob", email: "bob@example.com" };\nconst admin: AdminUser = { id: 2, name: "Alice", email: "alice@example.com", role: "admin", permissions: ["read", "write"] };\nconsole.log(isAdmin(regular));\nconsole.log(isAdmin(admin));`,
+            blanks: [
+              {
+                id: 'admin-extends',
+                label: 'AdminUser',
+                correctTokens: ['interface', 'AdminUser', 'extends', 'User', '{', 'role', ':', "'admin'", ';', 'permissions', ':', 'string[]', '}'],
+                distractorTokens: ['implements', 'typeof', 'instanceof', 'as'],
+              },
+              {
+                id: 'is-admin',
+                label: '型ガード',
+                correctTokens: ['return', "'role'", 'in', 'user'],
+                distractorTokens: ['typeof', 'instanceof', 'user.role', 'user as AdminUser'],
+              },
+            ],
+          },
       },
     ],
   },
