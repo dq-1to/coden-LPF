@@ -367,6 +367,64 @@ export type Database = {
         Args: Record<string, never>
         Returns: boolean
       }
+      get_dau_last_30_days: {
+        Args: Record<string, never>
+        Returns: {
+          activity_date: string
+          active_users: number
+        }[]
+      }
+      get_step_completion_rates: {
+        Args: Record<string, never>
+        Returns: {
+          step_id: string
+          total_users: number
+          completed_users: number
+          completion_rate: number
+        }[]
+      }
+      get_top_missed_questions: {
+        Args: {
+          p_limit?: number
+          p_min_attempts?: number
+        }
+        Returns: {
+          step_id: string
+          attempt_count: number
+          failure_count: number
+          failure_rate: number
+        }[]
+      }
+      admin_list_users: {
+        Args: Record<string, never>
+        Returns: {
+          user_id: string
+          email: string | null
+          display_name: string | null
+          is_admin: boolean
+          total_points: number
+          current_streak: number
+          max_streak: number
+          last_study_date: string | null
+          badge_count: number
+          created_at: string
+        }[]
+      }
+      admin_grant_points: {
+        Args: {
+          p_target_user_id: string
+          p_amount: number
+          p_reason: string
+        }
+        Returns: undefined
+      }
+      admin_grant_badge: {
+        Args: {
+          p_target_user_id: string
+          p_badge_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
