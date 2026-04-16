@@ -39,6 +39,12 @@ const StepPage = lazy(() => import('./pages/StepPage').then((m) => ({ default: m
 const AdminDashboardPage = lazy(() =>
   import('./pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })),
 )
+const AdminFeedbackListPage = lazy(() =>
+  import('./pages/admin/AdminFeedbackListPage').then((m) => ({ default: m.AdminFeedbackListPage })),
+)
+const AdminFeedbackDetailPage = lazy(() =>
+  import('./pages/admin/AdminFeedbackDetailPage').then((m) => ({ default: m.AdminFeedbackDetailPage })),
+)
 
 // ページ遷移中のフォールバック UI
 function PageLoading() {
@@ -183,6 +189,30 @@ const router = createBrowserRouter([
         <AdminGuard>
           <Suspense fallback={<PageLoading />}>
             <AdminDashboardPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/feedback',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminFeedbackListPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/feedback/:id',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminFeedbackDetailPage />
           </Suspense>
         </AdminGuard>
       </ProtectedRoute>
