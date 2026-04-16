@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { AlertCircle, ArrowLeft, Loader2, Save } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Loader2, Save, Shield } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { AdminLayout } from '../../features/admin/components/AdminLayout'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
@@ -15,6 +15,8 @@ import {
   updateFeedbackStatus,
 } from '../../services/feedbackService'
 import type { FeedbackCategory, FeedbackStatus, UserFeedback } from '../../services/feedbackService'
+import { getUserBasicInfo } from '../../services/adminUsersService'
+import type { AdminUserBasic } from '../../services/adminUsersService'
 
 // ─── Badge helpers ──────────────────────────────────────────────────────────
 
@@ -90,6 +92,11 @@ export function AdminFeedbackDetailPage() {
   const [notFound, setNotFound] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
 
+  // User basic info (送信者プロフィール) state
+  const [userBasic, setUserBasic] = useState<AdminUserBasic | null>(null)
+  const [isLoadingUser, setIsLoadingUser] = useState(false)
+  const [userInfoError, setUserInfoError] = useState<string | null>(null)
+
   // Status update state
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
   const [statusError, setStatusError] = useState<string | null>(null)
@@ -117,12 +124,29 @@ export function AdminFeedbackDetailPage() {
         if (!isMounted) return
         if (data === null) {
           setNotFound(true)
-        } else {
-          setFeedback(data)
-          const initialNote = data.admin_note ?? ''
-          setNoteText(initialNote)
-          setSavedNote(initialNote)
+          return
         }
+        setFeedback(data)
+        const initialNote = data.admin_note ?? ''
+        setNoteText(initialNote)
+        setSavedNote(initialNote)
+
+        // 送信者プロフィールは feedback 本体とは独立して並行ロードする。
+        // 失敗してもフィードバック本体の表示は継続する（UI側でセクション内にエラー表示）。
+        setIsLoadingUser(true)
+        getUserBasicInfo(data.user_id)
+          .then((basic) => {
+            if (isMounted) setUserBasic(basic)
+          })
+          .catch((e: unknown) => {
+            if (!isMounted) return
+            setUserInfoError(
+              e instanceof Error ? e.message : 'ユーザー情報の取得に失敗しました',
+            )
+          })
+          .finally(() => {
+            if (isMounted) setIsLoadingUser(false)
+          })
       } catch (e) {
         if (!isMounted) return
         setLoadError(e instanceof Error ? e.message : 'フィードバックの取得に失敗しました')
@@ -261,6 +285,66 @@ export function AdminFeedbackDetailPage() {
             <pre className="whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm leading-relaxed text-slate-800">
               {feedback.message}
             </pre>
+          </section>
+
+          {/* User info (送信者プロフィール) */}
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold text-slate-700">ユーザー情報</h2>
+              <Link
+                to={`/admin/users/${feedback.user_id}`}
+                className="text-xs font-medium text-primary-mint hover:text-primary-mint/80"
+              >
+                ユーザー詳細へ →
+              </Link>
+            </div>
+
+            {isLoadingUser ? (
+              <div className="flex justify-center py-4">
+                <Loader2
+                  className="h-5 w-5 animate-spin text-slate-400"
+                  aria-label="ユーザー情報を読み込み中"
+                />
+              </div>
+            ) : userInfoError ? (
+              <div
+                role="status"
+                aria-live="polite"
+                className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700"
+              >
+                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <p>{userInfoError}</p>
+              </div>
+            ) : userBasic ? (
+              <dl className="space-y-3 text-sm">
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-4">
+                  <dt className="w-32 shrink-0 font-medium text-slate-500">表示名</dt>
+                  <dd className="flex flex-wrap items-center gap-2 text-slate-800">
+                    <span>{userBasic.displayName ?? '—'}</span>
+                    {userBasic.isAdmin && (
+                      <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                        <Shield className="h-3 w-3" aria-hidden="true" />
+                        ADMIN
+                      </span>
+                    )}
+                  </dd>
+                </div>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-4">
+                  <dt className="w-32 shrink-0 font-medium text-slate-500">メールアドレス</dt>
+                  <dd className="break-all text-slate-800">{userBasic.email ?? '—'}</dd>
+                </div>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-4">
+                  <dt className="w-32 shrink-0 font-medium text-slate-500">管理者</dt>
+                  <dd className="text-slate-800">{userBasic.isAdmin ? 'はい' : 'いいえ'}</dd>
+                </div>
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-4">
+                  <dt className="w-32 shrink-0 font-medium text-slate-500">登録日</dt>
+                  <dd className="text-slate-800">{formatJst(userBasic.createdAt)}</dd>
+                </div>
+              </dl>
+            ) : (
+              <p className="text-xs text-slate-500">ユーザー情報を取得できませんでした</p>
+            )}
           </section>
 
           {/* Meta info */}

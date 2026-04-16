@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getUserDetail, listUsers } from '../adminUsersService'
+import { getUserBasicInfo, getUserDetail, listUsers } from '../adminUsersService'
 
 const rpc = vi.fn()
 
@@ -216,6 +216,53 @@ describe('getUserDetail', () => {
   it('profile エラーは専用メッセージで AppError を投げる', async () => {
     state.profiles = { data: null, error: { code: 'DB_ERROR', message: 'rls denied' } }
     await expect(getUserDetail(VALID)).rejects.toMatchObject({
+      userMessage: 'ユーザー情報の取得に失敗しました',
+    })
+  })
+})
+
+describe('getUserBasicInfo', () => {
+  beforeEach(resetState)
+
+  it('admin_get_user_basic RPC を引数付きで呼び AdminUserBasic に変換する', async () => {
+    rpc.mockResolvedValue({
+      data: [
+        {
+          user_id: VALID,
+          email: 'a@example.com',
+          display_name: 'Alice',
+          is_admin: true,
+          created_at: '2026-03-01T00:00:00Z',
+        },
+      ],
+      error: null,
+    })
+
+    const result = await getUserBasicInfo(VALID)
+    expect(rpc).toHaveBeenCalledWith('admin_get_user_basic', { p_user_id: VALID })
+    expect(result).toEqual({
+      userId: VALID,
+      email: 'a@example.com',
+      displayName: 'Alice',
+      isAdmin: true,
+      createdAt: '2026-03-01T00:00:00Z',
+    })
+  })
+
+  it('data が空配列のときは null を返す', async () => {
+    rpc.mockResolvedValue({ data: [], error: null })
+    expect(await getUserBasicInfo(VALID)).toBeNull()
+  })
+
+  it('不正な UUID は例外を投げ RPC は呼ばれない', async () => {
+    await expect(getUserBasicInfo('not-uuid')).rejects.toThrow('userId must be a valid UUID')
+    expect(rpc).not.toHaveBeenCalled()
+  })
+
+  it('RPC エラーを AppError に変換する', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: 'DB_ERROR', message: 'forbidden' } })
+    await expect(getUserBasicInfo(VALID)).rejects.toMatchObject({
+      name: 'AppError',
       userMessage: 'ユーザー情報の取得に失敗しました',
     })
   })

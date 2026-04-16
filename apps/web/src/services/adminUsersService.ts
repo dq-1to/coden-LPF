@@ -26,6 +26,14 @@ export interface AdminUserSummary {
   createdAt: string
 }
 
+export interface AdminUserBasic {
+  userId: string
+  email: string | null
+  displayName: string | null
+  isAdmin: boolean
+  createdAt: string
+}
+
 export interface AdminUserDetail {
   profile: {
     userId: string
@@ -49,6 +57,33 @@ export interface AdminUserDetail {
   codeReading: Tables<'code_reading_progress'>[]
   baseNook: Tables<'base_nook_progress'>[]
   pointHistory: Tables<'point_history'>[]
+}
+
+/**
+ * 管理者向けユーザー基本情報（単一ユーザー）を取得する。
+ * フィードバック詳細などの「送信者が誰か」を軽量に把握する用途。
+ * admin_get_user_basic RPC は SECURITY DEFINER + is_admin() ガードで非 admin をブロックする。
+ * 対象ユーザーが存在しない場合は null を返す。
+ */
+export async function getUserBasicInfo(
+  userId: string,
+): Promise<AdminUserBasic | null> {
+  assertUuid(userId, 'userId')
+  const { data, error } = await supabase.rpc('admin_get_user_basic', {
+    p_user_id: userId,
+  })
+  if (error) {
+    throw fromSupabaseError(error, 'ユーザー情報の取得に失敗しました')
+  }
+  const row = (data ?? [])[0]
+  if (!row) return null
+  return {
+    userId: row.user_id,
+    email: row.email,
+    displayName: row.display_name,
+    isAdmin: row.is_admin,
+    createdAt: row.created_at,
+  }
 }
 
 /** 管理者向けユーザー一覧を取得（admin_list_users RPC） */

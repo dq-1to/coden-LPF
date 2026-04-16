@@ -410,6 +410,18 @@ export type Database = {
           created_at: string
         }[]
       }
+      admin_get_user_basic: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: {
+          user_id: string
+          email: string | null
+          display_name: string | null
+          is_admin: boolean
+          created_at: string
+        }[]
+      }
       admin_grant_points: {
         Args: {
           p_target_user_id: string
