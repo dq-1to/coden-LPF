@@ -235,6 +235,24 @@ function App() {
     </div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { createPortal } from 'react-dom'\nimport { useState } from 'react'\n\nfunction Modal({ isOpen, onClose, children }) {\n  ____0\n\n  ____1\n}\n\nfunction App() {\n  const [isOpen, setIsOpen] = useState(false)\n  return (\n    <div style={{ overflow: 'hidden', height: '100px' }}>\n      <button onClick={() => setIsOpen(true)}>モーダルを開く</button>\n      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>\n        <h2>モーダル</h2>\n      </Modal>\n    </div>\n  )\n}`,
+            blanks: [
+              {
+                id: 'early-return',
+                label: '早期return',
+                correctTokens: ['if', '(!isOpen)', 'return', 'null'],
+                distractorTokens: ['if (isOpen)', 'return false', 'return undefined', 'throw'],
+              },
+              {
+                id: 'create-portal',
+                label: 'createPortal',
+                correctTokens: ['return', 'createPortal', '(', '<div className="overlay" onClick={onClose}>', '<div className="content" onClick={(e) => e.stopPropagation()}>', '{children}', '<button onClick={onClose}>閉じる</button>', '</div>', '</div>', ',', 'document.body', ')'],
+                distractorTokens: ['render', 'appendChild', 'document.getElementById', 'e.preventDefault()'],
+              },
+            ],
+          },
       },
       {
         id: 'portals-2',
@@ -277,6 +295,24 @@ function App() {
     </div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useRef, useEffect, useState } from 'react'\nimport { createPortal } from 'react-dom'\n\nfunction DynamicPortal({ children }) {\n  const [mounted, setMounted] = useState(false)\n  const containerRef = useRef(null)\n\n  useEffect(() => {\n    ____0\n  }, [])\n\n  ____1\n}\n\nfunction App() {\n  return (\n    <div>\n      <DynamicPortal>\n        <p>動的コンテナにレンダリングされた要素</p>\n      </DynamicPortal>\n    </div>\n  )\n}`,
+            blanks: [
+              {
+                id: 'effect-body',
+                label: 'Effect本体',
+                correctTokens: ['containerRef.current', '=', "document.createElement('div')", 'document.body.appendChild(containerRef.current)', 'setMounted(true)', 'return', '() => {', 'document.body.removeChild(containerRef.current)', '}'],
+                distractorTokens: ['useRef', 'useState', 'innerHTML', 'render'],
+              },
+              {
+                id: 'render-portal',
+                label: 'Portal描画',
+                correctTokens: ['if', '(!mounted)', 'return', 'null', 'return', 'createPortal', '(children,', 'containerRef.current)'],
+                distractorTokens: ['render', 'appendChild', 'removeChild', 'useRef'],
+              },
+            ],
+          },
       },
     ],
   },

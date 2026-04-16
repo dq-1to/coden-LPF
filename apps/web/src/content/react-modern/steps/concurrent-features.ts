@@ -222,6 +222,24 @@ function SearchApp() {
     </div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useState, useTransition } from 'react'\n\nconst ITEMS = Array.from({ length: 500 }, (_, i) => ({ id: i, name: "Item " + i }))\n\nfunction SearchApp() {\n  const [query, setQuery] = useState('')\n  const [results, setResults] = useState(ITEMS)\n  ____0\n\n  function handleChange(e) {\n    ____1\n  }\n\n  return (\n    <div>\n      <input value={query} onChange={handleChange} placeholder="検索..." />\n      <ul className={isPending ? 'opacity-50' : ''}>\n        {results.map(item => (\n          <li key={item.id}>{item.name}</li>\n        ))}\n      </ul>\n    </div>\n  )\n}`,
+            blanks: [
+              {
+                id: 'use-transition',
+                label: 'useTransition',
+                correctTokens: ['const', '[isPending, startTransition]', '=', 'useTransition()'],
+                distractorTokens: ['useDeferredValue', 'useState', 'useCallback', 'useMemo'],
+              },
+              {
+                id: 'handle-change',
+                label: 'handleChange',
+                correctTokens: ['setQuery(e.target.value)', 'startTransition', '(', '() =>', '{', 'setResults(ITEMS.filter(item => item.name.includes(e.target.value)))', '}', ')'],
+                distractorTokens: ['useDeferredValue', 'useCallback', 'setTimeout', 'useMemo'],
+              },
+            ],
+          },
       },
       {
         id: 'concurrent-features-2',
@@ -258,6 +276,24 @@ function App() {
     </div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useState, useDeferredValue, memo } from 'react'\n\n____0\n\nfunction App() {\n  const [query, setQuery] = useState('')\n  ____1\n\n  return (\n    <div>\n      <input value={query} onChange={e => setQuery(e.target.value)} />\n      {deferredQuery !== query && <p>更新中...</p>}\n      <SlowList text={deferredQuery} />\n    </div>\n  )\n}`,
+            blanks: [
+              {
+                id: 'memo-wrap',
+                label: 'memo化',
+                correctTokens: ['const', 'SlowList', '=', 'memo', '(', 'function SlowList({ text }) {', 'const items = Array.from({ length: 200 }, (_, i) => `${text} - item ${i}`)', 'return <ul>{items.map((item, i) => <li key={i}>{item}</li>)}</ul>', '}', ')'],
+                distractorTokens: ['useCallback', 'useRef', 'useMemo', 'forwardRef'],
+              },
+              {
+                id: 'deferred-value',
+                label: 'useDeferredValue',
+                correctTokens: ['const', 'deferredQuery', '=', 'useDeferredValue', '(', 'query', ')'],
+                distractorTokens: ['useTransition', 'startTransition', 'useCallback', 'useRef'],
+              },
+            ],
+          },
       },
     ],
   },
