@@ -45,6 +45,18 @@ const AdminFeedbackListPage = lazy(() =>
 const AdminFeedbackDetailPage = lazy(() =>
   import('./pages/admin/AdminFeedbackDetailPage').then((m) => ({ default: m.AdminFeedbackDetailPage })),
 )
+const AdminUsersPage = lazy(() =>
+  import('./pages/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage })),
+)
+const AdminUserDetailPage = lazy(() =>
+  import('./pages/admin/AdminUserDetailPage').then((m) => ({ default: m.AdminUserDetailPage })),
+)
+const AdminStatsPage = lazy(() =>
+  import('./pages/admin/AdminStatsPage').then((m) => ({ default: m.AdminStatsPage })),
+)
+const AdminOpsPage = lazy(() =>
+  import('./pages/admin/AdminOpsPage').then((m) => ({ default: m.AdminOpsPage })),
+)
 
 // ページ遷移中のフォールバック UI
 function PageLoading() {
@@ -213,6 +225,54 @@ const router = createBrowserRouter([
         <AdminGuard>
           <Suspense fallback={<PageLoading />}>
             <AdminFeedbackDetailPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/users',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminUsersPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/users/:id',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminUserDetailPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/stats',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminStatsPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/ops',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminOpsPage />
           </Suspense>
         </AdminGuard>
       </ProtectedRoute>
