@@ -168,11 +168,11 @@ v3 の Challenge モードはモバイルでフルエディタ + キーボード
 
 4ステップ・8パターン
 
-- [ ] rhf-zod × 2パターンに `mobilePuzzle` 追加
-- [ ] pagination × 2パターンに `mobilePuzzle` 追加
-- [ ] infinite-scroll × 2パターンに `mobilePuzzle` 追加
-- [ ] auth-flow × 2パターンに `mobilePuzzle` 追加
-- [ ] CI 通過確認
+- [x] rhf-zod × 2パターンに `mobilePuzzle` 追加
+- [x] pagination × 2パターンに `mobilePuzzle` 追加
+- [x] infinite-scroll × 2パターンに `mobilePuzzle` 追加
+- [x] auth-flow × 2パターンに `mobilePuzzle` 追加
+- [x] CI 通過確認
 
 ---
 
