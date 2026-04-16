@@ -12,6 +12,13 @@ vi.mock('@/contexts/LearningContext', () => ({
   }),
 }))
 
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: null,
+    isAdmin: false,
+  }),
+}))
+
 afterEach(() => {
   cleanup()
 })

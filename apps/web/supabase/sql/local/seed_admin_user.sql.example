@@ -1,0 +1,62 @@
+-- v4roadmap02 M1: admin アカウント作成用 seed（雛形）
+--
+-- 使い方:
+--   1. このファイルを同ディレクトリに `seed_admin_user.sql` としてコピー
+--   2. <PLACEHOLDER> を実パスワードに置換
+--   3. Supabase SQL Editor（または supabase db push）で実行
+--   4. 実パスワードは docs/memo/ 配下に記録する（docs/memo/ は gitignore 済み）
+--
+-- 本ファイル（.example）は Git 管理下、コピー先の .sql は Git 管理外（apps/web/supabase/sql/local/ は .gitignore 対象）
+--
+-- email_change 系カラムを空文字にするのは GoTrue の 500 エラー回避パターン（002_seed_test_users.sql 準拠）
+
+with upsert_admin as (
+  insert into auth.users (
+    id,
+    email,
+    encrypted_password,
+    email_confirmed_at,
+    confirmation_token,
+    recovery_token,
+    email_change,
+    email_change_token_new,
+    email_change_token_current,
+    created_at,
+    updated_at,
+    raw_app_meta_data,
+    raw_user_meta_data,
+    is_super_admin,
+    instance_id,
+    aud,
+    role
+  )
+  values (
+    gen_random_uuid(),
+    'admin@coden.dev',
+    crypt('<PLACEHOLDER>', gen_salt('bf', 10)),
+    now(),
+    '',
+    '',
+    '',
+    '',
+    '',
+    now(),
+    now(),
+    '{"provider":"email","providers":["email"]}',
+    '{}',
+    false,
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
+    'authenticated'
+  )
+  on conflict (email) do update set
+    updated_at = now(),
+    encrypted_password = excluded.encrypted_password
+  returning id, email
+)
+insert into public.profiles (id, display_name, is_admin)
+select id, 'admin', true
+from upsert_admin
+on conflict (id) do update set
+  display_name = excluded.display_name,
+  is_admin = true;

@@ -9,7 +9,7 @@ export type PointHistoryRecord = Tables<'point_history'>
 export async function getProfile(userId: string): Promise<ProfileRecord | null> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, display_name, created_at')
+    .select('id, display_name, created_at, is_admin')
     .eq('id', userId)
     .maybeSingle()
 

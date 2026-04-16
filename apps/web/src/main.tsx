@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { AdminGuard } from './components/AdminGuard'
 import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
 import { LearningProvider } from './contexts/LearningContext'
@@ -35,6 +36,9 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ de
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })))
 const SignUpPage = lazy(() => import('./pages/SignUpPage').then((m) => ({ default: m.SignUpPage })))
 const StepPage = lazy(() => import('./pages/StepPage').then((m) => ({ default: m.StepPage })))
+const AdminDashboardPage = lazy(() =>
+  import('./pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })),
+)
 
 // ページ遷移中のフォールバック UI
 function PageLoading() {
@@ -169,6 +173,18 @@ const router = createBrowserRouter([
         <Suspense fallback={<PageLoading />}>
           <CodeReadingPage />
         </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminDashboardPage />
+          </Suspense>
+        </AdminGuard>
       </ProtectedRoute>
     ),
   },
