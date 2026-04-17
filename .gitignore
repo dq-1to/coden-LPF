@@ -23,6 +23,7 @@ Thumbs.db
 .tmp/
 docs/sessions/
 docs/qa/
+apps/web/docs/
 .playwright-mcp/
 
 # Supabase ローカル seed（実パスワードを含むため Git 管理外）
