@@ -4,43 +4,22 @@ import { Inbox, Filter, AlertCircle } from 'lucide-react'
 import { AdminLayout } from '../../features/admin/components/AdminLayout'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import { Spinner } from '../../components/Spinner'
+import { formatJstDateTime } from '../../lib/dateFormat'
 import {
   listFeedback,
   FEEDBACK_CATEGORY_LABELS,
   FEEDBACK_STATUS_LABELS,
+  isFeedbackCategory,
+  isFeedbackStatus,
   type FeedbackCategory,
   type FeedbackStatus,
   type ListFeedbackFilter,
   type UserFeedback,
 } from '../../services/feedbackService'
+import { CATEGORY_BADGE_CLASSES, STATUS_BADGE_CLASSES } from '../../features/feedback/feedbackBadge'
 
 type CategoryFilter = 'all' | FeedbackCategory
 type StatusFilter = 'all' | FeedbackStatus
-
-const CATEGORY_BADGE: Record<FeedbackCategory, string> = {
-  bug: 'bg-rose-100 text-rose-700',
-  review: 'bg-sky-100 text-sky-700',
-  request: 'bg-violet-100 text-violet-700',
-  other: 'bg-slate-100 text-slate-600',
-}
-
-const STATUS_BADGE: Record<FeedbackStatus, string> = {
-  new: 'bg-amber-100 text-amber-700',
-  in_progress: 'bg-sky-100 text-sky-700',
-  resolved: 'bg-emerald-100 text-emerald-700',
-  archived: 'bg-slate-100 text-slate-600',
-}
-
-function formatJst(dateStr: string): string {
-  return new Date(dateStr).toLocaleString('ja-JP', {
-    timeZone: 'Asia/Tokyo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
 
 export function AdminFeedbackListPage() {
   useDocumentTitle('フィードバック一覧 - 管理画面')
@@ -159,14 +138,14 @@ export function AdminFeedbackListPage() {
                   {/* バッジ列 */}
                   <div className="flex shrink-0 flex-col gap-1.5 pt-0.5">
                     <span
-                      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${CATEGORY_BADGE[item.category as FeedbackCategory]}`}
+                      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${isFeedbackCategory(item.category) ? CATEGORY_BADGE_CLASSES[item.category] : 'bg-slate-100 text-slate-600'}`}
                     >
-                      {FEEDBACK_CATEGORY_LABELS[item.category as FeedbackCategory]}
+                      {isFeedbackCategory(item.category) ? FEEDBACK_CATEGORY_LABELS[item.category] : item.category}
                     </span>
                     <span
-                      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[item.status as FeedbackStatus]}`}
+                      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${isFeedbackStatus(item.status) ? STATUS_BADGE_CLASSES[item.status] : 'bg-slate-100 text-slate-600'}`}
                     >
-                      {FEEDBACK_STATUS_LABELS[item.status as FeedbackStatus]}
+                      {isFeedbackStatus(item.status) ? FEEDBACK_STATUS_LABELS[item.status] : item.status}
                     </span>
                   </div>
 
@@ -182,7 +161,7 @@ export function AdminFeedbackListPage() {
                     dateTime={item.created_at}
                     className="shrink-0 text-xs text-slate-400"
                   >
-                    {formatJst(item.created_at)}
+                    {formatJstDateTime(item.created_at)}
                   </time>
                 </Link>
               </li>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AlertCircle, ArrowLeft, Loader2, Shield } from 'lucide-react'
 import { AdminLayout } from '../../features/admin/components/AdminLayout'
+import { formatJstDate, formatJstDateTime } from '../../lib/dateFormat'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import { getUserDetail, type AdminUserDetail } from '../../services/adminUsersService'
 import { findStepById } from '../../content/courseData'
@@ -10,24 +11,6 @@ import { BADGE_DEFINITIONS } from '../../services/achievementService'
 const BADGE_LABEL: Record<string, string> = Object.fromEntries(
   BADGE_DEFINITIONS.map((b) => [b.id, b.name]),
 )
-
-function formatJstDateTime(iso: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleString('ja-JP', {
-    timeZone: 'Asia/Tokyo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-function formatJstDate(value: string | null): string {
-  if (!value) return '—'
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value
-  return new Date(value).toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' })
-}
 
 function stepLabel(stepId: string): string {
   return findStepById(stepId)?.title ?? stepId

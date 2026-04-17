@@ -22,6 +22,14 @@ export const FEEDBACK_STATUSES: ReadonlySet<string> = new Set([
   'archived',
 ])
 
+export function isFeedbackCategory(value: string): value is FeedbackCategory {
+  return FEEDBACK_CATEGORIES.has(value)
+}
+
+export function isFeedbackStatus(value: string): value is FeedbackStatus {
+  return FEEDBACK_STATUSES.has(value)
+}
+
 export const FEEDBACK_CATEGORY_LABELS: Record<FeedbackCategory, string> = {
   bug: '不具合報告',
   review: 'レビュー',

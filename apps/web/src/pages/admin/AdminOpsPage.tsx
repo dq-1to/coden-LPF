@@ -122,7 +122,7 @@ function GrantPointsForm({ users, disabled }: { users: AdminUserSummary[]; disab
 
       <FormFeedback feedback={feedback} />
 
-      <UserSelect value={targetUserId} onChange={setTargetUserId} users={users} disabled={disabled} />
+      <UserSelect id="grant-points-user" value={targetUserId} onChange={setTargetUserId} users={users} disabled={disabled} />
 
       <div>
         <label htmlFor="grant-amount" className="mb-1 block text-xs font-semibold text-slate-600">
@@ -222,7 +222,7 @@ function GrantBadgeForm({ users, disabled }: { users: AdminUserSummary[]; disabl
 
       <FormFeedback feedback={feedback} />
 
-      <UserSelect value={targetUserId} onChange={setTargetUserId} users={users} disabled={disabled} />
+      <UserSelect id="grant-badge-user" value={targetUserId} onChange={setTargetUserId} users={users} disabled={disabled} />
 
       <div>
         <label htmlFor="grant-badge" className="mb-1 block text-xs font-semibold text-slate-600">
@@ -263,11 +263,13 @@ function GrantBadgeForm({ users, disabled }: { users: AdminUserSummary[]; disabl
 // ─── 共通部品 ─────────────────────────────────────────────
 
 function UserSelect({
+  id,
   value,
   onChange,
   users,
   disabled,
 }: {
+  id: string
   value: string
   onChange: (v: string) => void
   users: AdminUserSummary[]
@@ -275,10 +277,11 @@ function UserSelect({
 }) {
   return (
     <div>
-      <label htmlFor={`user-select-${Math.random().toString(36).slice(2, 7)}`} className="mb-1 block text-xs font-semibold text-slate-600">
+      <label htmlFor={id} className="mb-1 block text-xs font-semibold text-slate-600">
         対象ユーザー
       </label>
       <select
+        id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
@@ -300,7 +303,7 @@ function FormFeedback({ feedback }: { feedback: Feedback }) {
   if (feedback.kind === 'idle') return null
   if (feedback.kind === 'success') {
     return (
-      <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700">
+      <div role="status" className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700">
         <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <p>{feedback.message}</p>
       </div>

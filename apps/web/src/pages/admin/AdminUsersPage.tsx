@@ -2,21 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertCircle, Search, Shield, Users } from 'lucide-react'
 import { AdminLayout } from '../../features/admin/components/AdminLayout'
+import { formatJstDate } from '../../lib/dateFormat'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import { Spinner } from '../../components/Spinner'
 import { listUsers, type AdminUserSummary } from '../../services/adminUsersService'
-
-function formatJstDate(isoOrDate: string | null): string {
-  if (!isoOrDate) return '—'
-  // learning_stats.last_study_date は DATE 型なので YYYY-MM-DD のまま
-  if (/^\d{4}-\d{2}-\d{2}$/.test(isoOrDate)) return isoOrDate
-  return new Date(isoOrDate).toLocaleDateString('ja-JP', {
-    timeZone: 'Asia/Tokyo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
-}
 
 export function AdminUsersPage() {
   useDocumentTitle('ユーザー一覧 - 管理画面')
