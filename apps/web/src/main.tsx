@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { AdminGuard } from './components/AdminGuard'
 import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
 import { LearningProvider } from './contexts/LearningContext'
@@ -35,6 +36,27 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((m) => ({ de
 const ProfilePage = lazy(() => import('./pages/ProfilePage').then((m) => ({ default: m.ProfilePage })))
 const SignUpPage = lazy(() => import('./pages/SignUpPage').then((m) => ({ default: m.SignUpPage })))
 const StepPage = lazy(() => import('./pages/StepPage').then((m) => ({ default: m.StepPage })))
+const AdminDashboardPage = lazy(() =>
+  import('./pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage })),
+)
+const AdminFeedbackListPage = lazy(() =>
+  import('./pages/admin/AdminFeedbackListPage').then((m) => ({ default: m.AdminFeedbackListPage })),
+)
+const AdminFeedbackDetailPage = lazy(() =>
+  import('./pages/admin/AdminFeedbackDetailPage').then((m) => ({ default: m.AdminFeedbackDetailPage })),
+)
+const AdminUsersPage = lazy(() =>
+  import('./pages/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage })),
+)
+const AdminUserDetailPage = lazy(() =>
+  import('./pages/admin/AdminUserDetailPage').then((m) => ({ default: m.AdminUserDetailPage })),
+)
+const AdminStatsPage = lazy(() =>
+  import('./pages/admin/AdminStatsPage').then((m) => ({ default: m.AdminStatsPage })),
+)
+const AdminOpsPage = lazy(() =>
+  import('./pages/admin/AdminOpsPage').then((m) => ({ default: m.AdminOpsPage })),
+)
 
 // ページ遷移中のフォールバック UI
 function PageLoading() {
@@ -169,6 +191,90 @@ const router = createBrowserRouter([
         <Suspense fallback={<PageLoading />}>
           <CodeReadingPage />
         </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminDashboardPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/feedback',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminFeedbackListPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/feedback/:id',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminFeedbackDetailPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/users',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminUsersPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/users/:id',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminUserDetailPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/stats',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminStatsPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/ops',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminOpsPage />
+          </Suspense>
+        </AdminGuard>
       </ProtectedRoute>
     ),
   },

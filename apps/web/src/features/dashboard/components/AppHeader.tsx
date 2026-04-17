@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ChevronDown, Flame, Gem, Menu, X } from 'lucide-react'
+import { ChevronDown, Flame, Gem, MessageSquarePlus, Menu, Shield, X } from 'lucide-react'
 import { CATEGORIES } from '@/content/courseData'
+import { useAuth } from '@/contexts/AuthContext'
 import { useLearningContext } from '@/contexts/LearningContext'
+import { FeedbackDialog } from '@/features/feedback/FeedbackDialog'
 
 interface AppHeaderProps {
   displayName: string
@@ -23,9 +25,11 @@ const TOP_NAV_LINKS = [
 
 export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
   const { stats } = useLearningContext()
+  const { isAdmin } = useAuth()
   const location = useLocation()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const drawerRef = useRef<HTMLElement>(null)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
@@ -176,6 +180,40 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
                       {link.label}
                     </Link>
                   ))}
+
+                  <div className="my-1.5 border-t border-slate-100" />
+                  <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    サポート
+                  </div>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setIsDropdownOpen(false)
+                      setIsFeedbackOpen(true)
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                  >
+                    <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
+                    フィードバックを送る
+                  </button>
+
+                  {isAdmin ? (
+                    <>
+                      <div className="my-1.5 border-t border-slate-100" />
+                      <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        管理
+                      </div>
+                      <Link
+                        to="/admin"
+                        role="menuitem"
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                      >
+                        <Shield className="h-3.5 w-3.5" aria-hidden="true" />
+                        管理画面
+                      </Link>
+                    </>
+                  ) : null}
                 </div>
               )}
             </div>
@@ -325,6 +363,37 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
               )
             })}
           </div>
+
+          {/* サポート（全ユーザー） */}
+          <div className="border-b border-slate-100 px-4 py-3">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">サポート</p>
+            <button
+              type="button"
+              onClick={() => {
+                closeDrawer()
+                setIsFeedbackOpen(true)
+              }}
+              className={`${drawerLinkClass(false)} w-full`}
+            >
+              <MessageSquarePlus className="mr-2 h-4 w-4" aria-hidden="true" />
+              フィードバックを送る
+            </button>
+          </div>
+
+          {/* 管理（admin のみ） */}
+          {isAdmin ? (
+            <div className="border-b border-slate-100 px-4 py-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">管理</p>
+              <Link
+                to="/admin"
+                className={drawerLinkClass(location.pathname.startsWith('/admin'))}
+                aria-current={location.pathname.startsWith('/admin') ? 'page' : undefined}
+              >
+                <Shield className="mr-2 h-4 w-4" aria-hidden="true" />
+                管理画面
+              </Link>
+            </div>
+          ) : null}
         </div>
 
         {/* ログアウトボタン */}
@@ -339,6 +408,8 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
         </div>
       </nav>
     ) : null}
+
+    <FeedbackDialog open={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
     </>
   )
 }
