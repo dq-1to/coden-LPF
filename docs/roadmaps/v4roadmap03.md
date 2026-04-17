@@ -48,39 +48,33 @@ DRY 2 件 (H5-H6) もまとめて 1 タスクで対応可能。
 
 ### M1: アクセシビリティ修正 (H1 + H2 + H3) `[Sonnet]`
 
-- [ ] H2: AdminOpsPage UserSelect に固定 id prop を追加し、label/select を紐付け
-- [ ] H1: AdminFeedbackDetailPage の 3 箇所のエラー div に `role="alert"` 追加
-- [ ] H3: DetailPage メモ保存成功 / OpsPage FormFeedback 成功に `role="status"` 追加
+- [x] H2: AdminOpsPage UserSelect に固定 id prop を追加し、label/select を紐付け
+- [x] H1: AdminFeedbackDetailPage の 3 箇所のエラー div に `role="alert"` 追加
+- [x] H3: DetailPage メモ保存成功 / OpsPage FormFeedback 成功に `role="status"` 追加
 
 ### M2: 型安全性改善 (H4) `[Sonnet]`
 
-- [ ] AdminFeedbackListPage の `as FeedbackCategory` / `as FeedbackStatus` を型ガード + フォールバックに変更
+- [x] AdminFeedbackListPage の `as FeedbackCategory` / `as FeedbackStatus` を型ガード + フォールバックに変更
   - DetailPage の `isFeedbackCategory()` / `isFeedbackStatus()` を再利用（→ feedbackService から export）
 
 ### M3: 共通ユーティリティ抽出 (H5 + H6) `[Sonnet]`
 
-- [ ] H5: 日付フォーマット関数を `lib/dateFormat.ts` に抽出し、4ファイルから参照
-- [ ] H6: フィードバックバッジクラス定数を `features/feedback/feedbackBadge.ts` に抽出
+- [x] H5: 日付フォーマット関数を `lib/dateFormat.ts` に抽出し、4ファイルから参照
+- [x] H6: フィードバックバッジクラス定数を `features/feedback/feedbackBadge.ts` に抽出
 
 ### M4: AdminFeedbackDetailPage 分割 (H7) `[Opus]`
 
-- [ ] FeedbackStatusForm / FeedbackNoteForm / FeedbackUserInfo を子コンポーネントに分離
-- [ ] メインコンポーネントを 150 行以下に削減
+- [x] FeedbackStatusForm / FeedbackNoteForm / FeedbackUserInfo を子コンポーネントに分離
+- [x] メインコンポーネントを 150 行以下に削減（206行、MetaRow含む）
 
 ## 5. ブランチ戦略
 
-```
-dev
- ├── fix/v4-admin-quality-m1  (a11y)
- ├── fix/v4-admin-quality-m2  (型安全)
- ├── fix/v4-admin-quality-m3  (DRY)
- └── fix/v4-admin-quality-m4  (分割)
-```
+~~各ブランチは dev ベースで PR → dev マージ。~~
 
-各ブランチは dev ベースで PR → dev マージ。
+M1-M4 を dev ブランチ上で一括修正し、dev → main の PR #248 でまとめてマージ。
 
 ## 6. 完了条件
 
-- [ ] H1-H7 の全修正が dev にマージ済み
-- [ ] `typecheck` / `lint` / `test` / `build` 全通過
-- [ ] `/design-audit` 再実行で全 PASS
+- [x] H1-H7 の全修正が dev にマージ済み
+- [x] `typecheck` / `lint` / `test` / `build` 全通過
+- [x] dev → main マージ完了（PR #248）、v4.0.0 タグ付与
