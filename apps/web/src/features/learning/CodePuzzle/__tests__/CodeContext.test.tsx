@@ -4,7 +4,7 @@ import { CodeContext } from '../CodeContext'
 
 vi.mock('prismjs', () => ({
   default: {
-    highlight: (code: string) => code,
+    tokenize: (code: string) => [code],
     languages: { tsx: {}, javascript: {} },
   },
 }))
