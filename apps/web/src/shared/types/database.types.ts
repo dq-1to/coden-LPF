@@ -173,6 +173,7 @@ export type Database = {
           category: string
           created_at: string
           id: string
+          image_paths: Json
           message: string
           page_url: string | null
           status: string
@@ -185,6 +186,7 @@ export type Database = {
           category: string
           created_at?: string
           id?: string
+          image_paths?: Json
           message: string
           page_url?: string | null
           status?: string
@@ -197,6 +199,7 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
+          image_paths?: Json
           message?: string
           page_url?: string | null
           status?: string
