@@ -3,8 +3,8 @@ import { Link, useLocation } from 'react-router-dom'
 import { ChevronDown, Flame, Gem, MessageSquarePlus, Menu, Shield, X } from 'lucide-react'
 import { CATEGORIES } from '@/content/courseData'
 import { useAuth } from '@/contexts/AuthContext'
+import { useFeedbackContext } from '@/contexts/FeedbackContext'
 import { useLearningContext } from '@/contexts/LearningContext'
-import { FeedbackDialog } from '@/features/feedback/FeedbackDialog'
 
 interface AppHeaderProps {
   displayName: string
@@ -26,10 +26,10 @@ const TOP_NAV_LINKS = [
 export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
   const { stats } = useLearningContext()
   const { isAdmin } = useAuth()
+  const { openFeedback } = useFeedbackContext()
   const location = useLocation()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const drawerRef = useRef<HTMLElement>(null)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
@@ -190,7 +190,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
                     role="menuitem"
                     onClick={() => {
                       setIsDropdownOpen(false)
-                      setIsFeedbackOpen(true)
+                      openFeedback()
                     }}
                     className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50"
                   >
@@ -371,7 +371,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
               type="button"
               onClick={() => {
                 closeDrawer()
-                setIsFeedbackOpen(true)
+                openFeedback()
               }}
               className={`${drawerLinkClass(false)} w-full`}
             >
@@ -409,7 +409,6 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
       </nav>
     ) : null}
 
-    <FeedbackDialog open={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
     </>
   )
 }
