@@ -7,6 +7,8 @@ import {
   submitFeedback,
   updateFeedbackNote,
   updateFeedbackStatus,
+  uploadFeedbackImages,
+  validateImageFiles,
 } from '../feedbackService'
 
 // Supabase chain mocks. 単一テーブルごとにビルダーを返す `from` を作成する。
@@ -106,6 +108,21 @@ function createAuditLogBuilder() {
   }
 }
 
+const storageState = {
+  uploadCalls: [] as Array<{ path: string; file: File; options: Record<string, unknown> }>,
+  uploadResult: { error: null as unknown },
+}
+
+const storageUpload = vi.fn((path: string, file: File, options: Record<string, unknown>) => {
+  storageState.uploadCalls.push({ path, file, options })
+  return Promise.resolve({ data: { path }, error: storageState.uploadResult.error })
+})
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const storageFrom = vi.fn((_bucket: string) => ({
+  upload: storageUpload,
+}))
+
 const from = vi.fn((table: string) => {
   if (table === 'user_feedback') return createUserFeedbackBuilder()
   if (table === 'admin_audit_log') return createAuditLogBuilder()
@@ -115,6 +132,9 @@ const from = vi.fn((table: string) => {
 vi.mock('../../lib/supabaseClient', () => ({
   supabase: {
     from: (...args: unknown[]) => from(...(args as [string])),
+    storage: {
+      from: (...args: unknown[]) => storageFrom(...(args as [string])),
+    },
   },
 }))
 
@@ -137,6 +157,8 @@ function resetState() {
   userFeedbackState.limitCalls = []
   auditLogState.lastInsertPayload = null
   auditLogState.insertResult = { error: null }
+  storageState.uploadCalls = []
+  storageState.uploadResult = { error: null }
 }
 
 describe('FEEDBACK_CATEGORIES / FEEDBACK_STATUSES', () => {
@@ -434,5 +456,129 @@ describe('updateFeedbackNote', () => {
       userMessage: 'フィードバックのメモ更新に失敗しました',
     })
     expect(auditLogState.lastInsertPayload).toBeNull()
+  })
+})
+
+// ─── 画像バリデーション・アップロード ─────────────────────
+
+function createTestFile(name: string, size: number, type = 'image/png'): File {
+  const buf = new ArrayBuffer(size)
+  return new File([buf], name, { type })
+}
+
+describe('validateImageFiles', () => {
+  it('空配列は正常に通過する', () => {
+    expect(() => validateImageFiles([])).not.toThrow()
+  })
+
+  it('3枚以下の画像は正常に通過する', () => {
+    const files = [
+      createTestFile('a.png', 1024),
+      createTestFile('b.jpg', 2048),
+      createTestFile('c.gif', 512),
+    ]
+    expect(() => validateImageFiles(files)).not.toThrow()
+  })
+
+  it('4枚以上で例外を投げる', () => {
+    const files = Array.from({ length: 4 }, (_, i) => createTestFile(`${i}.png`, 100))
+    expect(() => validateImageFiles(files)).toThrow('画像は最大 3 枚まで添付できます')
+  })
+
+  it('5MB超過のファイルで例外を投げる', () => {
+    const big = createTestFile('huge.png', 6 * 1024 * 1024)
+    expect(() => validateImageFiles([big])).toThrow('huge.png のサイズが上限（5MB）を超えています')
+  })
+
+  it('image/* 以外の MIME タイプで例外を投げる', () => {
+    const pdf = createTestFile('doc.pdf', 1024, 'application/pdf')
+    expect(() => validateImageFiles([pdf])).toThrow('doc.pdf は画像ファイルではありません')
+  })
+})
+
+describe('uploadFeedbackImages', () => {
+  beforeEach(resetState)
+
+  it('Storage にアップロードしパスの配列を返す', async () => {
+    const files = [createTestFile('a.png', 100), createTestFile('b.jpg', 200, 'image/jpeg')]
+    const paths = await uploadFeedbackImages(VALID_USER_ID, VALID_FEEDBACK_ID, files)
+
+    expect(storageFrom).toHaveBeenCalledWith('feedback-images')
+    expect(storageState.uploadCalls).toHaveLength(2)
+    expect(storageState.uploadCalls[0]!.path).toMatch(
+      new RegExp(`^${VALID_USER_ID}/${VALID_FEEDBACK_ID}/\\d+_a\\.png$`),
+    )
+    expect(storageState.uploadCalls[1]!.options).toEqual({ contentType: 'image/jpeg' })
+    expect(paths).toHaveLength(2)
+    expect(paths[0]).toContain(VALID_USER_ID)
+  })
+
+  it('ファイル名の特殊文字をアンダースコアに置換する', async () => {
+    const files = [createTestFile('スクショ (1).png', 100)]
+    await uploadFeedbackImages(VALID_USER_ID, VALID_FEEDBACK_ID, files)
+    const uploaded = storageState.uploadCalls[0]!.path
+    expect(uploaded).not.toMatch(/[^a-zA-Z0-9._\-/]/)
+  })
+
+  it('Storage エラー時にアプリ共通エラーを投げる', async () => {
+    storageState.uploadResult = { error: { message: 'bucket not found' } }
+    const files = [createTestFile('fail.png', 100)]
+    await expect(
+      uploadFeedbackImages(VALID_USER_ID, VALID_FEEDBACK_ID, files),
+    ).rejects.toMatchObject({
+      name: 'AppError',
+      userMessage: '画像「fail.png」のアップロードに失敗しました',
+    })
+  })
+})
+
+describe('submitFeedback with files', () => {
+  beforeEach(resetState)
+
+  it('画像付き送信で INSERT → Storage アップロード → UPDATE の順に実行する', async () => {
+    const feedbackRow = {
+      id: VALID_FEEDBACK_ID,
+      user_id: VALID_USER_ID,
+      category: 'bug',
+      message: 'hello',
+      status: 'new',
+      image_paths: [],
+    }
+    userFeedbackState.insertResult = { data: feedbackRow, error: null }
+    userFeedbackState.updateResult = {
+      data: { ...feedbackRow, image_paths: ['path/a.png'] },
+      error: null,
+    }
+
+    const files = [createTestFile('screenshot.png', 1024)]
+    const result = await submitFeedback({
+      userId: VALID_USER_ID,
+      category: 'bug',
+      message: 'hello',
+      files,
+    })
+
+    // INSERT が呼ばれている
+    expect(userFeedbackState.insertPayload).not.toBeNull()
+    // Storage アップロードが呼ばれている
+    expect(storageState.uploadCalls).toHaveLength(1)
+    // UPDATE で image_paths が設定されている
+    expect(userFeedbackState.updatePayload).toHaveProperty('image_paths')
+    expect(result.image_paths).toEqual(['path/a.png'])
+  })
+
+  it('画像なし送信では Storage アップロードも UPDATE も呼ばない', async () => {
+    userFeedbackState.insertResult = {
+      data: { id: VALID_FEEDBACK_ID, image_paths: [] },
+      error: null,
+    }
+    await submitFeedback({
+      userId: VALID_USER_ID,
+      category: 'bug',
+      message: 'hello',
+    })
+
+    expect(storageState.uploadCalls).toHaveLength(0)
+    expect(userFeedbackState.updatePayload).toBeNull()
   })
 })
