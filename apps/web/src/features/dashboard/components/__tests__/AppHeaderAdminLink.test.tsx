@@ -17,6 +17,10 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => mockAuth.value,
 }))
 
+vi.mock('@/contexts/FeedbackContext', () => ({
+  useFeedbackContext: () => ({ openFeedback: vi.fn() }),
+}))
+
 function renderHeader() {
   return render(
     <MemoryRouter>

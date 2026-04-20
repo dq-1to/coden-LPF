@@ -20,6 +20,10 @@ vi.mock('@/contexts/AuthContext', () => ({
   }),
 }))
 
+vi.mock('@/contexts/FeedbackContext', () => ({
+  useFeedbackContext: () => ({ openFeedback: vi.fn() }),
+}))
+
 vi.mock('@/services/statsService', () => ({
   calculatePointGoalProgress: () => ({
     current: 120,
