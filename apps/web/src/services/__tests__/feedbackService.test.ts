@@ -517,7 +517,7 @@ describe('uploadFeedbackImages', () => {
     expect(storageFrom).toHaveBeenCalledWith('feedback-images')
     expect(storageState.uploadCalls).toHaveLength(2)
     expect(storageState.uploadCalls[0]!.path).toMatch(
-      new RegExp(`^${VALID_USER_ID}/${VALID_FEEDBACK_ID}/\\d+_a\\.png$`),
+      new RegExp(`^${VALID_USER_ID}/${VALID_FEEDBACK_ID}/\\d+_0_a\\.png$`),
     )
     expect(storageState.uploadCalls[1]!.options).toEqual({ contentType: 'image/jpeg' })
     expect(paths).toHaveLength(2)
