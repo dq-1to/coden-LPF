@@ -190,25 +190,26 @@ export async function uploadFeedbackImages(
   feedbackId: string,
   files: File[],
 ): Promise<string[]> {
-  const paths: string[] = []
+  const now = Date.now()
 
-  for (const file of files) {
-    // ファイル名の衝突を避けるため timestamp を付与
-    const safeName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
-    const path = `${userId}/${feedbackId}/${safeName}`
+  const paths = await Promise.all(
+    files.map(async (file, index) => {
+      const safeName = `${now}_${index}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+      const path = `${userId}/${feedbackId}/${safeName}`
 
-    const { error } = await supabase.storage
-      .from(FEEDBACK_IMAGES_BUCKET)
-      .upload(path, file, { contentType: file.type })
+      const { error } = await supabase.storage
+        .from(FEEDBACK_IMAGES_BUCKET)
+        .upload(path, file, { contentType: file.type })
 
-    if (error) {
-      throw fromSupabaseError(
-        { code: 'STORAGE_ERROR', message: error.message },
-        `画像「${file.name}」のアップロードに失敗しました`,
-      )
-    }
-    paths.push(path)
-  }
+      if (error) {
+        throw fromSupabaseError(
+          { code: 'STORAGE_ERROR', message: error.message },
+          `画像「${file.name}」のアップロードに失敗しました`,
+        )
+      }
+      return path
+    }),
+  )
 
   return paths
 }
