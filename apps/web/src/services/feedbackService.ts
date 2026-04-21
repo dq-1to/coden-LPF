@@ -339,6 +339,41 @@ export async function updateFeedbackNote(
   return data
 }
 
+// ─── 画像 URL ────────────────────────────────────────────
+
+/** signed URL の有効期限（秒）: 1 時間 */
+const SIGNED_URL_EXPIRES_IN = 3600
+
+export interface FeedbackImageUrl {
+  path: string
+  url: string
+}
+
+/**
+ * image_paths から signed URL を一括生成する（admin 向け）。
+ * Storage RLS `feedback_images_select_admin` により admin のみ全画像を閲覧可能。
+ */
+export async function getFeedbackImageUrls(
+  paths: string[],
+): Promise<FeedbackImageUrl[]> {
+  if (paths.length === 0) return []
+
+  const { data, error } = await supabase.storage
+    .from(FEEDBACK_IMAGES_BUCKET)
+    .createSignedUrls(paths, SIGNED_URL_EXPIRES_IN)
+
+  if (error) {
+    throw fromSupabaseError(
+      { code: 'STORAGE_ERROR', message: error.message },
+      '画像 URL の生成に失敗しました',
+    )
+  }
+
+  return (data ?? [])
+    .filter((item) => item.signedUrl)
+    .map((item) => ({ path: item.path ?? '', url: item.signedUrl }))
+}
+
 // ─── ユーティリティ ──────────────────────────────────────
 
 /** 現在のページ情報から送信元メタデータを取得する（クライアント専用） */

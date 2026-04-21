@@ -3,6 +3,7 @@ import {
   FEEDBACK_CATEGORIES,
   FEEDBACK_STATUSES,
   getFeedback,
+  getFeedbackImageUrls,
   listFeedback,
   submitFeedback,
   updateFeedbackNote,
@@ -111,6 +112,10 @@ function createAuditLogBuilder() {
 const storageState = {
   uploadCalls: [] as Array<{ path: string; file: File; options: Record<string, unknown> }>,
   uploadResult: { error: null as unknown },
+  signedUrlsResult: {
+    data: null as Array<{ path: string; signedUrl: string }> | null,
+    error: null as unknown,
+  },
 }
 
 const storageUpload = vi.fn((path: string, file: File, options: Record<string, unknown>) => {
@@ -118,9 +123,14 @@ const storageUpload = vi.fn((path: string, file: File, options: Record<string, u
   return Promise.resolve({ data: { path }, error: storageState.uploadResult.error })
 })
 
+const storageCreateSignedUrls = vi.fn(() => {
+  return Promise.resolve(storageState.signedUrlsResult)
+})
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const storageFrom = vi.fn((_bucket: string) => ({
   upload: storageUpload,
+  createSignedUrls: storageCreateSignedUrls,
 }))
 
 const from = vi.fn((table: string) => {
@@ -159,6 +169,7 @@ function resetState() {
   auditLogState.insertResult = { error: null }
   storageState.uploadCalls = []
   storageState.uploadResult = { error: null }
+  storageState.signedUrlsResult = { data: null, error: null }
 }
 
 describe('FEEDBACK_CATEGORIES / FEEDBACK_STATUSES', () => {
@@ -580,5 +591,51 @@ describe('submitFeedback with files', () => {
 
     expect(storageState.uploadCalls).toHaveLength(0)
     expect(userFeedbackState.updatePayload).toBeNull()
+  })
+})
+
+// ─── getFeedbackImageUrls ──────────────────────────────────
+
+describe('getFeedbackImageUrls', () => {
+  beforeEach(resetState)
+
+  it('空配列を渡すと空配列を返す（API を呼ばない）', async () => {
+    const result = await getFeedbackImageUrls([])
+    expect(result).toEqual([])
+    expect(storageCreateSignedUrls).not.toHaveBeenCalled()
+  })
+
+  it('paths に対する signed URL の配列を返す', async () => {
+    storageState.signedUrlsResult = {
+      data: [
+        { path: 'uid/fid/a.png', signedUrl: 'https://example.com/signed/a' },
+        { path: 'uid/fid/b.jpg', signedUrl: 'https://example.com/signed/b' },
+      ],
+      error: null,
+    }
+    const result = await getFeedbackImageUrls(['uid/fid/a.png', 'uid/fid/b.jpg'])
+
+    expect(storageFrom).toHaveBeenCalledWith('feedback-images')
+    expect(storageCreateSignedUrls).toHaveBeenCalledWith(
+      ['uid/fid/a.png', 'uid/fid/b.jpg'],
+      3600,
+    )
+    expect(result).toEqual([
+      { path: 'uid/fid/a.png', url: 'https://example.com/signed/a' },
+      { path: 'uid/fid/b.jpg', url: 'https://example.com/signed/b' },
+    ])
+  })
+
+  it('Storage エラー時にアプリ共通エラーを投げる', async () => {
+    storageState.signedUrlsResult = {
+      data: null,
+      error: { message: 'access denied' },
+    }
+    await expect(
+      getFeedbackImageUrls(['uid/fid/a.png']),
+    ).rejects.toMatchObject({
+      name: 'AppError',
+      userMessage: '画像 URL の生成に失敗しました',
+    })
   })
 })
