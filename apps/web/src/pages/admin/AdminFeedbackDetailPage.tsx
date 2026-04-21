@@ -95,7 +95,8 @@ export function AdminFeedbackDetailPage() {
         setFeedback(data)
 
         // image_paths がある場合は signed URL を取得
-        const paths = Array.isArray(data.image_paths) ? (data.image_paths as string[]) : []
+        const raw = Array.isArray(data.image_paths) ? data.image_paths : []
+        const paths = raw.filter((p): p is string => typeof p === 'string')
         if (paths.length > 0) {
           try {
             const urls = await getFeedbackImageUrls(paths)
