@@ -67,6 +67,12 @@ create policy user_feedback_insert_own on public.user_feedback
   for insert
   with check (auth.uid() = user_id);
 
+-- 本人は自分のフィードバックを SELECT できる（INSERT 後の returning に必要）
+drop policy if exists user_feedback_select_own on public.user_feedback;
+create policy user_feedback_select_own on public.user_feedback
+  for select
+  using (auth.uid() = user_id);
+
 -- admin は全件 SELECT できる
 drop policy if exists user_feedback_select_admin on public.user_feedback;
 create policy user_feedback_select_admin on public.user_feedback

@@ -107,4 +107,41 @@ describe('FeedbackDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: '閉じる' }))
     expect(onClose).toHaveBeenCalled()
   })
+
+  it('画像追加ボタンが表示される', () => {
+    render(<FeedbackDialog open={true} onClose={() => undefined} />)
+    expect(screen.getByRole('button', { name: '画像を追加' })).toBeTruthy()
+    expect(screen.getByText(/0\/3/)).toBeTruthy()
+  })
+
+  it('不正なファイルを追加するとエラーが表示される', async () => {
+    render(<FeedbackDialog open={true} onClose={() => undefined} />)
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+
+    const pdf = new File(['dummy'], 'doc.pdf', { type: 'application/pdf' })
+    fireEvent.change(fileInput, { target: { files: [pdf] } })
+
+    await waitFor(() => {
+      expect(screen.getByText(/画像ファイルではありません/)).toBeTruthy()
+    })
+  })
+
+  it('画像を追加するとプレビューが表示され削除ボタンで除去できる', async () => {
+    render(<FeedbackDialog open={true} onClose={() => undefined} />)
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+
+    const img = new File(['x'], 'shot.png', { type: 'image/png' })
+    fireEvent.change(fileInput, { target: { files: [img] } })
+
+    await waitFor(() => {
+      expect(screen.getByText('shot.png')).toBeTruthy()
+      expect(screen.getByText(/1\/3/)).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'shot.png を削除' }))
+    await waitFor(() => {
+      expect(screen.queryByText('shot.png')).toBeNull()
+      expect(screen.getByText(/0\/3/)).toBeTruthy()
+    })
+  })
 })

@@ -8,6 +8,7 @@ import {
   submitFeedback,
   type FeedbackCategory,
 } from '../../services/feedbackService'
+import { FeedbackImagePicker } from './FeedbackImagePicker'
 
 interface FeedbackDialogProps {
   open: boolean
@@ -23,6 +24,7 @@ export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [files, setFiles] = useState<File[]>([])
   const dialogRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -33,6 +35,7 @@ export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
     setError(null)
     setIsSubmitted(false)
     setIsSubmitting(false)
+    setFiles([])
   }, [])
 
   const handleClose = useCallback(() => {
@@ -96,6 +99,7 @@ export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
         message: trimmed,
         pageUrl: meta.pageUrl,
         userAgent: meta.userAgent,
+        ...(files.length > 0 ? { files } : {}),
       })
       setIsSubmitted(true)
     } catch (err) {
@@ -148,7 +152,7 @@ export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
         </div>
 
         {isSubmitted ? (
-          <div className="py-6 text-center">
+          <div role="status" aria-live="polite" className="py-6 text-center">
             <p className="text-sm font-semibold text-slate-900">送信しました。ありがとうございます！</p>
             <p className="mt-1 text-xs text-slate-500">いただいた内容は運営が確認いたします。</p>
             <button
@@ -204,8 +208,15 @@ export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
               </div>
             </div>
 
+            <FeedbackImagePicker
+              files={files}
+              onFilesChange={(next) => { setFiles(next); setError(null) }}
+              disabled={isSubmitting}
+              onError={setError}
+            />
+
             {error ? (
-              <div className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+              <div role="alert" className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
                 <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
                 <span>{error}</span>
               </div>

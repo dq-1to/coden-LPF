@@ -19,6 +19,10 @@ vi.mock('@/contexts/AuthContext', () => ({
   }),
 }))
 
+vi.mock('@/contexts/FeedbackContext', () => ({
+  useFeedbackContext: () => ({ openFeedback: vi.fn() }),
+}))
+
 afterEach(() => {
   cleanup()
 })

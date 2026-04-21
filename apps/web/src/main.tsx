@@ -2,11 +2,14 @@ import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { AdminGuard } from './components/AdminGuard'
+import { FeedbackFab } from './components/FeedbackFab'
 import { ProtectedRoute, GuestRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
+import { FeedbackProvider, useFeedbackContext } from './contexts/FeedbackContext'
 import { LearningProvider } from './contexts/LearningContext'
 import { AchievementProvider } from './contexts/AchievementContext'
 import { AchievementToast } from './components/AchievementToast'
+import { FeedbackDialog } from './features/feedback/FeedbackDialog'
 import { ConfigErrorView } from './components/ConfigErrorView'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { PageSpinner } from './components/Spinner'
@@ -57,6 +60,12 @@ const AdminStatsPage = lazy(() =>
 const AdminOpsPage = lazy(() =>
   import('./pages/admin/AdminOpsPage').then((m) => ({ default: m.AdminOpsPage })),
 )
+
+// FeedbackContext → FeedbackDialog をつなぐ薄いラッパー
+function ConnectedFeedbackDialog() {
+  const { isOpen, closeFeedback } = useFeedbackContext()
+  return <FeedbackDialog open={isOpen} onClose={closeFeedback} />
+}
 
 // ページ遷移中のフォールバック UI
 function PageLoading() {
@@ -314,8 +323,12 @@ async function startApp() {
           <AuthProvider>
             <LearningProvider>
               <AchievementProvider>
-                <AchievementToast />
-                <RouterProvider router={router} />
+                <FeedbackProvider>
+                  <AchievementToast />
+                  <FeedbackFab />
+                  <ConnectedFeedbackDialog />
+                  <RouterProvider router={router} />
+                </FeedbackProvider>
               </AchievementProvider>
             </LearningProvider>
           </AuthProvider>

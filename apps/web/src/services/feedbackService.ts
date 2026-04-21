@@ -44,6 +44,13 @@ export const FEEDBACK_STATUS_LABELS: Record<FeedbackStatus, string> = {
   archived: 'アーカイブ',
 }
 
+/** 添付画像の最大枚数 */
+export const MAX_IMAGE_COUNT = 3
+/** 添付画像の最大サイズ（5 MB） */
+export const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
+/** Storage バケット名 */
+export const FEEDBACK_IMAGES_BUCKET = 'feedback-images'
+
 /** 本文の最大文字数（DB 側制約 4000 と一致させる） */
 export const MAX_FEEDBACK_MESSAGE_LENGTH = 4000
 /** page_url の最大文字数（長大な URL で DB を肥大化させないため短めに丸める） */
@@ -92,6 +99,8 @@ export interface SubmitFeedbackInput {
   message: string
   pageUrl?: string | null
   userAgent?: string | null
+  /** 添付する画像ファイル（最大3枚、各5MB以下） */
+  files?: File[]
 }
 
 /**
@@ -109,9 +118,14 @@ export async function submitFeedback(input: SubmitFeedbackInput): Promise<UserFe
   }
   assertMaxLength(trimmedMessage, MAX_FEEDBACK_MESSAGE_LENGTH, 'message')
 
+  // 画像バリデーション
+  const files = input.files ?? []
+  validateImageFiles(files)
+
   const normalizedPageUrl = normalizeOptionalText(input.pageUrl, MAX_PAGE_URL_LENGTH)
   const normalizedUserAgent = normalizeOptionalText(input.userAgent, MAX_USER_AGENT_LENGTH)
 
+  // 1. feedback レコードを INSERT
   const { data, error } = await supabase
     .from('user_feedback')
     .insert({
@@ -128,7 +142,76 @@ export async function submitFeedback(input: SubmitFeedbackInput): Promise<UserFe
     throw fromSupabaseError(error, 'フィードバックの送信に失敗しました')
   }
 
+  // 2. 画像があれば Storage にアップロードし image_paths を UPDATE
+  if (files.length > 0) {
+    const paths = await uploadFeedbackImages(input.userId, data.id, files)
+    const { data: updated, error: updateError } = await supabase
+      .from('user_feedback')
+      .update({ image_paths: paths as Json[] })
+      .eq('id', data.id)
+      .select()
+      .single()
+
+    if (updateError) {
+      throw fromSupabaseError(updateError, '画像パスの保存に失敗しました')
+    }
+    return updated
+  }
+
   return data
+}
+
+/**
+ * 画像ファイルのバリデーション。
+ * - 枚数: MAX_IMAGE_COUNT 以下
+ * - 各ファイルサイズ: MAX_IMAGE_SIZE_BYTES 以下
+ * - MIME タイプ: image/* のみ
+ */
+export function validateImageFiles(files: File[]): void {
+  if (files.length > MAX_IMAGE_COUNT) {
+    throw new Error(`画像は最大 ${MAX_IMAGE_COUNT} 枚まで添付できます`)
+  }
+  for (const file of files) {
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      throw new Error(`${file.name} のサイズが上限（5MB）を超えています`)
+    }
+    if (!file.type.startsWith('image/')) {
+      throw new Error(`${file.name} は画像ファイルではありません`)
+    }
+  }
+}
+
+/**
+ * Storage にフィードバック画像をアップロードし、保存パスの配列を返す。
+ * パス構造: {userId}/{feedbackId}/{filename}
+ */
+export async function uploadFeedbackImages(
+  userId: string,
+  feedbackId: string,
+  files: File[],
+): Promise<string[]> {
+  const now = Date.now()
+
+  const paths = await Promise.all(
+    files.map(async (file, index) => {
+      const safeName = `${now}_${index}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+      const path = `${userId}/${feedbackId}/${safeName}`
+
+      const { error } = await supabase.storage
+        .from(FEEDBACK_IMAGES_BUCKET)
+        .upload(path, file, { contentType: file.type })
+
+      if (error) {
+        throw fromSupabaseError(
+          { code: 'STORAGE_ERROR', message: error.message },
+          `画像「${file.name}」のアップロードに失敗しました`,
+        )
+      }
+      return path
+    }),
+  )
+
+  return paths
 }
 
 function normalizeOptionalText(value: string | null | undefined, maxLength: number): string | null {
@@ -255,6 +338,41 @@ export async function updateFeedbackNote(
   })
 
   return data
+}
+
+// ─── 画像 URL ────────────────────────────────────────────
+
+/** signed URL の有効期限（秒）: 1 時間 */
+const SIGNED_URL_EXPIRES_IN = 3600
+
+export interface FeedbackImageUrl {
+  path: string
+  url: string
+}
+
+/**
+ * image_paths から signed URL を一括生成する（admin 向け）。
+ * Storage RLS `feedback_images_select_admin` により admin のみ全画像を閲覧可能。
+ */
+export async function getFeedbackImageUrls(
+  paths: string[],
+): Promise<FeedbackImageUrl[]> {
+  if (paths.length === 0) return []
+
+  const { data, error } = await supabase.storage
+    .from(FEEDBACK_IMAGES_BUCKET)
+    .createSignedUrls(paths, SIGNED_URL_EXPIRES_IN)
+
+  if (error) {
+    throw fromSupabaseError(
+      { code: 'STORAGE_ERROR', message: error.message },
+      '画像 URL の生成に失敗しました',
+    )
+  }
+
+  return (data ?? [])
+    .filter((item) => item.signedUrl)
+    .map((item) => ({ path: item.path ?? '', url: item.signedUrl }))
 }
 
 // ─── ユーティリティ ──────────────────────────────────────
