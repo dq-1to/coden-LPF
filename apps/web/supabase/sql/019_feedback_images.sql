@@ -11,6 +11,16 @@ ALTER TABLE public.user_feedback
 COMMENT ON COLUMN public.user_feedback.image_paths
   IS '添付画像のパス配列（最大3枚）。形式: ["user_id/feedback_id/filename", ...]';
 
+-- ─── 1b. 本人が自分の feedback の image_paths を UPDATE できるポリシー ──
+-- 既存の UPDATE ポリシーは admin のみ。一般ユーザーが画像アップロード後に
+-- image_paths を書き込むために必要。
+CREATE POLICY "user_feedback_update_own_images"
+  ON public.user_feedback
+  FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
 -- ─── 2. Storage バケット作成 ────────────────────────────────────────
 -- private バケット（signed URL 経由でのみアクセス可能）
 INSERT INTO storage.buckets (id, name, public)
