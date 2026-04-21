@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AlertCircle, ImagePlus, Loader2, Trash2, X } from 'lucide-react'
+import { AlertCircle, Loader2, X } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import {
   captureClientMeta,
   FEEDBACK_CATEGORY_LABELS,
   MAX_FEEDBACK_MESSAGE_LENGTH,
-  MAX_IMAGE_COUNT,
   submitFeedback,
-  validateImageFiles,
   type FeedbackCategory,
 } from '../../services/feedbackService'
+import { FeedbackImagePicker } from './FeedbackImagePicker'
 
 interface FeedbackDialogProps {
   open: boolean
@@ -28,7 +27,6 @@ export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
   const [files, setFiles] = useState<File[]>([])
   const dialogRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // ダイアログを閉じたらフォーム状態をリセット
   const reset = useCallback(() => {
@@ -154,7 +152,7 @@ export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
         </div>
 
         {isSubmitted ? (
-          <div className="py-6 text-center">
+          <div role="status" aria-live="polite" className="py-6 text-center">
             <p className="text-sm font-semibold text-slate-900">送信しました。ありがとうございます！</p>
             <p className="mt-1 text-xs text-slate-500">いただいた内容は運営が確認いたします。</p>
             <button
@@ -210,87 +208,15 @@ export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
               </div>
             </div>
 
-            {/* 画像添付セクション */}
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="block text-xs font-semibold text-slate-700">
-                  スクリーンショット（任意）
-                </span>
-                <span className="text-xs text-slate-400">{files.length}/{MAX_IMAGE_COUNT}</span>
-              </div>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                disabled={isSubmitting || files.length >= MAX_IMAGE_COUNT}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.files ?? [])
-                  if (selected.length === 0) return
-                  const merged = [...files, ...selected].slice(0, MAX_IMAGE_COUNT)
-                  try {
-                    validateImageFiles(merged)
-                    setFiles(merged)
-                    setError(null)
-                  } catch (err) {
-                    setError(err instanceof Error ? err.message : 'ファイルの追加に失敗しました')
-                  }
-                  // 同じファイルを再選択できるようリセット
-                  e.target.value = ''
-                }}
-              />
-
-              {files.length > 0 ? (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {files.map((file, idx) => (
-                    <div
-                      key={`${file.name}-${file.size}-${idx}`}
-                      className="group relative flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5"
-                    >
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt={file.name}
-                        className="h-10 w-10 rounded object-cover"
-                      />
-                      <div className="min-w-0">
-                        <p className="max-w-[120px] truncate text-xs font-medium text-slate-700">{file.name}</p>
-                        <p className="text-[10px] text-slate-400">{formatFileSize(file.size)}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
-                        disabled={isSubmitting}
-                        className="ml-1 rounded p-0.5 text-slate-400 transition hover:bg-slate-200 hover:text-rose-600"
-                        aria-label={`${file.name} を削除`}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-
-              {files.length < MAX_IMAGE_COUNT ? (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isSubmitting}
-                  className="mt-2 flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 px-3 py-2 text-xs font-medium text-slate-500 transition hover:border-primary-mint hover:text-primary-mint"
-                >
-                  <ImagePlus className="h-4 w-4" aria-hidden="true" />
-                  画像を追加
-                </button>
-              ) : null}
-
-              <p className="mt-1 text-[10px] text-slate-400">
-                PNG / JPG / GIF など、各 5MB 以下
-              </p>
-            </div>
+            <FeedbackImagePicker
+              files={files}
+              onFilesChange={(next) => { setFiles(next); setError(null) }}
+              disabled={isSubmitting}
+              onError={setError}
+            />
 
             {error ? (
-              <div className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+              <div role="alert" className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
                 <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
                 <span>{error}</span>
               </div>
@@ -319,10 +245,4 @@ export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
       </div>
     </div>
   )
-}
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
