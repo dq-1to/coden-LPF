@@ -61,7 +61,7 @@ export function ImageLightbox({ images, currentIndex, onClose, onChangeIndex }: 
         className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
         aria-label="閉じる"
       >
-        <X className="h-6 w-6" />
+        <X className="h-6 w-6" aria-hidden="true" />
       </button>
 
       {/* Counter */}
@@ -80,7 +80,7 @@ export function ImageLightbox({ images, currentIndex, onClose, onChangeIndex }: 
           className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
           aria-label="前の画像"
         >
-          <ChevronLeft className="h-6 w-6" />
+          <ChevronLeft className="h-6 w-6" aria-hidden="true" />
         </button>
       )}
 
@@ -105,7 +105,7 @@ export function ImageLightbox({ images, currentIndex, onClose, onChangeIndex }: 
           className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
           aria-label="次の画像"
         >
-          <ChevronRight className="h-6 w-6" />
+          <ChevronRight className="h-6 w-6" aria-hidden="true" />
         </button>
       )}
     </div>
