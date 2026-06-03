@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabaseClient'
 import {
   getOpenCount,
   listOpen,
+  pickForDaily,
   recordWrongAnswer,
   resolveReviewItem,
   type ReviewItem,
@@ -57,6 +58,34 @@ function makeThenableEqQuery(result: unknown) {
   }
 
   return query
+}
+
+function makeReviewItem(overrides: Partial<ReviewItem> = {}): ReviewItem {
+  return {
+    id: 'review-1',
+    user_id: userId,
+    step_id: 'usestate-basic',
+    mode: 'daily',
+    question_id: 'daily-1',
+    expected: 'setCount',
+    user_input: 'wrong',
+    status: 'open',
+    created_at: '2026-06-03T12:00:00.000Z',
+    resolved_at: null,
+    ...overrides,
+  }
+}
+
+function mockListOpenRows(rows: ReviewItem[]) {
+  const query = {
+    eq: vi.fn(() => query),
+    order: vi.fn(() => query),
+    limit: vi.fn().mockResolvedValue({ data: rows, error: null }),
+  }
+  const select = vi.fn(() => query)
+
+  mockFrom.mockReturnValueOnce({ select } as unknown as ReturnType<typeof supabase.from>)
+  return { query, select }
 }
 
 describe('reviewService', () => {
@@ -168,31 +197,44 @@ describe('reviewService', () => {
   })
 
   it('listOpen は open item を古い順に指定件数返す', async () => {
-    const rows: ReviewItem[] = [
-      {
-        id: 'review-1',
-        user_id: userId,
-        step_id: 'usestate-basic',
-        mode: 'daily',
-        question_id: 'daily-1',
-        expected: 'setCount',
-        user_input: 'wrong',
-        status: 'open',
-        created_at: '2026-06-03T12:00:00.000Z',
-        resolved_at: null,
-      },
-    ]
-    const query = {
-      eq: vi.fn(() => query),
-      order: vi.fn(() => query),
-      limit: vi.fn().mockResolvedValue({ data: rows, error: null }),
-    }
-    const select = vi.fn(() => query)
-
-    mockFrom.mockReturnValueOnce({ select } as unknown as ReturnType<typeof supabase.from>)
+    const rows: ReviewItem[] = [makeReviewItem()]
+    const { query } = mockListOpenRows(rows)
 
     await expect(listOpen(userId, 5)).resolves.toEqual(rows)
     expect(query.order).toHaveBeenCalledWith('created_at', { ascending: true })
     expect(query.limit).toHaveBeenCalledWith(5)
+  })
+
+  it('pickForDaily は完了済みStepに一致する最初の open item を返す', async () => {
+    const rows: ReviewItem[] = [
+      makeReviewItem({
+        id: 'review-1',
+        step_id: 'conditional',
+        mode: 'test',
+        question_id: 'test-q1',
+      }),
+      makeReviewItem({
+        id: 'review-2',
+        step_id: 'events',
+        mode: 'practice',
+        question_id: 'practice-q1',
+      }),
+    ]
+    const { query } = mockListOpenRows(rows)
+
+    await expect(pickForDaily(userId, new Set(['events']), 25)).resolves.toEqual(rows[1])
+    expect(query.limit).toHaveBeenCalledWith(25)
+  })
+
+  it('pickForDaily は完了済みStepに一致する open item がなければ null を返す', async () => {
+    const rows: ReviewItem[] = [
+      makeReviewItem({
+        id: 'review-1',
+        step_id: 'conditional',
+      }),
+    ]
+    mockListOpenRows(rows)
+
+    await expect(pickForDaily(userId, new Set(['events']))).resolves.toBeNull()
   })
 })
