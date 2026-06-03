@@ -3,6 +3,7 @@ import { MAX_ANSWER_LENGTH, POINTS_DAILY_CORRECT, POINTS_DAILY_STREAK_BONUS } fr
 import { fromSupabaseError } from '../shared/errors'
 import { assertMaxLength, assertUuid } from '../shared/validation'
 import { awardPoints } from './pointService'
+import { recordWrongAnswer, resolveReviewItem } from './reviewService'
 import { DAILY_QUESTIONS } from '../content/daily/questions'
 import type {
   DailyQuestion,
@@ -150,12 +151,35 @@ export async function submitDailyAnswer(
   }
 
   if (isCorrect) {
+    try {
+      await resolveReviewItem({
+        userId,
+        stepId: question.stepId,
+        mode: 'daily',
+        questionId: question.id,
+      })
+    } catch {
+      // 復習キュー同期の失敗でDaily回答完了を止めない。
+    }
     await awardPoints(POINTS_DAILY_CORRECT, 'デイリーチャレンジ正解')
 
     // 7日連続ボーナスチェック（7の倍数日ごとに付与）
     const streak = await getDailyConsecutiveStreak(userId, dateStr)
     if (streak > 0 && streak % 7 === 0) {
       await awardPoints(POINTS_DAILY_STREAK_BONUS, `デイリー${streak}日連続ボーナス`)
+    }
+  } else {
+    try {
+      await recordWrongAnswer({
+        userId,
+        stepId: question.stepId,
+        mode: 'daily',
+        questionId: question.id,
+        expected: question.answer,
+        userInput: userAnswer,
+      })
+    } catch {
+      // 復習キュー同期の失敗でDaily回答結果の表示を止めない。
     }
   }
 

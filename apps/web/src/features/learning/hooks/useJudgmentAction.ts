@@ -1,26 +1,70 @@
 import { useCallback, useState } from 'react'
-import { addToReviewList, removeFromReviewList } from '@/services/reviewListService'
+import { useAuth } from '@/contexts/AuthContext'
+import { recordWrongAnswer, resolveReviewItem, type ReviewMode } from '@/services/reviewService'
 import { useStepReset } from './useStepReset'
 
+export type ReviewPayload = {
+  questionId?: string | null
+  expected?: string | null
+  userInput?: string | null
+}
+
 /** 判定結果に応じてレビューリスト操作と onComplete 呼び出しを行うフック */
-export function useJudgmentAction(stepId: string, onComplete: () => void) {
+export function useJudgmentAction(stepId: string, mode: ReviewMode, onComplete: () => void) {
+  const { user } = useAuth()
+  const userId = user?.id
   const [reported, setReported] = useState(false)
 
   useStepReset(stepId, () => setReported(false))
 
   const handleResult = useCallback(
-    (isCorrect: boolean) => {
+    async (isCorrect: boolean, payloads: ReviewPayload | ReviewPayload[] = {}) => {
+      const items = Array.isArray(payloads) ? payloads : [payloads]
+
+      if (userId) {
+        try {
+          if (isCorrect) {
+            await Promise.all(
+              items.map((item) => {
+                const questionId = item.questionId ?? null
+                return resolveReviewItem({
+                  userId,
+                  stepId,
+                  mode,
+                  questionId,
+                })
+              }),
+            )
+          } else {
+            await Promise.all(
+              items.map((item) => {
+                const questionId = item.questionId ?? null
+                const expected = item.expected ?? null
+                const userInput = item.userInput ?? null
+                return recordWrongAnswer({
+                  userId,
+                  stepId,
+                  mode,
+                  questionId,
+                  expected,
+                  userInput,
+                })
+              }),
+            )
+          }
+        } catch {
+          // 復習キュー同期の失敗で学習モード完了を止めない。
+        }
+      }
+
       if (isCorrect) {
-        removeFromReviewList(stepId)
         if (!reported) {
           onComplete()
           setReported(true)
         }
-      } else {
-        addToReviewList(stepId)
       }
     },
-    [stepId, reported, onComplete],
+    [stepId, mode, reported, onComplete, userId],
   )
 
   return { reported, handleResult }
