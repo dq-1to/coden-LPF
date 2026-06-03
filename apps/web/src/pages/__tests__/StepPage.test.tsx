@@ -21,6 +21,7 @@ vi.mock('@/contexts/AuthContext', () => ({
 
 vi.mock('@/contexts/LearningContext', () => ({
   useLearningContext: () => ({
+    allStepProgress: [],
     completedStepIds: new Set(['usestate-basic', 'events', 'conditional', 'lists', 'useeffect', 'forms', 'usecontext', 'usereducer', 'custom-hooks', 'api-fetch', 'performance', 'testing', 'api-counter-get', 'api-counter-post', 'api-tasks-list', 'api-tasks-create', 'api-tasks-update', 'api-tasks-delete', 'api-custom-hook', 'api-error-loading']),
     completedStepsCount: 20,
     isLoadingStats: false,
@@ -63,7 +64,12 @@ vi.mock('@/features/learning/hooks/useLearningStep', () => ({
   useLearningStep: (...args: unknown[]) => useLearningStepMock(...args),
 }))
 
-function mockLearningStep() {
+function mockLearningStep(modeStatus = {
+  read: false,
+  practice: false,
+  test: false,
+  challenge: false,
+}) {
   useLearningStepMock.mockReturnValue({
     step: {
       id: 'usestate-basic',
@@ -91,12 +97,7 @@ function mockLearningStep() {
       order: 1,
     },
     isUnavailableStep: false,
-    modeStatus: {
-      read: false,
-      practice: false,
-      test: false,
-      challenge: false,
-    },
+    modeStatus,
     syncMessage: null,
     toastMessage: null,
     nextStep: undefined,
@@ -185,6 +186,40 @@ describe('StepPage', () => {
     expect(screen.getByText('最新の提出')).toBeTruthy()
     expect(screen.getByText('合格')).toBeTruthy()
     expect(screen.getByText('const [count, setCount] = useState(0);')).toBeTruthy()
+  })
+
+  it('完了した各モードの次アクション理由を表示する', async () => {
+    const user = userEvent.setup()
+
+    useChallengeSubmissionMock.mockReturnValue(vi.fn())
+    useRecentChallengeSubmissionsMock.mockReturnValue({
+      submissions: [],
+      isLoading: false,
+      error: null,
+      refresh: vi.fn(),
+    })
+    mockLearningStep({
+      read: true,
+      practice: true,
+      test: true,
+      challenge: false,
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/step/usestate-basic']}>
+        <Routes>
+          <Route path="/step/:stepId" element={<StepPage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('理解した概念を穴埋めで確認しましょう。')).toBeTruthy()
+
+    await user.click(screen.getByRole('tab', { name: 'Practice' }))
+    expect(screen.getByText('手を動かした内容を小さなテストで確かめましょう。')).toBeTruthy()
+
+    await user.click(screen.getByRole('tab', { name: 'Test' }))
+    expect(screen.getByText('確認できた理解を使って、自分で実装して仕上げましょう。')).toBeTruthy()
   })
 
   it('Challenge 完了時に完了バナーまでスムーズスクロールする', async () => {
@@ -280,6 +315,7 @@ describe('StepPage', () => {
       expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: 'smooth', block: 'nearest' })
     })
     expect(screen.getByText('このステップを完了しました！ 次は「イベント処理」へ進めます。')).toBeTruthy()
+    expect(screen.getByText('今の実装力を土台に、次のステップへ進みましょう。')).toBeTruthy()
   })
 
   it('完了したモードが増えたときにステッパーへ pulse 演出を付与する', async () => {

@@ -5,7 +5,7 @@ import type { Tables, TablesInsert } from '../shared/types/database.types'
 export type ProgressMode = 'read' | 'practice' | 'test' | 'challenge'
 
 // クエリで SELECT する列のみを含む型（id は SELECT しないため除外）
-type StepProgressRow = Pick<
+export type StepProgressRow = Pick<
   Tables<'step_progress'>,
   'user_id' | 'step_id' | 'read_done' | 'practice_done' | 'test_done' | 'challenge_done' | 'updated_at' | 'completed_at'
 >

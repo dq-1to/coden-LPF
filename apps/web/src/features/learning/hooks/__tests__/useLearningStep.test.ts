@@ -54,6 +54,7 @@ beforeEach(() => {
 
   mockUseLearningContext.mockReturnValue({
     stats: null,
+    allStepProgress: [],
     completedStepIds: new Set<string>(),
     completedStepsCount: 99,
     isLoadingStats: false,

@@ -64,6 +64,13 @@ const MODE_META: Record<
   },
 }
 
+const NEXT_ACTION_REASON: Record<LearningMode, string> = {
+  read: '理解した概念を穴埋めで確認しましょう。',
+  practice: '手を動かした内容を小さなテストで確かめましょう。',
+  test: '確認できた理解を使って、自分で実装して仕上げましょう。',
+  challenge: '今の実装力を土台に、次のステップへ進みましょう。',
+}
+
 export function StepPage() {
   const { stepId = '' } = useParams()
   const { user } = useAuth()
@@ -305,7 +312,8 @@ export function StepPage() {
             ) : null}
 
             {activeMode === 'read' && modeStatus.read ? (
-              <div className="mt-4 flex justify-center">
+              <div className="mt-4 flex flex-col items-center gap-3 text-center">
+                <p className="max-w-xl text-sm font-medium text-slate-600">{NEXT_ACTION_REASON.read}</p>
                 <button
                   className="inline-flex items-center gap-2 rounded-xl bg-amber-400 px-6 py-3 text-base font-bold text-slate-950 shadow-sm transition-all duration-200 hover:bg-amber-500 active:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-300/30"
                   type="button"
@@ -325,7 +333,8 @@ export function StepPage() {
             ) : null}
 
             {activeMode === 'practice' && modeStatus.practice ? (
-              <div className="mt-4 flex justify-center">
+              <div className="mt-4 flex flex-col items-center gap-3 text-center">
+                <p className="max-w-xl text-sm font-medium text-slate-600">{NEXT_ACTION_REASON.practice}</p>
                 <button
                   className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-6 py-3 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-sky-600 active:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400/30"
                   type="button"
@@ -341,7 +350,8 @@ export function StepPage() {
             ) : null}
 
             {activeMode === 'test' && modeStatus.test ? (
-              <div className="mt-4 flex justify-center">
+              <div className="mt-4 flex flex-col items-center gap-3 text-center">
+                <p className="max-w-xl text-sm font-medium text-slate-600">{NEXT_ACTION_REASON.test}</p>
                 <button
                   className="inline-flex items-center gap-2 rounded-xl bg-violet-500 px-6 py-3 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-violet-600 active:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-400/30"
                   type="button"
@@ -374,6 +384,9 @@ export function StepPage() {
                   {nextStep
                     ? `このステップを完了しました！ 次は「${nextStep.title}」へ進めます。`
                     : 'おめでとうございます！ 現在の学習フローをすべて完了しました。'}
+                </p>
+                <p className="mt-2 text-sm font-medium text-emerald-700">
+                  {nextStep ? NEXT_ACTION_REASON.challenge : 'ここまでの知識を復習やミニプロジェクトで固めましょう。'}
                 </p>
                 <button
                   className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary-mint px-6 py-3 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-primary-dark active:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-primary-mint/30"

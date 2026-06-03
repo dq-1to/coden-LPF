@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Atom, BookOpen, Zap } from 'lucide-react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
@@ -10,19 +10,26 @@ import { CATEGORIES, type CategoryMeta, getFirstImplementedStep } from '../conte
 import { useLearningContext } from '../contexts/LearningContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { DashboardSidebar } from '../features/dashboard/components/DashboardSidebar'
+import { OnboardingCard } from '../features/dashboard/components/OnboardingCard'
+import { TodayActionCard } from '../features/dashboard/components/TodayActionCard'
 import { WelcomeBanner } from '../features/dashboard/components/WelcomeBanner'
 import { isCourseCompleted } from '../lib/courseLock'
 import { supabaseConfigError } from '../lib/supabaseClient'
+import { getRecommendedAction } from '../services/recommendationService'
 import { CATEGORY_ICONS, PRACTICE_MODE_CARDS } from '../shared/constants'
 
 export function DashboardPage() {
   useDocumentTitle('ダッシュボード')
-  const { completedStepIds, completedStepsCount } = useLearningContext()
+  const { allStepProgress, completedStepIds, completedStepsCount } = useLearningContext()
   const { greetingName } = useGreetingName()
   const [error, setError] = useState<string | null>(null)
   const onSignOutError = useCallback((msg: string) => setError(msg), [])
   const handleSignOut = useSignOut(onSignOutError)
   const firstImplementedStep = getFirstImplementedStep()
+  const recommendedAction = useMemo(
+    () => getRecommendedAction({ progress: allStepProgress, enableReviewQueue: false }),
+    [allStepProgress],
+  )
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
@@ -35,18 +42,9 @@ export function DashboardPage() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <section className="space-y-6 lg:col-span-8">
             <WelcomeBanner displayName={greetingName} />
-
+            <TodayActionCard action={recommendedAction} />
             {completedStepsCount === 0 && firstImplementedStep ? (
-              <div className="rounded-2xl border border-primary-mint/30 bg-gradient-to-r from-primary-mint/10 via-white to-primary-mint/5 p-6 shadow-sm">
-                <p className="text-sm font-semibold text-slate-600">はじめての方へ</p>
-                <p className="mt-1 text-lg font-bold text-slate-900">React学習を始めましょう</p>
-                <Link
-                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary-mint px-6 py-3 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-primary-dark active:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-primary-mint/30"
-                  to={`/step/${firstImplementedStep.id}`}
-                >
-                  最初のレッスンから始める →
-                </Link>
-              </div>
+              <OnboardingCard startTo={`/step/${firstImplementedStep.id}`} />
             ) : null}
 
             {/* カテゴリカード群 */}
@@ -71,6 +69,7 @@ export function DashboardPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-900">ベースヌック</h3>
+                    <p className="mt-0.5 text-xs font-semibold text-sky-700">基礎の補習</p>
                     <p className="text-sm text-slate-500">コードの「なぜ？」がわかる基礎知識</p>
                   </div>
                 </div>
@@ -85,6 +84,7 @@ export function DashboardPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-900">デイリーチャレンジ</h3>
+                    <p className="mt-0.5 text-xs font-semibold text-amber-700">昨日の復習</p>
                     <p className="text-sm text-slate-500">今日の1問に挑戦して知識を定着させましょう</p>
                   </div>
                 </div>
@@ -107,6 +107,7 @@ export function DashboardPage() {
                     <h3 className="mt-2 text-sm font-bold text-slate-900 group-hover:text-primary-dark">
                       {card.title}
                     </h3>
+                    <p className="mt-0.5 text-xs font-semibold text-slate-600">{card.purpose}</p>
                     <p className="mt-0.5 hidden text-xs text-slate-500 sm:block">{card.description}</p>
                   </Link>
                 ))}
