@@ -15,6 +15,7 @@ export interface TodayChallengeResult {
   completedAt: string | null
   pointsEarned: number
   dateStr: string
+  reviewReason?: string | null
 }
 
 export interface SubmitResult {

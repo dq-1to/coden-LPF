@@ -107,6 +107,7 @@ export function DailyChallengePage() {
               <DailyChallengeCard
                 question={challenge.question}
                 dateStr={challenge.dateStr}
+                reviewReason={challenge.reviewReason}
                 onSubmit={handleSubmit}
               />
             ) : null}

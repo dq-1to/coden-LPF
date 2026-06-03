@@ -1,7 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { supabase } from '../../lib/supabaseClient'
 import { awardPoints } from '../pointService'
-import { recordWrongAnswer, resolveReviewItem } from '../reviewService'
+import { pickForDaily, recordWrongAnswer, resolveReviewItem } from '../reviewService'
 import {
   getTodayJst,
   getCurrentWeekDates,
@@ -24,12 +24,14 @@ vi.mock('../pointService', () => ({
 }))
 
 vi.mock('../reviewService', () => ({
+  pickForDaily: vi.fn(),
   recordWrongAnswer: vi.fn(),
   resolveReviewItem: vi.fn(),
 }))
 
 const mockFrom = vi.mocked(supabase.from)
 const mockAwardPoints = vi.mocked(awardPoints)
+const mockPickForDaily = vi.mocked(pickForDaily)
 const mockRecordWrongAnswer = vi.mocked(recordWrongAnswer)
 const mockResolveReviewItem = vi.mocked(resolveReviewItem)
 
@@ -125,6 +127,32 @@ describe('selectDailyQuestion', () => {
     expect(uniqueStepIds.has('events')).toBe(false)
     expect(uniqueStepIds.has('usestate-basic')).toBe(true)
   })
+
+  it('復習候補がDaily問題IDを持つ場合はその問題を優先する', () => {
+    const completedStepIds = new Set(['events'])
+    const result = selectDailyQuestion(completedStepIds, '2026-03-30', {
+      id: 'review-1',
+      step_id: 'events',
+      mode: 'daily',
+      question_id: 'events-daily-1',
+      created_at: '2026-06-03T12:00:00.000Z',
+    })
+
+    expect(result?.id).toBe('events-daily-1')
+  })
+
+  it('復習候補がPractice問題IDの場合は同じStepのDaily問題を優先する', () => {
+    const completedStepIds = new Set(['usestate-basic', 'events'])
+    const result = selectDailyQuestion(completedStepIds, '2026-03-30', {
+      id: 'review-1',
+      step_id: 'events',
+      mode: 'practice',
+      question_id: 'practice-q1',
+      created_at: '2026-06-03T12:00:00.000Z',
+    })
+
+    expect(result?.stepId).toBe('events')
+  })
 })
 
 // ─── DB 関数テスト ───────────────────────────────────────
@@ -135,6 +163,7 @@ describe('getTodayChallenge', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockPickForDaily.mockResolvedValue(null)
   })
 
   it('未完了の場合は question を返す', async () => {
@@ -152,6 +181,7 @@ describe('getTodayChallenge', () => {
     expect(result.alreadyCompleted).toBe(false)
     expect(result.question).toBeDefined()
     expect(result.question?.stepId).toBe('usestate-basic')
+    expect(result.reviewReason).toBeNull()
   })
 
   it('完了済みの場合は alreadyCompleted: true を返す', async () => {
@@ -177,6 +207,7 @@ describe('getTodayChallenge', () => {
     expect(result.alreadyCompleted).toBe(true)
     expect(result.question).toBeNull()
     expect(result.pointsEarned).toBe(20)
+    expect(result.reviewReason).toBeNull()
   })
 
   it('完了済みステップがない場合は question: null を返す', async () => {
@@ -193,6 +224,30 @@ describe('getTodayChallenge', () => {
     const result = await getTodayChallenge(userId, new Set())
     expect(result.question).toBeNull()
     expect(result.alreadyCompleted).toBe(false)
+  })
+
+  it('open 誤答がある場合はDailyで弱点Stepを優先し理由を返す', async () => {
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+          }),
+        }),
+      }),
+    } as unknown as ReturnType<typeof supabase.from>)
+    mockPickForDaily.mockResolvedValue({
+      id: 'review-1',
+      step_id: 'events',
+      mode: 'practice',
+      question_id: 'practice-q1',
+      created_at: '2026-06-03T12:00:00.000Z',
+    })
+
+    const result = await getTodayChallenge(userId, new Set(['usestate-basic', 'events']))
+
+    expect(result.question?.stepId).toBe('events')
+    expect(result.reviewReason).toContain('Practice')
   })
 })
 

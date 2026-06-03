@@ -3,7 +3,13 @@ import { MAX_ANSWER_LENGTH, POINTS_DAILY_CORRECT, POINTS_DAILY_STREAK_BONUS } fr
 import { fromSupabaseError } from '../shared/errors'
 import { assertMaxLength, assertUuid } from '../shared/validation'
 import { awardPoints } from './pointService'
-import { recordWrongAnswer, resolveReviewItem } from './reviewService'
+import {
+  pickForDaily,
+  recordWrongAnswer,
+  resolveReviewItem,
+  type DailyReviewCandidate,
+  type ReviewMode,
+} from './reviewService'
 import { DAILY_QUESTIONS } from '../content/daily/questions'
 import type {
   DailyQuestion,
@@ -37,10 +43,36 @@ export function getCurrentWeekDates(now?: Date): string[] {
   })
 }
 
-/** 完了済みステップのプールから日付に基づいて問題を選択する（決定論的） */
+const REVIEW_MODE_LABELS: Record<ReviewMode, string> = {
+  practice: 'Practice',
+  test: 'Test',
+  challenge: 'Challenge',
+  daily: 'Daily',
+}
+
+function selectByDate(pool: DailyQuestion[], dateStr: string): DailyQuestion | undefined {
+  if (pool.length === 0) return undefined
+
+  const epochDays = Math.floor(new Date(dateStr + 'T00:00:00Z').getTime() / (1000 * 60 * 60 * 24))
+  return pool[epochDays % pool.length]
+}
+
+function getReviewReason(
+  reviewCandidate: DailyReviewCandidate | null | undefined,
+  question: DailyQuestion | undefined,
+): string | null {
+  if (!reviewCandidate || !question || reviewCandidate.step_id !== question.stepId) {
+    return null
+  }
+
+  return `${REVIEW_MODE_LABELS[reviewCandidate.mode]}で復習待ちになったStepから出題しています。`
+}
+
+/** 完了済みステップのプールから日付に基づいて問題を選択する（復習候補があれば優先） */
 export function selectDailyQuestion(
   completedStepIds: ReadonlySet<string>,
   dateStr: string,
+  reviewCandidate?: DailyReviewCandidate | null,
 ): DailyQuestion | undefined {
   if (completedStepIds.size === 0) return undefined
 
@@ -48,9 +80,23 @@ export function selectDailyQuestion(
   const pool = DAILY_QUESTIONS.filter((q) => completedStepIds.has(q.stepId))
   if (pool.length === 0) return undefined
 
-  // epochDays を決定論的シードとして使用
-  const epochDays = Math.floor(new Date(dateStr + 'T00:00:00Z').getTime() / (1000 * 60 * 60 * 24))
-  return pool[epochDays % pool.length]
+  if (reviewCandidate && completedStepIds.has(reviewCandidate.step_id)) {
+    const exactQuestion = reviewCandidate.question_id
+      ? pool.find((q) => q.id === reviewCandidate.question_id)
+      : undefined
+
+    if (exactQuestion) {
+      return exactQuestion
+    }
+
+    const stepPool = pool.filter((q) => q.stepId === reviewCandidate.step_id)
+    const stepQuestion = selectByDate(stepPool, dateStr)
+    if (stepQuestion) {
+      return stepQuestion
+    }
+  }
+
+  return selectByDate(pool, dateStr)
 }
 
 // ─── DB 関数 ─────────────────────────────────────────────
@@ -82,10 +128,18 @@ export async function getTodayChallenge(
       completedAt: history.completed_at,
       pointsEarned: history.points_earned,
       dateStr,
+      reviewReason: null,
     }
   }
 
-  const question = selectDailyQuestion(completedStepIds, dateStr)
+  let reviewCandidate: DailyReviewCandidate | null = null
+  try {
+    reviewCandidate = await pickForDaily(userId, completedStepIds)
+  } catch {
+    reviewCandidate = null
+  }
+
+  const question = selectDailyQuestion(completedStepIds, dateStr, reviewCandidate)
 
   return {
     question: question ?? null,
@@ -93,6 +147,7 @@ export async function getTodayChallenge(
     completedAt: null,
     pointsEarned: 0,
     dateStr,
+    reviewReason: getReviewReason(reviewCandidate, question),
   }
 }
 

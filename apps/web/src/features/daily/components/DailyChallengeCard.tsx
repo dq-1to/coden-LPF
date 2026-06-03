@@ -4,10 +4,11 @@ import type { DailyQuestion, SubmitResult } from '../../../content/daily/types'
 interface DailyChallengeCardProps {
   question: DailyQuestion
   dateStr: string
+  reviewReason?: string | null | undefined
   onSubmit: (answer: string) => Promise<SubmitResult>
 }
 
-export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallengeCardProps) {
+export function DailyChallengeCard({ question, dateStr, reviewReason, onSubmit }: DailyChallengeCardProps) {
   const [answer, setAnswer] = useState('')
   const [result, setResult] = useState<SubmitResult | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -38,6 +39,12 @@ export function DailyChallengeCard({ question, dateStr, onSubmit }: DailyChallen
       <p className="mb-5 whitespace-pre-wrap text-base font-medium leading-relaxed text-text-dark">
         {question.prompt}
       </p>
+
+      {reviewReason && (
+        <p className="mb-5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          {reviewReason}
+        </p>
+      )}
 
       {!result && (
         <>

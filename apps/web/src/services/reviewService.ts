@@ -6,6 +6,10 @@ import type { Tables, TablesInsert, TablesUpdate } from '../shared/types/databas
 export type ReviewItem = Tables<'review_items'>
 export type ReviewMode = ReviewItem['mode']
 export type ReviewStatus = ReviewItem['status']
+export type DailyReviewCandidate = Pick<
+  ReviewItem,
+  'id' | 'step_id' | 'mode' | 'question_id' | 'created_at'
+>
 
 const REVIEW_MODES = new Set<ReviewMode>(['practice', 'test', 'challenge', 'daily'])
 const MAX_REVIEW_TEXT_LENGTH = 2000
@@ -178,4 +182,20 @@ export async function listOpen(userId: string, limit = 10): Promise<ReviewItem[]
   }
 
   return data ?? []
+}
+
+export async function pickForDaily(
+  userId: string,
+  completedStepIds: ReadonlySet<string>,
+  limit = 50,
+): Promise<DailyReviewCandidate | null> {
+  assertUuid(userId, 'userId')
+  assertPositiveInteger(limit, 'limit')
+
+  if (completedStepIds.size === 0) {
+    return null
+  }
+
+  const items = await listOpen(userId, limit)
+  return items.find((item) => completedStepIds.has(item.step_id)) ?? null
 }
