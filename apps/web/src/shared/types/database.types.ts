@@ -146,6 +146,45 @@ export type Database = {
         }
         Relationships: []
       }
+      review_items: {
+        Row: {
+          created_at: string
+          expected: string | null
+          id: string
+          mode: 'practice' | 'test' | 'challenge' | 'daily'
+          question_id: string | null
+          resolved_at: string | null
+          status: 'open' | 'resolved'
+          step_id: string
+          user_id: string
+          user_input: string | null
+        }
+        Insert: {
+          created_at?: string
+          expected?: string | null
+          id?: string
+          mode: 'practice' | 'test' | 'challenge' | 'daily'
+          question_id?: string | null
+          resolved_at?: string | null
+          status?: 'open' | 'resolved'
+          step_id: string
+          user_id: string
+          user_input?: string | null
+        }
+        Update: {
+          created_at?: string
+          expected?: string | null
+          id?: string
+          mode?: 'practice' | 'test' | 'challenge' | 'daily'
+          question_id?: string | null
+          resolved_at?: string | null
+          status?: 'open' | 'resolved'
+          step_id?: string
+          user_id?: string
+          user_input?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
