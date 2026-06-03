@@ -1,6 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { supabase } from '../../lib/supabaseClient'
 import { awardPoints } from '../pointService'
+import { recordWrongAnswer, resolveReviewItem } from '../reviewService'
 import {
   getTodayJst,
   getCurrentWeekDates,
@@ -22,8 +23,15 @@ vi.mock('../pointService', () => ({
   awardPoints: vi.fn(),
 }))
 
+vi.mock('../reviewService', () => ({
+  recordWrongAnswer: vi.fn(),
+  resolveReviewItem: vi.fn(),
+}))
+
 const mockFrom = vi.mocked(supabase.from)
 const mockAwardPoints = vi.mocked(awardPoints)
+const mockRecordWrongAnswer = vi.mocked(recordWrongAnswer)
+const mockResolveReviewItem = vi.mocked(resolveReviewItem)
 
 // ─── 純粋関数テスト ──────────────────────────────────────
 
@@ -224,12 +232,20 @@ describe('submitDailyAnswer', () => {
       }),
     } as unknown as ReturnType<typeof supabase.from>))
     mockAwardPoints.mockResolvedValue()
+    mockRecordWrongAnswer.mockResolvedValue()
+    mockResolveReviewItem.mockResolvedValue()
   })
 
   it('正解の場合は isCorrect: true と 20pt を返す', async () => {
     const result = await submitDailyAnswer(userId, question, 'setCount', dateStr)
     expect(result.isCorrect).toBe(true)
     expect(result.pointsEarned).toBe(20)
+    expect(mockResolveReviewItem).toHaveBeenCalledWith({
+      userId,
+      stepId: 'usestate-basic',
+      mode: 'daily',
+      questionId: 'usestate-basic-daily-0',
+    })
     expect(mockAwardPoints).toHaveBeenCalledWith(20, 'デイリーチャレンジ正解')
   })
 
@@ -237,6 +253,14 @@ describe('submitDailyAnswer', () => {
     const result = await submitDailyAnswer(userId, question, 'wrongAnswer', dateStr)
     expect(result.isCorrect).toBe(false)
     expect(result.pointsEarned).toBe(0)
+    expect(mockRecordWrongAnswer).toHaveBeenCalledWith({
+      userId,
+      stepId: 'usestate-basic',
+      mode: 'daily',
+      questionId: 'usestate-basic-daily-0',
+      expected: 'setCount',
+      userInput: 'wrongAnswer',
+    })
     expect(mockAwardPoints).not.toHaveBeenCalled()
   })
 

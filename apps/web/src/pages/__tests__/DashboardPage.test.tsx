@@ -5,6 +5,8 @@ import { DashboardPage } from '../DashboardPage'
 
 const testState = vi.hoisted(() => ({
   getProfileMock: vi.fn(),
+  getOpenCountMock: vi.fn(),
+  listOpenMock: vi.fn(),
   learningContext: {
     allStepProgress: [
       {
@@ -63,6 +65,11 @@ vi.mock('@/services/profileService', () => ({
   getProfile: (...args: unknown[]) => testState.getProfileMock(...args),
 }))
 
+vi.mock('@/services/reviewService', () => ({
+  getOpenCount: (...args: unknown[]) => testState.getOpenCountMock(...args),
+  listOpen: (...args: unknown[]) => testState.listOpenMock(...args),
+}))
+
 vi.mock('@/lib/supabaseClient', () => ({
   supabaseConfigError: null,
 }))
@@ -74,6 +81,10 @@ describe('DashboardPage', () => {
     testState.getProfileMock.mockResolvedValue({
       display_name: 'Coden User',
     })
+    testState.getOpenCountMock.mockReset()
+    testState.getOpenCountMock.mockResolvedValue(0)
+    testState.listOpenMock.mockReset()
+    testState.listOpenMock.mockResolvedValue([])
     testState.learningContext = {
       allStepProgress: [
         {
@@ -116,6 +127,7 @@ describe('DashboardPage', () => {
     expect(await screen.findByText('学習コース')).toBeTruthy()
     expect(screen.getByText('今日のおすすめ')).toBeTruthy()
     expect(screen.getByText('Step 2 の Practice から再開')).toBeTruthy()
+    expect(await screen.findByText('復習待ち 0 件')).toBeTruthy()
     expect(screen.getByText('React')).toBeTruthy()
     expect(screen.getByText('TypeScript')).toBeTruthy()
     expect(screen.getByText('スキルアップ')).toBeTruthy()
@@ -146,5 +158,34 @@ describe('DashboardPage', () => {
     expect(screen.getByText('はじめての方へ')).toBeTruthy()
     expect(screen.getByText('4つの流れで1ステップずつ進めます')).toBeTruthy()
     expect(screen.getByRole('link', { name: '始める' }).getAttribute('href')).toBe('/step/usestate-basic')
+  })
+
+  it('復習待ちがある場合は復習カードと今日のおすすめで復習を優先する', async () => {
+    testState.getOpenCountMock.mockResolvedValue(2)
+    testState.listOpenMock.mockResolvedValue([
+      {
+        id: 'review-1',
+        user_id: 'user-1',
+        step_id: 'events',
+        mode: 'practice',
+        question_id: 'q1',
+        expected: 'onClick',
+        user_input: 'onclick',
+        status: 'open',
+        created_at: '2026-06-04T00:00:00Z',
+        resolved_at: null,
+      },
+    ])
+
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText('復習待ち 2 件')).toBeTruthy()
+    expect(screen.getByText('昨日間違えた問題を復習')).toBeTruthy()
+    expect(screen.getByText(/最優先: Step 2/)).toBeTruthy()
+    expect(screen.getAllByRole('link', { name: '復習へ進む' }).length).toBeGreaterThanOrEqual(1)
   })
 })

@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Atom, BookOpen, Zap } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useGreetingName } from '../hooks/useGreetingName'
 import { useSignOut } from '../hooks/useSignOut'
@@ -11,24 +12,72 @@ import { useLearningContext } from '../contexts/LearningContext'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
 import { DashboardSidebar } from '../features/dashboard/components/DashboardSidebar'
 import { OnboardingCard } from '../features/dashboard/components/OnboardingCard'
+import { ReviewQueueCard } from '../features/dashboard/components/ReviewQueueCard'
 import { TodayActionCard } from '../features/dashboard/components/TodayActionCard'
 import { WelcomeBanner } from '../features/dashboard/components/WelcomeBanner'
 import { isCourseCompleted } from '../lib/courseLock'
 import { supabaseConfigError } from '../lib/supabaseClient'
 import { getRecommendedAction } from '../services/recommendationService'
+import { getOpenCount, listOpen, type ReviewItem } from '../services/reviewService'
 import { CATEGORY_ICONS, PRACTICE_MODE_CARDS } from '../shared/constants'
 
 export function DashboardPage() {
   useDocumentTitle('ダッシュボード')
+  const { user } = useAuth()
+  const userId = user?.id
   const { allStepProgress, completedStepIds, completedStepsCount } = useLearningContext()
   const { greetingName } = useGreetingName()
   const [error, setError] = useState<string | null>(null)
+  const [reviewCount, setReviewCount] = useState(0)
+  const [firstReviewItem, setFirstReviewItem] = useState<ReviewItem | null>(null)
+  const [isLoadingReview, setIsLoadingReview] = useState(false)
+  const [reviewError, setReviewError] = useState<string | null>(null)
   const onSignOutError = useCallback((msg: string) => setError(msg), [])
   const handleSignOut = useSignOut(onSignOutError)
   const firstImplementedStep = getFirstImplementedStep()
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadReviewSummary() {
+      if (!userId) {
+        setReviewCount(0)
+        setFirstReviewItem(null)
+        setReviewError(null)
+        return
+      }
+
+      setIsLoadingReview(true)
+      setReviewError(null)
+      try {
+        const [count, items] = await Promise.all([
+          getOpenCount(userId),
+          listOpen(userId, 1),
+        ])
+
+        if (cancelled) return
+        setReviewCount(count)
+        setFirstReviewItem(items[0] ?? null)
+      } catch (e) {
+        if (cancelled) return
+        setReviewCount(0)
+        setFirstReviewItem(null)
+        setReviewError(e instanceof Error ? e.message : '復習キューの取得に失敗しました')
+      } finally {
+        if (!cancelled) setIsLoadingReview(false)
+      }
+    }
+
+    void loadReviewSummary()
+
+    return () => {
+      cancelled = true
+    }
+  }, [userId])
+
   const recommendedAction = useMemo(
-    () => getRecommendedAction({ progress: allStepProgress, enableReviewQueue: false }),
-    [allStepProgress],
+    () => getRecommendedAction({ progress: allStepProgress, reviewCount, enableReviewQueue: true }),
+    [allStepProgress, reviewCount],
   )
 
   return (
@@ -43,6 +92,12 @@ export function DashboardPage() {
           <section className="space-y-6 lg:col-span-8">
             <WelcomeBanner displayName={greetingName} />
             <TodayActionCard action={recommendedAction} />
+            <ReviewQueueCard
+              count={reviewCount}
+              firstItem={firstReviewItem}
+              isLoading={isLoadingReview}
+              error={reviewError}
+            />
             {completedStepsCount === 0 && firstImplementedStep ? (
               <OnboardingCard startTo={`/step/${firstImplementedStep.id}`} />
             ) : null}
