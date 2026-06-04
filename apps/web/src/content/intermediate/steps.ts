@@ -1,6 +1,7 @@
 import type { LearningStepContent } from '../fundamentals/steps'
+import { withLearningGoals } from '../stepLearningGoals'
 
-export const intermediateSteps: LearningStepContent[] = [
+export const intermediateSteps: LearningStepContent[] = withLearningGoals([
     {
         id: 'useeffect',
         order: 5,
@@ -599,7 +600,7 @@ export function CounterApp() {
             ]
         },
     },
-]
+])
 
 export function getIntermediateStep(stepId: string) {
     return intermediateSteps.find((step) => step.id === stepId)
