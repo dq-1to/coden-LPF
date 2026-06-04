@@ -320,6 +320,8 @@ export function StepPage() {
                 markdown={step.readMarkdown}
                 onComplete={() => void handleModeComplete('read')}
                 isCompleted={modeStatus.read}
+                learningGoal={step.learningGoal}
+                prerequisites={step.prerequisites}
               />
             ) : null}
 
