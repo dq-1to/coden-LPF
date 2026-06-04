@@ -4,6 +4,7 @@ import { BookOpen, Check, ChevronRight, Code2, PenLine, Trophy } from 'lucide-re
 import { ErrorBanner } from '../components/ErrorBanner'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { LearningSidebar } from '../components/LearningSidebar'
+import { getRelatedBaseNookTopics } from '../content/base-nook/stepLinks'
 import { TOTAL_STEP_COUNT, findCategoryByStepId, findCourseByStepId } from '../content/courseData'
 import { PageSpinner } from '../components/Spinner'
 import type { LearningMode } from '../content/fundamentals/steps'
@@ -126,6 +127,7 @@ export function StepPage() {
     [],
   )
   useDocumentTitle(step?.title ?? 'ステップ')
+  const relatedBaseNookTopics = useMemo(() => (step ? getRelatedBaseNookTopics(step) : []), [step])
 
   useEffect(() => {
     setActiveMode(requestedMode ?? 'read')
@@ -322,6 +324,7 @@ export function StepPage() {
                 isCompleted={modeStatus.read}
                 learningGoal={step.learningGoal}
                 prerequisites={step.prerequisites}
+                relatedBaseNookTopics={relatedBaseNookTopics}
               />
             ) : null}
 

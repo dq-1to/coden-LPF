@@ -1,4 +1,5 @@
 import { cleanup, render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ReadMode } from '../ReadMode'
 
@@ -32,5 +33,27 @@ describe('ReadMode', () => {
     expect(screen.queryByText('このStepのゴール')).toBeNull()
     expect(screen.queryByText('前提')).toBeNull()
     expect(screen.getByRole('heading', { name: '本文' })).toBeTruthy()
+  })
+
+  it('関連する Base Nook topic へのリンクを表示する', () => {
+    render(
+      <MemoryRouter>
+        <ReadMode
+          markdown="# 本文"
+          onComplete={vi.fn()}
+          isCompleted={false}
+          relatedBaseNookTopics={[
+            {
+              id: 'props-vs-state',
+              title: 'propsとstateの違い',
+              summary: 'データの流れ、それぞれの役割',
+            },
+          ]}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('関連するBase Nook')).toBeTruthy()
+    expect(screen.getByRole('link', { name: /propsとstateの違い/ }).getAttribute('href')).toBe('/base-nook/props-vs-state')
   })
 })
