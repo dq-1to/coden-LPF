@@ -16,6 +16,7 @@ interface AdminLink {
 
 const ADMIN_LINKS: readonly AdminLink[] = [
   { to: '/admin', label: 'ダッシュボード', exact: true },
+  { to: '/admin/quality', label: '品質ダッシュボード' },
   { to: '/admin/feedback', label: 'フィードバック' },
   { to: '/admin/users', label: 'ユーザー' },
   { to: '/admin/stats', label: '統計' },

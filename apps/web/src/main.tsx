@@ -57,6 +57,11 @@ const AdminUserDetailPage = lazy(() =>
 const AdminStatsPage = lazy(() =>
   import('./pages/admin/AdminStatsPage').then((m) => ({ default: m.AdminStatsPage })),
 )
+const AdminQualityDashboardPage = lazy(() =>
+  import('./pages/admin/AdminQualityDashboardPage').then((m) => ({
+    default: m.AdminQualityDashboardPage,
+  })),
+)
 const AdminOpsPage = lazy(() =>
   import('./pages/admin/AdminOpsPage').then((m) => ({ default: m.AdminOpsPage })),
 )
@@ -258,6 +263,18 @@ const router = createBrowserRouter([
         <AdminGuard>
           <Suspense fallback={<PageLoading />}>
             <AdminUserDetailPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/quality',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminQualityDashboardPage />
           </Suspense>
         </AdminGuard>
       </ProtectedRoute>
