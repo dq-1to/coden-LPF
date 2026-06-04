@@ -7,6 +7,7 @@ import { StepPage } from '../StepPage'
 const useChallengeSubmissionMock = vi.fn()
 const useRecentChallengeSubmissionsMock = vi.fn()
 const useLearningStepMock = vi.fn()
+const readModeMock = vi.fn()
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
@@ -37,7 +38,10 @@ vi.mock('@/features/dashboard/components/AppHeader', () => ({
 }))
 
 vi.mock('@/features/learning/ReadMode', () => ({
-  ReadMode: () => <div>read mode</div>,
+  ReadMode: (props: unknown) => {
+    readModeMock(props)
+    return <div>read mode</div>
+  },
 }))
 
 vi.mock('@/features/learning/PracticeMode', () => ({
@@ -64,12 +68,15 @@ vi.mock('@/features/learning/hooks/useLearningStep', () => ({
   useLearningStep: (...args: unknown[]) => useLearningStepMock(...args),
 }))
 
-function mockLearningStep(modeStatus = {
-  read: false,
-  practice: false,
-  test: false,
-  challenge: false,
-}) {
+function mockLearningStep(
+  modeStatus = {
+    read: false,
+    practice: false,
+    test: false,
+    challenge: false,
+  },
+  stepOverrides: Record<string, unknown> = {},
+) {
   useLearningStepMock.mockReturnValue({
     step: {
       id: 'usestate-basic',
@@ -95,6 +102,7 @@ function mockLearningStep(modeStatus = {
         ],
       },
       order: 1,
+      ...stepOverrides,
     },
     isUnavailableStep: false,
     modeStatus,
@@ -111,6 +119,7 @@ function mockLearningStep(modeStatus = {
 describe('StepPage', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    readModeMock.mockClear()
   })
 
   afterEach(() => {
@@ -148,6 +157,43 @@ describe('StepPage', () => {
     expect(screen.getByRole('tab', { name: 'Practice' }).getAttribute('aria-current')).toBe('step')
     expect(screen.getByRole('tab', { name: 'Read' }).getAttribute('aria-current')).toBeNull()
     expect(screen.getByRole('tab', { name: 'Practice' }).className).toContain('min-h-11')
+  })
+
+  it('ReadMode に Step メタ情報を渡す', () => {
+    useChallengeSubmissionMock.mockReturnValue(vi.fn())
+    useRecentChallengeSubmissionsMock.mockReturnValue({
+      submissions: [],
+      isLoading: false,
+      error: null,
+      refresh: vi.fn(),
+    })
+    mockLearningStep(
+      {
+        read: false,
+        practice: false,
+        test: false,
+        challenge: false,
+      },
+      {
+        learningGoal: 'stateで画面を更新できるようになる',
+        prerequisites: ['Reactコンポーネントの基本', 'クリックイベントの基本'],
+      },
+    )
+
+    render(
+      <MemoryRouter initialEntries={['/step/usestate-basic']}>
+        <Routes>
+          <Route path="/step/:stepId" element={<StepPage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(readModeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        learningGoal: 'stateで画面を更新できるようになる',
+        prerequisites: ['Reactコンポーネントの基本', 'クリックイベントの基本'],
+      }),
+    )
   })
 
   it('mode クエリがある場合は指定された学習モードを初期表示する', () => {
