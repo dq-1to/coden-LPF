@@ -127,7 +127,7 @@ describe('DashboardPage', () => {
     expect(await screen.findByText('学習コース')).toBeTruthy()
     expect(screen.getByText('今日のおすすめ')).toBeTruthy()
     expect(screen.getByText('Step 2 の Practice から再開')).toBeTruthy()
-    expect(await screen.findByText('復習待ち 0 件')).toBeTruthy()
+    expect(screen.queryByText('復習待ち 0 件')).toBeNull()
     expect(screen.getByText('React')).toBeTruthy()
     expect(screen.getByText('TypeScript')).toBeTruthy()
     expect(screen.getByText('スキルアップ')).toBeTruthy()
@@ -160,7 +160,7 @@ describe('DashboardPage', () => {
     expect(screen.getByRole('link', { name: '始める' }).getAttribute('href')).toBe('/step/usestate-basic')
   })
 
-  it('復習待ちがある場合は復習カードと今日のおすすめで復習を優先する', async () => {
+  it('復習待ちがある場合は復習カードを表示し、今日のおすすめは通常学習を表示する', async () => {
     testState.getOpenCountMock.mockResolvedValue(2)
     testState.listOpenMock.mockResolvedValue([
       {
@@ -184,8 +184,8 @@ describe('DashboardPage', () => {
     )
 
     expect(await screen.findByText('復習待ち 2 件')).toBeTruthy()
-    expect(screen.getByText('昨日間違えた問題を復習')).toBeTruthy()
+    expect(screen.getByText('Step 2 の Practice から再開')).toBeTruthy()
     expect(screen.getByText(/最優先: Step 2/)).toBeTruthy()
-    expect(screen.getAllByRole('link', { name: '復習へ進む' }).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByRole('link', { name: '復習へ進む' }).getAttribute('href')).toBe('/step/events?mode=practice')
   })
 })

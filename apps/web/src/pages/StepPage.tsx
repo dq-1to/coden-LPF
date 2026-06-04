@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { BookOpen, Check, ChevronRight, Code2, PenLine, Trophy } from 'lucide-react'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { ErrorBoundary } from '../components/ErrorBoundary'
@@ -71,13 +71,21 @@ const NEXT_ACTION_REASON: Record<LearningMode, string> = {
   challenge: '今の実装力を土台に、次のステップへ進みましょう。',
 }
 
+const LEARNING_MODES: readonly LearningMode[] = ['read', 'practice', 'test', 'challenge']
+
+function parseLearningMode(value: string | null): LearningMode | null {
+  return LEARNING_MODES.includes(value as LearningMode) ? (value as LearningMode) : null
+}
+
 export function StepPage() {
   const { stepId = '' } = useParams()
+  const [searchParams] = useSearchParams()
+  const requestedMode = parseLearningMode(searchParams.get('mode'))
   const { user } = useAuth()
   const { completedStepIds, isLoadingStats } = useLearningContext()
   const navigate = useNavigate()
   const handleSignOut = useSignOut()
-  const [activeMode, setActiveMode] = useState<LearningMode>('read')
+  const [activeMode, setActiveMode] = useState<LearningMode>(requestedMode ?? 'read')
   const [pulseModes, setPulseModes] = useState<Record<LearningMode, boolean>>({
     read: false,
     practice: false,
@@ -118,6 +126,10 @@ export function StepPage() {
     [],
   )
   useDocumentTitle(step?.title ?? 'ステップ')
+
+  useEffect(() => {
+    setActiveMode(requestedMode ?? 'read')
+  }, [requestedMode, stepId])
 
   useEffect(() => {
     if (!previousModeStatusRef.current) {

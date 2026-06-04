@@ -76,9 +76,10 @@ export function DashboardPage() {
   }, [userId])
 
   const recommendedAction = useMemo(
-    () => getRecommendedAction({ progress: allStepProgress, reviewCount, enableReviewQueue: true }),
-    [allStepProgress, reviewCount],
+    () => getRecommendedAction({ progress: allStepProgress }),
+    [allStepProgress],
   )
+  const shouldShowReviewQueue = isLoadingReview || Boolean(reviewError) || reviewCount > 0
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
@@ -92,12 +93,14 @@ export function DashboardPage() {
           <section className="space-y-6 lg:col-span-8">
             <WelcomeBanner displayName={greetingName} />
             <TodayActionCard action={recommendedAction} />
-            <ReviewQueueCard
-              count={reviewCount}
-              firstItem={firstReviewItem}
-              isLoading={isLoadingReview}
-              error={reviewError}
-            />
+            {shouldShowReviewQueue ? (
+              <ReviewQueueCard
+                count={reviewCount}
+                firstItem={firstReviewItem}
+                isLoading={isLoadingReview}
+                error={reviewError}
+              />
+            ) : null}
             {completedStepsCount === 0 && firstImplementedStep ? (
               <OnboardingCard startTo={`/step/${firstImplementedStep.id}`} />
             ) : null}

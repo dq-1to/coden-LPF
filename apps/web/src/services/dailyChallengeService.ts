@@ -12,6 +12,7 @@ import {
 } from './reviewService'
 import { DAILY_QUESTIONS } from '../content/daily/questions'
 import type {
+  DailyReviewTarget,
   DailyQuestion,
   TodayChallengeResult,
   SubmitResult,
@@ -66,6 +67,21 @@ function getReviewReason(
   }
 
   return `${REVIEW_MODE_LABELS[reviewCandidate.mode]}で復習待ちになったStepから出題しています。`
+}
+
+function getReviewTarget(
+  reviewCandidate: DailyReviewCandidate | null | undefined,
+  question: DailyQuestion | undefined,
+): DailyReviewTarget | null {
+  if (!reviewCandidate || !question || reviewCandidate.step_id !== question.stepId) {
+    return null
+  }
+
+  return {
+    stepId: reviewCandidate.step_id,
+    mode: reviewCandidate.mode,
+    questionId: reviewCandidate.question_id,
+  }
 }
 
 /** 完了済みステップのプールから日付に基づいて問題を選択する（復習候補があれば優先） */
@@ -129,6 +145,7 @@ export async function getTodayChallenge(
       pointsEarned: history.points_earned,
       dateStr,
       reviewReason: null,
+      reviewTarget: null,
     }
   }
 
@@ -148,6 +165,7 @@ export async function getTodayChallenge(
     pointsEarned: 0,
     dateStr,
     reviewReason: getReviewReason(reviewCandidate, question),
+    reviewTarget: getReviewTarget(reviewCandidate, question),
   }
 }
 
@@ -181,6 +199,7 @@ export async function submitDailyAnswer(
   question: DailyQuestion,
   userAnswer: string,
   dateStr: string,
+  reviewTarget?: DailyReviewTarget | null,
 ): Promise<SubmitResult> {
   assertUuid(userId, 'userId')
   assertMaxLength(userAnswer, MAX_ANSWER_LENGTH, 'userAnswer')
@@ -213,6 +232,19 @@ export async function submitDailyAnswer(
         mode: 'daily',
         questionId: question.id,
       })
+      if (
+        reviewTarget &&
+        (reviewTarget.stepId !== question.stepId ||
+          reviewTarget.mode !== 'daily' ||
+          reviewTarget.questionId !== question.id)
+      ) {
+        await resolveReviewItem({
+          userId,
+          stepId: reviewTarget.stepId,
+          mode: reviewTarget.mode,
+          questionId: reviewTarget.questionId ?? null,
+        })
+      }
     } catch {
       // 復習キュー同期の失敗でDaily回答完了を止めない。
     }

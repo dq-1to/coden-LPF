@@ -182,6 +182,7 @@ describe('getTodayChallenge', () => {
     expect(result.question).toBeDefined()
     expect(result.question?.stepId).toBe('usestate-basic')
     expect(result.reviewReason).toBeNull()
+    expect(result.reviewTarget).toBeNull()
   })
 
   it('完了済みの場合は alreadyCompleted: true を返す', async () => {
@@ -208,6 +209,7 @@ describe('getTodayChallenge', () => {
     expect(result.question).toBeNull()
     expect(result.pointsEarned).toBe(20)
     expect(result.reviewReason).toBeNull()
+    expect(result.reviewTarget).toBeNull()
   })
 
   it('完了済みステップがない場合は question: null を返す', async () => {
@@ -248,6 +250,11 @@ describe('getTodayChallenge', () => {
 
     expect(result.question?.stepId).toBe('events')
     expect(result.reviewReason).toContain('Practice')
+    expect(result.reviewTarget).toEqual({
+      stepId: 'events',
+      mode: 'practice',
+      questionId: 'practice-q1',
+    })
   })
 })
 
@@ -302,6 +309,28 @@ describe('submitDailyAnswer', () => {
       questionId: 'usestate-basic-daily-0',
     })
     expect(mockAwardPoints).toHaveBeenCalledWith(20, 'デイリーチャレンジ正解')
+  })
+
+  it('弱点優先のDaily正解時は元の復習itemも resolved にする', async () => {
+    const result = await submitDailyAnswer(userId, question, 'setCount', dateStr, {
+      stepId: 'events',
+      mode: 'practice',
+      questionId: 'practice-q1',
+    })
+
+    expect(result.isCorrect).toBe(true)
+    expect(mockResolveReviewItem).toHaveBeenCalledWith({
+      userId,
+      stepId: 'usestate-basic',
+      mode: 'daily',
+      questionId: 'usestate-basic-daily-0',
+    })
+    expect(mockResolveReviewItem).toHaveBeenCalledWith({
+      userId,
+      stepId: 'events',
+      mode: 'practice',
+      questionId: 'practice-q1',
+    })
   })
 
   it('不正解の場合は isCorrect: false と 0pt を返す', async () => {

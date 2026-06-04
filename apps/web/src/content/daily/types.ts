@@ -9,6 +9,12 @@ export interface DailyQuestion {
   choices?: string[]
 }
 
+export interface DailyReviewTarget {
+  stepId: string
+  mode: 'practice' | 'test' | 'challenge' | 'daily'
+  questionId?: string | null
+}
+
 export interface TodayChallengeResult {
   question: DailyQuestion | null
   alreadyCompleted: boolean
@@ -16,6 +22,7 @@ export interface TodayChallengeResult {
   pointsEarned: number
   dateStr: string
   reviewReason?: string | null
+  reviewTarget?: DailyReviewTarget | null
 }
 
 export interface SubmitResult {

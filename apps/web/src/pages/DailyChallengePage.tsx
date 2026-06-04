@@ -50,7 +50,13 @@ export function DailyChallengePage() {
     if (!user || !challenge?.question) {
       throw new Error('問題が読み込まれていません')
     }
-    const result = await submitDailyAnswer(user.id, challenge.question, answer, challenge.dateStr)
+    const result = await submitDailyAnswer(
+      user.id,
+      challenge.question,
+      answer,
+      challenge.dateStr,
+      challenge.reviewTarget,
+    )
     // 回答後に状態を更新
     setChallenge((prev) =>
       prev
