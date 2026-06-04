@@ -14,9 +14,17 @@ function formatCount(count: number) {
   return count > 99 ? '99+' : String(count)
 }
 
+function getReviewPath(item: ReviewItem | null) {
+  if (!item) return '/curriculum'
+
+  const mode = item.mode === 'daily' ? 'practice' : item.mode
+  return `/step/${item.step_id}?mode=${mode}`
+}
+
 export function ReviewQueueCard({ count, firstItem, isLoading = false, error = null }: ReviewQueueCardProps) {
   const firstStep = firstItem ? findStepById(firstItem.step_id) : undefined
   const hasOpenItems = count > 0
+  const reviewPath = getReviewPath(firstItem)
 
   return (
     <section className="rounded-2xl border border-amber-200 bg-white p-5 shadow-sm">
@@ -45,7 +53,7 @@ export function ReviewQueueCard({ count, firstItem, isLoading = false, error = n
         </div>
 
         <Link
-          to={hasOpenItems ? '/daily' : '/curriculum'}
+          to={hasOpenItems ? reviewPath : '/curriculum'}
           className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-600"
         >
           {hasOpenItems ? '復習へ進む' : '学習を進める'}

@@ -150,6 +150,29 @@ describe('StepPage', () => {
     expect(screen.getByRole('tab', { name: 'Practice' }).className).toContain('min-h-11')
   })
 
+  it('mode クエリがある場合は指定された学習モードを初期表示する', () => {
+    useChallengeSubmissionMock.mockReturnValue(vi.fn())
+    useRecentChallengeSubmissionsMock.mockReturnValue({
+      submissions: [],
+      isLoading: false,
+      error: null,
+      refresh: vi.fn(),
+    })
+    mockLearningStep()
+
+    render(
+      <MemoryRouter initialEntries={['/step/usestate-basic?mode=test']}>
+        <Routes>
+          <Route path="/step/:stepId" element={<StepPage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('tab', { name: 'Test' }).getAttribute('aria-current')).toBe('step')
+    expect(screen.getByText('test mode')).toBeTruthy()
+    expect(screen.getByRole('tab', { name: 'Read' }).getAttribute('aria-current')).toBeNull()
+  })
+
   it('Challenge タブで提出履歴を主要導線上に表示する', async () => {
     const user = userEvent.setup()
 
