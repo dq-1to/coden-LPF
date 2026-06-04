@@ -177,6 +177,7 @@ describe('StepPage', () => {
       {
         learningGoal: 'stateで画面を更新できるようになる',
         prerequisites: ['Reactコンポーネントの基本', 'クリックイベントの基本'],
+        relatedBaseNook: ['props-vs-state'],
       },
     )
 
@@ -192,6 +193,13 @@ describe('StepPage', () => {
       expect.objectContaining({
         learningGoal: 'stateで画面を更新できるようになる',
         prerequisites: ['Reactコンポーネントの基本', 'クリックイベントの基本'],
+        relatedBaseNookTopics: [
+          {
+            id: 'props-vs-state',
+            title: 'propsとstateの違い',
+            summary: 'データの流れ、それぞれの役割',
+          },
+        ],
       }),
     )
   })

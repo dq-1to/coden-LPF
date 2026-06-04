@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CheckCircle2, Lightbulb, Target } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { BookOpen, CheckCircle2, ChevronRight, Lightbulb, Target } from 'lucide-react'
 import { Button } from '../../components/Button'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -10,6 +11,7 @@ import 'prismjs/components/prism-typescript'
 import 'prismjs/components/prism-tsx'
 import 'prismjs/themes/prism-okaidia.css'
 import { COPY_FEEDBACK_DURATION_MS } from '../../shared/constants'
+import type { RelatedBaseNookTopic } from '../../content/base-nook/stepLinks'
 
 interface ReadModeProps {
   markdown: string
@@ -17,6 +19,7 @@ interface ReadModeProps {
   isCompleted: boolean
   learningGoal?: string | undefined
   prerequisites?: string[] | undefined
+  relatedBaseNookTopics?: readonly RelatedBaseNookTopic[] | undefined
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -56,13 +59,21 @@ function CopyButton({ text }: { text: string }) {
   )
 }
 
-export function ReadMode({ markdown, onComplete, isCompleted, learningGoal, prerequisites }: ReadModeProps) {
+export function ReadMode({
+  markdown,
+  onComplete,
+  isCompleted,
+  learningGoal,
+  prerequisites,
+  relatedBaseNookTopics,
+}: ReadModeProps) {
   useEffect(() => {
     Prism.highlightAll()
   }, [markdown])
 
   const hasPrerequisites = prerequisites != null && prerequisites.length > 0
-  const hasOverview = Boolean(learningGoal) || hasPrerequisites
+  const hasRelatedBaseNookTopics = relatedBaseNookTopics != null && relatedBaseNookTopics.length > 0
+  const hasOverview = Boolean(learningGoal) || hasPrerequisites || hasRelatedBaseNookTopics
 
   const completeButton = (
     <Button onClick={onComplete} disabled={isCompleted}>
@@ -99,6 +110,28 @@ export function ReadMode({ markdown, onComplete, isCompleted, learningGoal, prer
                     <li key={prerequisite}>{prerequisite}</li>
                   ))}
                 </ul>
+              </div>
+            </div>
+          ) : null}
+
+          {hasRelatedBaseNookTopics ? (
+            <div className="flex gap-3">
+              <BookOpen className="mt-0.5 size-5 shrink-0 text-primary-dark" aria-hidden="true" />
+              <div>
+                <h3 className="font-bold text-primary-dark">関連するBase Nook</h3>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {relatedBaseNookTopics.map((topic) => (
+                    <Link
+                      key={topic.id}
+                      to={`/base-nook/${topic.id}`}
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-primary-mint/30 bg-white px-3 py-2 text-sm font-semibold text-primary-dark transition hover:border-primary-mint hover:bg-primary-mint/10 focus:outline-none focus:ring-2 focus:ring-primary-mint/30"
+                      title={topic.summary}
+                    >
+                      {topic.title}
+                      <ChevronRight className="size-4" aria-hidden="true" />
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
           ) : null}
