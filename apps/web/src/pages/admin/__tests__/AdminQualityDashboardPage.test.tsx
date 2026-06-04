@@ -79,6 +79,28 @@ const SAMPLE_DASHBOARD: AdminQualityDashboard = {
       reasons: ['完了率 0.0%', 'Challenge 合格率 0.0%', '復習待ち 1件', '着手 1人'],
     },
   ],
+  stepInsights: [
+    {
+      stepId: 'usestate-basic',
+      order: 1,
+      title: 'useState基礎',
+      startedUsers: 2,
+      readDoneUsers: 2,
+      practiceDoneUsers: 2,
+      testDoneUsers: 1,
+      challengeDoneUsers: 1,
+      completedUsers: 1,
+      completionRate: 0.5,
+      readToPracticeRate: 1,
+      practiceToTestRate: 0.5,
+      testToChallengeRate: 1,
+      challengeSubmissions: 1,
+      challengePassRate: 1,
+      openReviewItems: 0,
+      bottleneck: 'Practice → Test 50.0%',
+      signal: 'watch',
+    },
+  ],
   miniProjectStatus: {
     total: 2,
     completed: 1,
@@ -115,6 +137,10 @@ describe('AdminQualityDashboardPage', () => {
     expect(screen.getAllByText('M2以降').length).toBeGreaterThan(0)
     expect(screen.getByText('改善優先ステップ Top5')).toBeTruthy()
     expect(screen.getByText('Step 2「イベント処理」')).toBeTruthy()
+    expect(screen.getByText('Step Insights')).toBeTruthy()
+    expect(screen.getByText('Step 1「useState基礎」')).toBeTruthy()
+    expect(screen.getByText('要観察')).toBeTruthy()
+    expect(screen.getByText('Practice → Test 50.0%')).toBeTruthy()
     expect(screen.getByText('Read → Practice遷移率')).toBeTruthy()
 
     await waitFor(() => {
