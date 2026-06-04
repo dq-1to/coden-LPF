@@ -140,6 +140,34 @@ describe('getAdminQualityDashboard', () => {
         openReviewItems: 1,
       }),
     )
+    expect(dashboard.stepInsights).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          stepId: 'usestate-basic',
+          startedUsers: 2,
+          readDoneUsers: 2,
+          practiceDoneUsers: 2,
+          testDoneUsers: 1,
+          challengeDoneUsers: 1,
+          completedUsers: 1,
+          completionRate: 0.5,
+          readToPracticeRate: 1,
+          practiceToTestRate: 0.5,
+          testToChallengeRate: 1,
+          signal: 'watch',
+          bottleneck: 'Practice → Test 50.0%',
+        }),
+        expect.objectContaining({
+          stepId: 'events',
+          startedUsers: 1,
+          completionRate: 0,
+          challengeSubmissions: 2,
+          challengePassRate: 0,
+          openReviewItems: 1,
+          signal: 'attention',
+        }),
+      ]),
+    )
   })
 
   it('クエリエラーを AppError に変換する', async () => {

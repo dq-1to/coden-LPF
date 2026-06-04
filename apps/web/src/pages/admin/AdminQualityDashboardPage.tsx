@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { AlertCircle, CheckCircle2, Clock3, Loader2, ShieldCheck, TrendingUp } from 'lucide-react'
+import { AlertCircle, BarChart3, CheckCircle2, Clock3, Loader2, ShieldCheck, TrendingUp } from 'lucide-react'
 import { AdminLayout } from '../../features/admin/components/AdminLayout'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import {
@@ -7,6 +7,8 @@ import {
   type AdminQualityDashboard,
   type AdminQualityMetric,
   type AdminQualityMetricStatus,
+  type AdminQualityStepInsight,
+  type AdminQualityStepInsightSignal,
   type AdminQualityStepPriority,
 } from '../../services/adminQualityService'
 
@@ -20,6 +22,20 @@ const STATUS_STYLES: Record<AdminQualityMetricStatus, string> = {
   formal: 'border-emerald-200 bg-emerald-50 text-emerald-700',
   provisional: 'border-amber-200 bg-amber-50 text-amber-700',
   future: 'border-slate-200 bg-slate-50 text-slate-600',
+}
+
+const STEP_SIGNAL_LABELS: Record<AdminQualityStepInsightSignal, string> = {
+  healthy: '順調',
+  watch: '要観察',
+  attention: '要対応',
+  insufficient: 'データ不足',
+}
+
+const STEP_SIGNAL_STYLES: Record<AdminQualityStepInsightSignal, string> = {
+  healthy: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+  watch: 'border-amber-200 bg-amber-50 text-amber-700',
+  attention: 'border-rose-200 bg-rose-50 text-rose-700',
+  insufficient: 'border-slate-200 bg-slate-50 text-slate-600',
 }
 
 function formatPercent(rate: number | null): string {
@@ -117,6 +133,10 @@ export function AdminQualityDashboardPage() {
             <ImprovementTable rows={dashboard.improvementSteps} />
           </Section>
 
+          <Section title="Step Insights" icon={<BarChart3 className="h-4 w-4" aria-hidden="true" />}>
+            <StepInsightsTable rows={dashboard.stepInsights} />
+          </Section>
+
           <Section title="Mini Project状況" icon={<CheckCircle2 className="h-4 w-4" aria-hidden="true" />}>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <OverviewTile label="合計" value={`${dashboard.miniProjectStatus.total.toLocaleString()}件`} />
@@ -190,6 +210,69 @@ function MetricGrid({ metrics }: { metrics: AdminQualityMetric[] }) {
           <p className="mt-2 text-xs leading-5 text-slate-500">{metric.detail}</p>
         </article>
       ))}
+    </div>
+  )
+}
+
+function StepInsightsTable({ rows }: { rows: AdminQualityStepInsight[] }) {
+  if (rows.length === 0) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-500 shadow-sm">
+        Step Insights のデータがありません
+      </div>
+    )
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <table className="min-w-full divide-y divide-slate-100 text-sm">
+        <thead className="bg-slate-50 text-left text-xs font-semibold text-slate-500">
+          <tr>
+            <th scope="col" className="px-4 py-3">Step</th>
+            <th scope="col" className="px-4 py-3">状態</th>
+            <th scope="col" className="px-4 py-3">着手</th>
+            <th scope="col" className="px-4 py-3">完了率</th>
+            <th scope="col" className="px-4 py-3">遷移</th>
+            <th scope="col" className="px-4 py-3">Challenge</th>
+            <th scope="col" className="px-4 py-3">ボトルネック</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {rows.map((row) => (
+            <tr key={row.stepId}>
+              <td className="px-4 py-3">
+                <p className="font-semibold text-slate-800">
+                  Step {row.order}「{row.title}」
+                </p>
+                <p className="mt-0.5 font-mono text-xs text-slate-400">{row.stepId}</p>
+              </td>
+              <td className="px-4 py-3">
+                <span
+                  className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold ${STEP_SIGNAL_STYLES[row.signal]}`}
+                >
+                  {STEP_SIGNAL_LABELS[row.signal]}
+                </span>
+              </td>
+              <td className="px-4 py-3 font-mono text-slate-700">{row.startedUsers}人</td>
+              <td className="px-4 py-3 font-mono text-slate-700">
+                {row.completedUsers} / {row.startedUsers} ({formatPercent(row.completionRate)})
+              </td>
+              <td className="px-4 py-3 font-mono text-xs leading-5 text-slate-700">
+                <p>R→P {formatPercent(row.readToPracticeRate)}</p>
+                <p>P→T {formatPercent(row.practiceToTestRate)}</p>
+                <p>T→C {formatPercent(row.testToChallengeRate)}</p>
+              </td>
+              <td className="px-4 py-3 font-mono text-slate-700">
+                {row.challengeSubmissions}件 / {formatPercent(row.challengePassRate)}
+              </td>
+              <td className="px-4 py-3 text-xs leading-5 text-slate-500">
+                <p>{row.bottleneck}</p>
+                {row.openReviewItems > 0 ? <p>復習待ち {row.openReviewItems}件</p> : null}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }

@@ -49,6 +49,29 @@ export interface AdminQualityStepPriority {
   reasons: string[]
 }
 
+export type AdminQualityStepInsightSignal = 'healthy' | 'watch' | 'attention' | 'insufficient'
+
+export interface AdminQualityStepInsight {
+  stepId: string
+  order: number
+  title: string
+  startedUsers: number
+  readDoneUsers: number
+  practiceDoneUsers: number
+  testDoneUsers: number
+  challengeDoneUsers: number
+  completedUsers: number
+  completionRate: number | null
+  readToPracticeRate: number | null
+  practiceToTestRate: number | null
+  testToChallengeRate: number | null
+  challengeSubmissions: number
+  challengePassRate: number | null
+  openReviewItems: number
+  bottleneck: string
+  signal: AdminQualityStepInsightSignal
+}
+
 export interface AdminQualityMiniProjectStatus {
   total: number
   completed: number
@@ -64,6 +87,7 @@ export interface AdminQualityDashboard {
   provisionalMetrics: AdminQualityMetric[]
   futureMetrics: AdminQualityMetric[]
   improvementSteps: AdminQualityStepPriority[]
+  stepInsights: AdminQualityStepInsight[]
   miniProjectStatus: AdminQualityMiniProjectStatus
 }
 
@@ -72,6 +96,10 @@ interface StepAggregate {
   order: number
   title: string
   startedUsers: Set<string>
+  readDoneUsers: Set<string>
+  practiceDoneUsers: Set<string>
+  testDoneUsers: Set<string>
+  challengeDoneUsers: Set<string>
   completedUsers: Set<string>
   challengeSubmissions: number
   challengePassed: number
@@ -130,6 +158,10 @@ function buildStepAggregates(
       order: step.order,
       title: step.title,
       startedUsers: new Set<string>(),
+      readDoneUsers: new Set<string>(),
+      practiceDoneUsers: new Set<string>(),
+      testDoneUsers: new Set<string>(),
+      challengeDoneUsers: new Set<string>(),
       completedUsers: new Set<string>(),
       challengeSubmissions: 0,
       challengePassed: 0,
@@ -141,6 +173,10 @@ function buildStepAggregates(
     const aggregate = aggregates.get(row.step_id)
     if (!aggregate) continue
     aggregate.startedUsers.add(row.user_id)
+    if (row.read_done) aggregate.readDoneUsers.add(row.user_id)
+    if (row.practice_done) aggregate.practiceDoneUsers.add(row.user_id)
+    if (row.test_done) aggregate.testDoneUsers.add(row.user_id)
+    if (row.challenge_done) aggregate.challengeDoneUsers.add(row.user_id)
     if (isStepCompleted(row)) {
       aggregate.completedUsers.add(row.user_id)
     }
@@ -204,6 +240,81 @@ function buildImprovementSteps(aggregates: StepAggregate[]): AdminQualityStepPri
     })
     .sort((a, b) => b.priorityScore - a.priorityScore || a.order - b.order)
     .slice(0, 5)
+}
+
+function getLowestTransition(
+  transitions: readonly { label: string; rate: number | null }[],
+): { label: string; rate: number | null } | null {
+  const measurable = transitions.filter((item): item is { label: string; rate: number } => item.rate !== null)
+  if (measurable.length === 0) return null
+  const [lowest] = measurable.sort((a, b) => a.rate - b.rate)
+  return lowest ?? null
+}
+
+function buildStepInsights(aggregates: StepAggregate[]): AdminQualityStepInsight[] {
+  return aggregates.map((row) => {
+    const startedUsers = row.startedUsers.size
+    const readDoneUsers = row.readDoneUsers.size
+    const practiceDoneUsers = row.practiceDoneUsers.size
+    const testDoneUsers = row.testDoneUsers.size
+    const challengeDoneUsers = row.challengeDoneUsers.size
+    const completedUsers = row.completedUsers.size
+    const completionRate = safeRate(completedUsers, startedUsers)
+    const readToPracticeRate = safeRate(practiceDoneUsers, readDoneUsers)
+    const practiceToTestRate = safeRate(testDoneUsers, practiceDoneUsers)
+    const testToChallengeRate = safeRate(challengeDoneUsers, testDoneUsers)
+    const challengePassRate = safeRate(row.challengePassed, row.challengeSubmissions)
+    const lowestTransition = getLowestTransition([
+      { label: 'Read → Practice', rate: readToPracticeRate },
+      { label: 'Practice → Test', rate: practiceToTestRate },
+      { label: 'Test → Challenge', rate: testToChallengeRate },
+    ])
+    const hasSevereDrop =
+      completionRate !== null && completionRate < 0.4 ||
+      lowestTransition?.rate != null && lowestTransition.rate < 0.45 ||
+      challengePassRate !== null && challengePassRate < 0.4 ||
+      row.openReviewItems >= 3
+    const hasWatchSignal =
+      completionRate !== null && completionRate < 0.7 ||
+      lowestTransition?.rate != null && lowestTransition.rate < 0.7 ||
+      challengePassRate !== null && challengePassRate < 0.7 ||
+      row.openReviewItems > 0
+    const signal: AdminQualityStepInsightSignal =
+      startedUsers === 0 && row.challengeSubmissions === 0 && row.openReviewItems === 0
+        ? 'insufficient'
+        : hasSevereDrop
+          ? 'attention'
+          : hasWatchSignal
+            ? 'watch'
+            : 'healthy'
+    const bottleneck =
+      startedUsers === 0
+        ? '着手データなし'
+        : lowestTransition
+          ? `${lowestTransition.label} ${formatPercent(lowestTransition.rate)}`
+          : '遷移データ不足'
+
+    return {
+      stepId: row.stepId,
+      order: row.order,
+      title: row.title,
+      startedUsers,
+      readDoneUsers,
+      practiceDoneUsers,
+      testDoneUsers,
+      challengeDoneUsers,
+      completedUsers,
+      completionRate,
+      readToPracticeRate,
+      practiceToTestRate,
+      testToChallengeRate,
+      challengeSubmissions: row.challengeSubmissions,
+      challengePassRate,
+      openReviewItems: row.openReviewItems,
+      bottleneck,
+      signal,
+    }
+  }).sort((a, b) => a.order - b.order)
 }
 
 export async function getAdminQualityDashboard(): Promise<AdminQualityDashboard> {
@@ -270,6 +381,7 @@ export async function getAdminQualityDashboard(): Promise<AdminQualityDashboard>
   )
   const aggregates = buildStepAggregates(progressRows, submissions, reviewItems)
   const improvementSteps = buildImprovementSteps(aggregates)
+  const stepInsights = buildStepInsights(aggregates)
   const openReviewItems = reviewItems.filter((row) => row.status === 'open').length
 
   return {
@@ -367,6 +479,7 @@ export async function getAdminQualityDashboard(): Promise<AdminQualityDashboard>
       ),
     ],
     improvementSteps,
+    stepInsights,
     miniProjectStatus: {
       total: miniProjectRows.length,
       completed: miniProjectCompleted,
