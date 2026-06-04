@@ -1,3 +1,5 @@
+import { withLearningGoals } from '../stepLearningGoals'
+
 export type LearningMode = 'read' | 'practice' | 'test' | 'challenge'
 
 export interface PracticeQuestion {
@@ -58,7 +60,7 @@ export interface LearningStepContent {
   challengeTask: ChallengeTask
 }
 
-export const fundamentalsSteps: LearningStepContent[] = [
+export const fundamentalsSteps: LearningStepContent[] = withLearningGoals([
   {
     id: 'usestate-basic',
     order: 1,
@@ -657,7 +659,7 @@ export function List() {
       ]
     },
   },
-]
+])
 
 export function getFundamentalsStep(stepId: string) {
   return fundamentalsSteps.find((step) => step.id === stepId)

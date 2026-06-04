@@ -1,4 +1,5 @@
 import type { LearningStepContent } from '@/content/fundamentals/steps'
+import { withLearningGoals } from '@/content/stepLearningGoals'
 import { apiCounterGetStep } from './api-counter-get'
 import { apiCounterPostStep } from './api-counter-post'
 import { apiTasksListStep } from './api-tasks-list'
@@ -8,7 +9,7 @@ import { apiTasksDeleteStep } from './api-tasks-delete'
 import { apiCustomHookStep } from './api-custom-hook'
 import { apiErrorLoadingStep } from './api-error-loading'
 
-export const apiPracticeSteps: LearningStepContent[] = [
+export const apiPracticeSteps: LearningStepContent[] = withLearningGoals([
   apiCounterGetStep,
   apiCounterPostStep,
   apiTasksListStep,
@@ -17,7 +18,7 @@ export const apiPracticeSteps: LearningStepContent[] = [
   apiTasksDeleteStep,
   apiCustomHookStep,
   apiErrorLoadingStep,
-]
+])
 
 export function getApiPracticeStep(stepId: string) {
   return apiPracticeSteps.find((step) => step.id === stepId)
