@@ -74,7 +74,10 @@ export async function createAnnouncement(input: CreateAnnouncementInput): Promis
   })
 }
 
-/** 管理者向けのフィードバック到着通知を作成する。実際の投稿時連携は M3 で行う。 */
+/**
+ * 管理者向けのフィードバック到着通知を作成する。
+ * 通常の user_feedback 投稿時通知は DB トリガーで作成する。
+ */
 export async function createFeedbackNotification(
   input: CreateFeedbackNotificationInput,
 ): Promise<Notification> {

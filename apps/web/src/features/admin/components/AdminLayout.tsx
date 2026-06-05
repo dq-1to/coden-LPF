@@ -19,6 +19,7 @@ const ADMIN_LINKS: readonly AdminLink[] = [
   { to: '/admin/quality', label: '品質ダッシュボード' },
   { to: '/admin/step-insights', label: 'Step Insights' },
   { to: '/admin/feedback', label: 'フィードバック' },
+  { to: '/admin/notifications', label: 'お知らせ' },
   { to: '/admin/users', label: 'ユーザー' },
   { to: '/admin/stats', label: '統計' },
   { to: '/admin/ops', label: '運用' },

@@ -51,6 +51,9 @@ const AdminFeedbackListPage = lazy(() =>
 const AdminFeedbackDetailPage = lazy(() =>
   import('./pages/admin/AdminFeedbackDetailPage').then((m) => ({ default: m.AdminFeedbackDetailPage })),
 )
+const AdminNotificationsPage = lazy(() =>
+  import('./pages/admin/AdminNotificationsPage').then((m) => ({ default: m.AdminNotificationsPage })),
+)
 const AdminUsersPage = lazy(() =>
   import('./pages/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage })),
 )
@@ -257,6 +260,18 @@ const router = createBrowserRouter([
         <AdminGuard>
           <Suspense fallback={<PageLoading />}>
             <AdminFeedbackDetailPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/notifications',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminNotificationsPage />
           </Suspense>
         </AdminGuard>
       </ProtectedRoute>
