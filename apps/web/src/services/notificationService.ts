@@ -26,6 +26,7 @@ export const NOTIFICATION_TARGET_ROLES: ReadonlySet<string> = new Set([
 export const MAX_NOTIFICATION_TITLE_LENGTH = 120
 export const MAX_NOTIFICATION_BODY_LENGTH = 4000
 export const MAX_NOTIFICATION_LIST_LIMIT = 100
+export const NOTIFICATIONS_UPDATED_EVENT = 'coden:notifications-updated'
 
 export interface NotificationWithRead extends Notification {
   readAt: string | null
@@ -35,6 +36,18 @@ export interface NotificationWithRead extends Notification {
 export interface GetNotificationsInput {
   userId: string
   limit?: number
+}
+
+function isBrowserEnvironment() {
+  return typeof window !== 'undefined'
+}
+
+function notifyNotificationsUpdated() {
+  if (!isBrowserEnvironment()) {
+    return
+  }
+
+  window.dispatchEvent(new CustomEvent(NOTIFICATIONS_UPDATED_EVENT))
 }
 
 /** 自分に届く通知一覧を取得し、既読状態を合成する。 */
@@ -113,4 +126,15 @@ export async function markAsRead(notificationId: string, userId: string): Promis
   if (error) {
     throw fromSupabaseError(error, 'お知らせを確認済みにできませんでした')
   }
+
+  notifyNotificationsUpdated()
+}
+
+export function subscribeNotificationsUpdated(onChange: () => void): () => void {
+  if (!isBrowserEnvironment()) {
+    return () => {}
+  }
+
+  window.addEventListener(NOTIFICATIONS_UPDATED_EVENT, onChange)
+  return () => window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, onChange)
 }

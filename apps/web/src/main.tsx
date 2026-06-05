@@ -31,6 +31,9 @@ const MiniProjectDetailPage = lazy(() =>
 const MiniProjectsPage = lazy(() =>
   import('./pages/MiniProjectsPage').then((m) => ({ default: m.MiniProjectsPage })),
 )
+const NotificationsPage = lazy(() =>
+  import('./pages/NotificationsPage').then((m) => ({ default: m.NotificationsPage })),
+)
 const BaseNookPage = lazy(() => import('./pages/BaseNookPage').then((m) => ({ default: m.BaseNookPage })))
 const BaseNookTopicPage = lazy(() =>
   import('./pages/BaseNookTopicPage').then((m) => ({ default: m.BaseNookTopicPage })),
@@ -129,6 +132,16 @@ const router = createBrowserRouter([
       <ProtectedRoute>
         <Suspense fallback={<PageLoading />}>
           <ProfilePage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/notifications',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <NotificationsPage />
         </Suspense>
       </ProtectedRoute>
     ),
