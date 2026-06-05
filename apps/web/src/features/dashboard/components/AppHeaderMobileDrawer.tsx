@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Flame, Gem, MessageSquarePlus, Shield, X } from 'lucide-react'
+import { Flame, Gem, Mailbox, MessageSquarePlus, Shield, X } from 'lucide-react'
 import { CATEGORIES } from '@/content/courseData'
 import type { LearningStats } from '@/services/statsService'
 import { PRACTICE_LINKS, TOP_NAV_LINKS } from './appHeaderLinks'
@@ -9,6 +9,7 @@ interface AppHeaderMobileDrawerProps {
   displayName: string
   pathname: string
   stats: LearningStats | null
+  unreadCount: number
   isAdmin: boolean
   openFeedback: () => void
   onClose: () => void
@@ -20,6 +21,7 @@ export function AppHeaderMobileDrawer({
   displayName,
   pathname,
   stats,
+  unreadCount,
   isAdmin,
   openFeedback,
   onClose,
@@ -127,6 +129,20 @@ export function AppHeaderMobileDrawer({
             aria-current={pathname === '/curriculum' ? 'page' : undefined}
           >
             カリキュラム
+          </Link>
+          <Link
+            to="/notifications"
+            className={drawerLinkClass(pathname.startsWith('/notifications'))}
+            aria-current={pathname.startsWith('/notifications') ? 'page' : undefined}
+            aria-label={unreadCount > 0 ? `お知らせ、未読 ${unreadCount} 件` : 'お知らせ'}
+          >
+            <Mailbox className="mr-2 h-4 w-4" aria-hidden="true" />
+            <span>お知らせ</span>
+            {unreadCount > 0 ? (
+              <span className="ml-auto rounded-full bg-rose-500 px-2 py-0.5 text-xs font-bold text-white">
+                新着
+              </span>
+            ) : null}
           </Link>
         </div>
 
