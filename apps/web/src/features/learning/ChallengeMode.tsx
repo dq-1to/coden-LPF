@@ -42,10 +42,17 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
   }, [stepId, task])
 
   const judgement = useMemo(
-    () => judgeKeywords(code, { requiredKeywords: pattern.expectedKeywords }),
-    [code, pattern.expectedKeywords],
+    () =>
+      judgeKeywords(code, {
+        requiredKeywords: pattern.expectedKeywords,
+        ngKeywords: pattern.ngKeywords,
+        anyOf: pattern.anyOf,
+        passThreshold: pattern.passThreshold,
+      }),
+    [code, pattern.expectedKeywords, pattern.ngKeywords, pattern.anyOf, pattern.passThreshold],
   )
   const missingKeywords = judgement.missing
+  const violations = judgement.violations
   const hasSatisfiedRequirements = judgement.passed
   const isPassed = checked && hasSatisfiedRequirements
 
@@ -123,12 +130,26 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
 
       {checked && !isPassed ? (
         <div className="rounded-lg border border-rose-200 bg-rose-50 p-4" role="alert">
-          <p className="text-sm font-semibold text-rose-800">以下の要件が未達成です:</p>
-          <ul className="mt-2 list-inside list-disc text-sm text-rose-700">
-            {missingKeywords.map((keyword) => (
-              <li key={keyword}>{keyword}</li>
-            ))}
-          </ul>
+          {missingKeywords.length > 0 && (
+            <>
+              <p className="text-sm font-semibold text-rose-800">以下の要件が未達成です:</p>
+              <ul className="mt-2 list-inside list-disc text-sm text-rose-700">
+                {missingKeywords.map((keyword) => (
+                  <li key={keyword}>{keyword}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          {violations.length > 0 && (
+            <div className={missingKeywords.length > 0 ? 'mt-3' : ''}>
+              <p className="text-sm font-semibold text-amber-800">避けたい書き方が含まれています:</p>
+              <ul className="mt-2 list-inside list-disc text-sm text-amber-700">
+                {violations.map((keyword) => (
+                  <li key={keyword}>{keyword}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           {pattern.hints.length > 0 && (
             <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
               ヒント: {pattern.hints[0]}

@@ -36,7 +36,14 @@ export interface ChallengePattern {
   prompt: string
   requirements: string[]
   hints: string[]
+  /** 常に含まれている必要があるキーワード */
   expectedKeywords: string[]
+  /** 含まれていてはいけないキーワード（アンチパターン抑止。任意） */
+  ngKeywords?: string[]
+  /** 複数正解パターン（いずれかを満たせば可。任意） */
+  anyOf?: string[][]
+  /** 部分点での合格閾値（0-100。未指定なら全要件一致。任意） */
+  passThreshold?: number
   starterCode: string
   mobilePuzzle?: ChallengeMobilePuzzle
 }
@@ -670,6 +677,8 @@ export function List() {
           requirements: ['mapメソッドを使う', 'keyプロパティを指定する', 'todoのtitleを表示する'],
           hints: ['todos.map(todo => ...) とする', 'key={todo.id} のように一意な値を渡す'],
           expectedKeywords: ['map', 'key=', 'todo.id'],
+          // 配列インデックスを key にするアンチパターンを抑止する
+          ngKeywords: ['key={index}', 'key={i}'],
           starterCode: `export function TodoList() {\n  const todos = [\n    { id: 1, title: 'Reactを学ぶ' },\n    { id: 2, title: 'TypeScriptを学ぶ' },\n  ];\n\n  return (\n    <ul>\n      {/* TODO: todos を map し、それぞれ <li> タグとして描画してください。\n          <li> には必ず key に todo.id を指定し、中身に todo.title を表示してください。 \n      */}\n      \n    </ul>\n  );\n}`,
           mobilePuzzle: {
             type: 'multi',
