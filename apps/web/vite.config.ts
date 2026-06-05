@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
 import path from 'path'
 import { defineConfig } from 'vite'
+import { defaultExclude } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 
@@ -37,6 +38,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: false,
+    // E2E（Playwright）の spec は vitest の収集対象から除外する。
+    exclude: [...defaultExclude, 'e2e/**'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
