@@ -194,6 +194,24 @@ export function Counter() {
     </div>
   );
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useEffect, useState } from 'react';\n\nexport function Counter() {\n  const [value, setValue] = useState(0);\n  const [submitting, setSubmitting] = useState(false);\n\n  useEffect(() => {\n    fetch('http://localhost:3001/counter')\n      .then(res => res.json())\n      .then(data => setValue(data.value));\n  }, []);\n\n  async function sendValue(nextValue: number) {\n    setSubmitting(true);\n    try {\n      ____0\n    } finally {\n      setSubmitting(false);\n    }\n  }\n\n  return (\n    <div>\n      <p>カウンター: {value}</p>\n      ____1\n    </div>\n  );\n}`,
+            blanks: [
+              {
+                id: 'put-fetch',
+                label: 'PUT送信',
+                correctTokens: ['const', 'res', '=', 'await', 'fetch', '(', "'/counter'", ',', '{', 'method', ':', "'PUT'", ',', 'headers', ':', '{', "'Content-Type'", ':', "'application/json'", '}', ',', 'body', ':', 'JSON.stringify', '(', '{', 'value', ':', 'nextValue', '}', ')', '}', ')', 'const', 'data', '=', 'await', 'res.json', '(', ')', 'setValue', '(', 'data.value', ')'],
+                distractorTokens: ["'POST'", "'PATCH'", 'axios', 'setData', 'JSON.parse'],
+              },
+              {
+                id: 'buttons',
+                label: '3ボタン',
+                correctTokens: ['<button onClick={() => void sendValue(value + 1)} disabled={submitting}>', '+1', '</button>', '<button onClick={() => void sendValue(Math.max(0, value - 1))} disabled={submitting}>', '-1', '</button>', '<button onClick={() => void sendValue(0)} disabled={submitting}>', 'リセット', '</button>'],
+                distractorTokens: ['<button onClick={sendValue}>', 'onChange', 'onSubmit', '<a href="#">'],
+              },
+            ],
+          },
         },
       ],
     },

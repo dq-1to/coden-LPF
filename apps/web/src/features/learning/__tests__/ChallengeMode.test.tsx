@@ -1,8 +1,27 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChallengeMode } from '../ChallengeMode'
 import type { ChallengeTask } from '../../../content/fundamentals/steps'
+
+const recordWrongAnswer = vi.fn()
+const resolveReviewItem = vi.fn()
+const trackLearningEvent = vi.fn()
+
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { id: '00000000-0000-0000-0000-000000000001' },
+  }),
+}))
+
+vi.mock('@/services/reviewService', () => ({
+  recordWrongAnswer: (...args: unknown[]) => recordWrongAnswer(...args),
+  resolveReviewItem: (...args: unknown[]) => resolveReviewItem(...args),
+}))
+
+vi.mock('@/services/eventService', () => ({
+  trackLearningEvent: (...args: unknown[]) => trackLearningEvent(...args),
+}))
 
 vi.mock('@/components/CodeEditor', () => ({
   CodeEditor: ({ value, onChange }: { value?: string; onChange?: (nextValue: string) => void }) => (
@@ -60,6 +79,14 @@ describe('ChallengeMode', () => {
     cleanup()
   })
 
+  beforeEach(() => {
+    recordWrongAnswer.mockReset()
+    resolveReviewItem.mockReset()
+    trackLearningEvent.mockReset()
+    recordWrongAnswer.mockResolvedValue(undefined)
+    resolveReviewItem.mockResolvedValue(undefined)
+  })
+
   it('初回の正解判定で onComplete を呼ぶ', async () => {
     const user = userEvent.setup()
     const onComplete = vi.fn()
@@ -74,10 +101,28 @@ describe('ChallengeMode', () => {
     await user.click(screen.getByRole('button', { name: '判定する' }))
 
     expect(onComplete).toHaveBeenCalledTimes(1)
+    expect(trackLearningEvent).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      eventType: 'challenge_submitted',
+      stepId: 'step-a',
+      mode: 'challenge',
+      courseId: null,
+      payload: {
+        isCorrect: true,
+        itemCount: 1,
+        questionIds: ['pattern-1'],
+      },
+    })
     expect(onSubmitResult).toHaveBeenCalledWith({
       code: 'const [count, setCount] = useState(0); <button onClick={() => setCount(count + 1)} />',
       isPassed: true,
       matchedKeywords: ['useState', 'onClick'],
+    })
+    expect(resolveReviewItem).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      stepId: 'step-a',
+      mode: 'challenge',
+      questionId: 'pattern-1',
     })
     expect(screen.getByRole('status').textContent).toContain('Challengeを完了しました')
     expect(screen.getByRole('status').className).toContain('animate-fadeIn')
@@ -105,6 +150,26 @@ describe('ChallengeMode', () => {
 
     // Assert
     expect(screen.getByRole('status').textContent).toContain('要件を満たしていません。')
+    expect(trackLearningEvent).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      eventType: 'challenge_submitted',
+      stepId: 'step-a',
+      mode: 'challenge',
+      courseId: null,
+      payload: {
+        isCorrect: false,
+        itemCount: 1,
+        questionIds: ['pattern-1'],
+      },
+    })
+    expect(recordWrongAnswer).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      stepId: 'step-a',
+      mode: 'challenge',
+      questionId: 'pattern-1',
+      expected: 'useState, onClick',
+      userInput: 'const x = 1',
+    })
     expect(screen.getByText('useState')).toBeTruthy()
     expect(screen.getByText('onClick')).toBeTruthy()
   })

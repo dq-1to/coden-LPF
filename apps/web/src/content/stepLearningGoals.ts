@@ -1,0 +1,51 @@
+import type { LearningStepContent } from './fundamentals/steps'
+
+export const STEP_LEARNING_GOALS = {
+  'usestate-basic': 'useStateで画面の状態を保持し、ユーザー操作に応じて再レンダリングされる流れを説明・実装できるようになる。',
+  events: 'onClickやonChangeに関数を渡し、ユーザー操作をきっかけにstateや表示を更新できるようになる。',
+  conditional: 'booleanやstateの値に応じて、必要なUIだけを表示・非表示に切り替えられるようになる。',
+  lists: '配列データをmapでJSXに変換し、安定したkeyを付けてリストUIを描画できるようになる。',
+  useeffect: 'useEffectで外部同期や副作用を扱い、依存配列とクリーンアップを適切に設計できるようになる。',
+  forms: '制御されたコンポーネントで入力値を管理し、送信制御や基本的なバリデーションを実装できるようになる。',
+  usecontext: 'Context APIで深い階層へ値を共有し、prop drillingを避けた状態受け渡しを実装できるようになる。',
+  usereducer: 'useReducerで複雑な状態遷移をactionとreducerに分け、見通しよく更新できるようになる。',
+  'custom-hooks': 'コンポーネント内の再利用可能な状態ロジックをカスタムHookとして切り出し、責務を整理できるようになる。',
+  'api-fetch': 'API取得処理とローディング・エラー状態を組み合わせ、画面に外部データを安全に反映できるようになる。',
+  performance: 'useMemoやuseCallbackを使い、不要な再計算や再レンダリングを見極めて抑えられるようになる。',
+  testing: 'React Testing Libraryでユーザー操作に近い観点からコンポーネントの振る舞いを検証できるようになる。',
+  'api-counter-get': 'GETリクエストでサーバーの値を取得し、取得中や取得後の状態を画面に表示できるようになる。',
+  'api-counter-post': 'POSTリクエストでサーバー状態を更新し、レスポンスをもとに画面状態を同期できるようになる。',
+  'api-tasks-list': 'タスク一覧APIから配列データを取得し、ローディング状態と合わせて一覧UIに描画できるようになる。',
+  'api-tasks-create': 'フォーム入力をPOSTリクエストで送信し、追加結果をタスクリストへ反映できるようになる。',
+  'api-tasks-update': 'PATCHリクエストで既存タスクの一部を更新し、完了状態などの変更をUIに反映できるようになる。',
+  'api-tasks-delete': 'DELETEリクエストで対象タスクを削除し、成功後にローカルの一覧から取り除けるようになる。',
+  'api-custom-hook': 'タスクAPI操作をカスタムHookへまとめ、取得・追加・更新・削除をコンポーネントから扱いやすくできるようになる。',
+  'api-error-loading': 'API通信の成功・失敗・処理中を状態として整理し、ユーザーに分かりやすいUIへ反映できるようになる。',
+  'ts-types': 'TypeScriptの基本型と型推論を使い、値に合った型注釈で初歩的なミスを防げるようになる。',
+  'ts-functions': '関数の引数・戻り値・関数型を定義し、呼び出し側と実装側の契約を型で表現できるようになる。',
+  'ts-objects': 'interfaceやtype aliasでオブジェクト構造を定義し、readonlyやoptionalを使い分けられるようになる。',
+  'ts-union-narrowing': 'ユニオン型と型ガードで分岐ごとの型を絞り込み、網羅的に処理できるようになる。',
+  'ts-generics': 'ジェネリクスで型を受け取る関数や型を作り、再利用性と型安全性を両立できるようになる。',
+  'ts-utility-types': 'PartialやPickなどのユーティリティ型を使い、既存の型から目的に合う型を組み立てられるようになる。',
+  'ts-react-props': 'ReactコンポーネントのProps型を定義し、childrenや任意Propsを含む受け渡しを型安全にできるようになる。',
+  'ts-react-state': 'useStateやuseReducerに適切な型を付け、null許容やAction型を含む状態管理を安全に扱えるようになる。',
+  'ts-react-hooks': 'useRef、Context、カスタムHookの戻り値など、Hook特有の値を型安全に扱えるようになる。',
+  'ts-react-events': 'ChangeEventやMouseEventなどを使い、Reactイベントハンドラの引数を正しく型付けできるようになる。',
+  'error-boundary': 'Error Boundaryで子コンポーネントの例外を捕捉し、回復可能なフォールバックUIを設計できるようになる。',
+  'suspense-lazy': 'React.lazyとSuspenseでコード分割を行い、読み込み中のfallbackを含む非同期UIを組み立てられるようになる。',
+  'concurrent-features': 'useTransitionやuseDeferredValueで重い更新を調整し、入力などの応答性を保てるようになる。',
+  'use-optimistic': 'useOptimisticでサーバー応答前にUIを先行更新し、失敗時の戻し方も含めて設計できるようになる。',
+  portals: 'createPortalでDOM階層の外へUIを描画し、モーダルやツールチップを自然に実装できるようになる。',
+  'forward-ref': 'forwardRefとuseImperativeHandleで親へ参照や限定的な操作APIを公開できるようになる。',
+  'rhf-zod': 'React Hook FormとZodを組み合わせ、入力値の検証と型推論がつながるフォームを実装できるようになる。',
+  pagination: 'URLのクエリとページ計算を連動させ、戻る/進むにも対応したページネーションを実装できるようになる。',
+  'infinite-scroll': 'Intersection Observerで末尾到達を検知し、追加読み込み型のリストUIを実装できるようになる。',
+  'auth-flow': '認証状態の保持、保護ルート、ログイン/ログアウト処理を組み合わせた基本的な認証フローを設計できるようになる。',
+} as const satisfies Record<string, string>
+
+export function withLearningGoals<T extends LearningStepContent>(steps: T[]): T[] {
+  return steps.map((step) => ({
+    ...step,
+    learningGoal: step.learningGoal ?? STEP_LEARNING_GOALS[step.id as keyof typeof STEP_LEARNING_GOALS],
+  }))
+}

@@ -185,6 +185,30 @@ try {
 } catch (e) {
   console.log((e as Error).message); // "取得に失敗しました"
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `____0\n\n____1\n\n____2\n\nconst r1 = succeed(42);\nconst r2 = fail<number>("取得に失敗しました");\nconsole.log(unwrap(r1));\ntry { unwrap(r2); } catch (e) { console.log((e as Error).message); }`,
+            blanks: [
+              {
+                id: 'result-type',
+                label: 'Result型',
+                correctTokens: ['type', 'Result', '<T>', '=', '{', 'ok', ':', 'true', ';', 'value', ':', 'T', '}', '|', '{', 'ok', ':', 'false', ';', 'error', ':', 'string', '}'],
+                distractorTokens: ['any', 'unknown', 'void', 'Promise'],
+              },
+              {
+                id: 'succeed-fail',
+                label: 'succeed/fail',
+                correctTokens: ['function', 'succeed', '<T>', '(', 'value', ':', 'T', ')', ':', 'Result<T>', '{', 'return', '{', 'ok', ':', 'true', ',', 'value', '}', '}', 'function', 'fail', '<T>', '(', 'error', ':', 'string', ')', ':', 'Result<T>', '{', 'return', '{', 'ok', ':', 'false', ',', 'error', '}', '}'],
+                distractorTokens: ['new Result', 'throw', 'Promise.resolve', 'null'],
+              },
+              {
+                id: 'unwrap',
+                label: 'unwrap',
+                correctTokens: ['function', 'unwrap', '<T>', '(', 'result', ':', 'Result<T>', ')', ':', 'T', '{', 'if', '(', '!', 'result.ok', ')', 'throw', 'new', 'Error', '(', 'result.error', ')', 'return', 'result.value', '}'],
+                distractorTokens: ['result.data', 'result.get', 'JSON.parse', 'result.unwrap'],
+              },
+            ],
+          },
       },
       {
         id: 'ts-generics-2',
@@ -210,6 +234,24 @@ const users = [
 ];
 console.log(findById(users, 1));    // { id: 1, name: "Alice" }
 console.log(groupById(users));      // { 1: { id: 1, name: "Alice" }, 2: { id: 2, name: "Bob" } }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `____0\n\n____1\n\nconst users = [\n  { id: 1, name: "Alice" },\n  { id: 2, name: "Bob" },\n];\nconsole.log(findById(users, 1));\nconsole.log(groupById(users));`,
+            blanks: [
+              {
+                id: 'find-by-id',
+                label: 'findById',
+                correctTokens: ['function', 'findById', '<T', 'extends', '{', 'id', ':', 'number', '}>', '(', 'items', ':', 'T[]', ',', 'id', ':', 'number', ')', ':', 'T', '|', 'undefined', '{', 'return', 'items.find', '(', 'item', '=>', 'item.id', '===', 'id', ')', '}'],
+                distractorTokens: ['any', 'object', 'Partial', 'Map'],
+              },
+              {
+                id: 'group-by-id',
+                label: 'groupById',
+                correctTokens: ['function', 'groupById', '<T', 'extends', '{', 'id', ':', 'number', '}>', '(', 'items', ':', 'T[]', ')', ':', 'Record<number, T>', '{', 'const', 'map', '=', '{} as Record<number, T>', 'items.forEach', '(', 'item', '=>', '{', 'map[item.id]', '=', 'item', '}', ')', 'return', 'map', '}'],
+                distractorTokens: ['Array', 'Set', 'WeakMap', 'JSON.stringify'],
+              },
+            ],
+          },
       },
     ],
   },

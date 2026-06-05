@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Lightbulb } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { BookOpen, CheckCircle2, ChevronRight, Lightbulb, Target } from 'lucide-react'
 import { Button } from '../../components/Button'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -10,11 +11,15 @@ import 'prismjs/components/prism-typescript'
 import 'prismjs/components/prism-tsx'
 import 'prismjs/themes/prism-okaidia.css'
 import { COPY_FEEDBACK_DURATION_MS } from '../../shared/constants'
+import type { RelatedBaseNookTopic } from '../../content/base-nook/stepLinks'
 
 interface ReadModeProps {
   markdown: string
   onComplete: () => void
   isCompleted: boolean
+  learningGoal?: string | undefined
+  prerequisites?: string[] | undefined
+  relatedBaseNookTopics?: readonly RelatedBaseNookTopic[] | undefined
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -54,10 +59,21 @@ function CopyButton({ text }: { text: string }) {
   )
 }
 
-export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
+export function ReadMode({
+  markdown,
+  onComplete,
+  isCompleted,
+  learningGoal,
+  prerequisites,
+  relatedBaseNookTopics,
+}: ReadModeProps) {
   useEffect(() => {
     Prism.highlightAll()
   }, [markdown])
+
+  const hasPrerequisites = prerequisites != null && prerequisites.length > 0
+  const hasRelatedBaseNookTopics = relatedBaseNookTopics != null && relatedBaseNookTopics.length > 0
+  const hasOverview = Boolean(learningGoal) || hasPrerequisites || hasRelatedBaseNookTopics
 
   const completeButton = (
     <Button onClick={onComplete} disabled={isCompleted}>
@@ -71,6 +87,56 @@ export function ReadMode({ markdown, onComplete, isCompleted }: ReadModeProps) {
         <h2 className="text-lg font-semibold">Read</h2>
         {completeButton}
       </div>
+
+      {hasOverview ? (
+        <aside className="space-y-3 rounded-xl border border-primary-mint/30 bg-primary-mint/10 p-4 text-sm text-text-dark">
+          {learningGoal ? (
+            <div className="flex gap-3">
+              <Target className="mt-0.5 size-5 shrink-0 text-primary-dark" aria-hidden="true" />
+              <div>
+                <h3 className="font-bold text-primary-dark">このStepのゴール</h3>
+                <p className="mt-1 leading-relaxed">{learningGoal}</p>
+              </div>
+            </div>
+          ) : null}
+
+          {hasPrerequisites ? (
+            <div className="flex gap-3">
+              <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-primary-dark" aria-hidden="true" />
+              <div>
+                <h3 className="font-bold text-primary-dark">前提</h3>
+                <ul className="mt-1 list-disc space-y-1 pl-5 leading-relaxed">
+                  {prerequisites.map((prerequisite) => (
+                    <li key={prerequisite}>{prerequisite}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ) : null}
+
+          {hasRelatedBaseNookTopics ? (
+            <div className="flex gap-3">
+              <BookOpen className="mt-0.5 size-5 shrink-0 text-primary-dark" aria-hidden="true" />
+              <div>
+                <h3 className="font-bold text-primary-dark">関連するBase Nook</h3>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {relatedBaseNookTopics.map((topic) => (
+                    <Link
+                      key={topic.id}
+                      to={`/base-nook/${topic.id}`}
+                      className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-primary-mint/30 bg-white px-3 py-2 text-sm font-semibold text-primary-dark transition hover:border-primary-mint hover:bg-primary-mint/10 focus:outline-none focus:ring-2 focus:ring-primary-mint/30"
+                      title={topic.summary}
+                    >
+                      {topic.title}
+                      <ChevronRight className="size-4" aria-hidden="true" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </aside>
+      ) : null}
 
       <article className="prose prose-slate prose-sm max-w-none overflow-x-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:prose-base sm:p-5">
         <ReactMarkdown

@@ -173,6 +173,24 @@ export function TaskList() {
     </ul>
   );
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useEffect, useState } from 'react';\n\ninterface Task { id: string; title: string; completed: boolean; }\n\nexport function TaskList() {\n  const [tasks, setTasks] = useState<Task[]>([]);\n  const [deletingId, setDeletingId] = useState<string | null>(null);\n\n  useEffect(() => {\n    fetch('/tasks').then(r => r.json()).then(d => setTasks(d));\n  }, []);\n\n  async function handleDelete(task: Task) {\n    ____0\n    setDeletingId(task.id);\n    try {\n      await fetch(\`/tasks/\${task.id}\`, { method: 'DELETE' });\n      ____1\n    } finally {\n      setDeletingId(null);\n    }\n  }\n\n  return (\n    <ul>\n      {tasks.map((task) => (\n        <li key={task.id}>\n          {task.title}\n          <button onClick={() => void handleDelete(task)}\n            disabled={deletingId === task.id}>\n            {deletingId === task.id ? '削除中...' : '削除'}\n          </button>\n        </li>\n      ))}\n    </ul>\n  );\n}`,
+            blanks: [
+              {
+                id: 'confirm-check',
+                label: 'confirm確認',
+                correctTokens: ['if', '(', '!', 'confirm', '(', "'本当に削除しますか？'", ')', ')', 'return'],
+                distractorTokens: ['alert', 'prompt', 'window.open', 'console.log', 'throw'],
+              },
+              {
+                id: 'filter-list',
+                label: 'リスト更新',
+                correctTokens: ['setTasks', '(', 'prev', '=>', 'prev.filter', '(', 't', '=>', 't.id', '!==', 'task.id', ')', ')'],
+                distractorTokens: ['prev.map', 'prev.splice', 'prev.find', 'setDeletingId', 'push'],
+              },
+            ],
+          },
         },
       ],
     },

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { BookOpen, Check, ChevronRight, Code2, PenLine, Trophy } from 'lucide-react'
 import { ErrorBanner } from '../components/ErrorBanner'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { LearningSidebar } from '../components/LearningSidebar'
+import { getRelatedBaseNookTopics } from '../content/base-nook/stepLinks'
 import { TOTAL_STEP_COUNT, findCategoryByStepId, findCourseByStepId } from '../content/courseData'
 import { PageSpinner } from '../components/Spinner'
 import type { LearningMode } from '../content/fundamentals/steps'
@@ -21,6 +22,7 @@ import { useLearningStep } from '../features/learning/hooks/useLearningStep'
 import { useRecentChallengeSubmissions } from '../features/learning/hooks/useRecentChallengeSubmissions'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useSignOut } from '../hooks/useSignOut'
+import { trackLearningEvent } from '../services/eventService'
 import { PULSE_ANIMATION_MS } from '../shared/constants'
 import { getDisplayName } from '../shared/utils/getDisplayName'
 
@@ -64,13 +66,28 @@ const MODE_META: Record<
   },
 }
 
+const NEXT_ACTION_REASON: Record<LearningMode, string> = {
+  read: '理解した概念を穴埋めで確認しましょう。',
+  practice: '手を動かした内容を小さなテストで確かめましょう。',
+  test: '確認できた理解を使って、自分で実装して仕上げましょう。',
+  challenge: '今の実装力を土台に、次のステップへ進みましょう。',
+}
+
+const LEARNING_MODES: readonly LearningMode[] = ['read', 'practice', 'test', 'challenge']
+
+function parseLearningMode(value: string | null): LearningMode | null {
+  return LEARNING_MODES.includes(value as LearningMode) ? (value as LearningMode) : null
+}
+
 export function StepPage() {
   const { stepId = '' } = useParams()
+  const [searchParams] = useSearchParams()
+  const requestedMode = parseLearningMode(searchParams.get('mode'))
   const { user } = useAuth()
   const { completedStepIds, isLoadingStats } = useLearningContext()
   const navigate = useNavigate()
   const handleSignOut = useSignOut()
-  const [activeMode, setActiveMode] = useState<LearningMode>('read')
+  const [activeMode, setActiveMode] = useState<LearningMode>(requestedMode ?? 'read')
   const [pulseModes, setPulseModes] = useState<Record<LearningMode, boolean>>({
     read: false,
     practice: false,
@@ -80,6 +97,8 @@ export function StepPage() {
   const challengeCompleteRef = useRef<HTMLDivElement | null>(null)
   const previousModeStatusRef = useRef<Record<LearningMode, boolean> | null>(null)
   const pulseTimeoutsRef = useRef<number[]>([])
+  const trackedStepStartedRef = useRef<string | null>(null)
+  const trackedModeStartedRef = useRef<Set<string>>(new Set())
   const saveChallengeSubmission = useChallengeSubmission(stepId)
   const recentChallengeSubmissions = useRecentChallengeSubmissions(stepId)
   const handleChallengeSubmitResult = useCallback(
@@ -111,6 +130,11 @@ export function StepPage() {
     [],
   )
   useDocumentTitle(step?.title ?? 'ステップ')
+  const relatedBaseNookTopics = useMemo(() => (step ? getRelatedBaseNookTopics(step) : []), [step])
+
+  useEffect(() => {
+    setActiveMode(requestedMode ?? 'read')
+  }, [requestedMode, stepId])
 
   useEffect(() => {
     if (!previousModeStatusRef.current) {
@@ -177,6 +201,38 @@ export function StepPage() {
   const isCourseLocked = !isLoadingStats && stepCourse
     ? getCourseLockStatus(stepCourse, completedStepIds).locked
     : false
+
+  useEffect(() => {
+    if (!user?.id || !step || isUnavailableStep || isCourseLocked) return
+
+    const courseId = stepCourse?.id ?? null
+    const stepKey = `${user.id}:${step.id}`
+
+    if (trackedStepStartedRef.current !== stepKey) {
+      trackLearningEvent({
+        userId: user.id,
+        eventType: 'step_started',
+        stepId: step.id,
+        courseId,
+        payload: {
+          order: step.order,
+        },
+      })
+      trackedStepStartedRef.current = stepKey
+    }
+
+    const modeKey = `${stepKey}:${activeMode}`
+    if (!trackedModeStartedRef.current.has(modeKey)) {
+      trackLearningEvent({
+        userId: user.id,
+        eventType: 'mode_started',
+        stepId: step.id,
+        mode: activeMode,
+        courseId,
+      })
+      trackedModeStartedRef.current.add(modeKey)
+    }
+  }, [activeMode, isCourseLocked, isUnavailableStep, step, stepCourse?.id, user?.id])
 
   if (isUnavailableStep || isCourseLocked) {
     return <Navigate to="/" replace />
@@ -301,11 +357,15 @@ export function StepPage() {
                 markdown={step.readMarkdown}
                 onComplete={() => void handleModeComplete('read')}
                 isCompleted={modeStatus.read}
+                learningGoal={step.learningGoal}
+                prerequisites={step.prerequisites}
+                relatedBaseNookTopics={relatedBaseNookTopics}
               />
             ) : null}
 
             {activeMode === 'read' && modeStatus.read ? (
-              <div className="mt-4 flex justify-center">
+              <div className="mt-4 flex flex-col items-center gap-3 text-center">
+                <p className="max-w-xl text-sm font-medium text-slate-600">{NEXT_ACTION_REASON.read}</p>
                 <button
                   className="inline-flex items-center gap-2 rounded-xl bg-amber-400 px-6 py-3 text-base font-bold text-slate-950 shadow-sm transition-all duration-200 hover:bg-amber-500 active:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-300/30"
                   type="button"
@@ -325,7 +385,8 @@ export function StepPage() {
             ) : null}
 
             {activeMode === 'practice' && modeStatus.practice ? (
-              <div className="mt-4 flex justify-center">
+              <div className="mt-4 flex flex-col items-center gap-3 text-center">
+                <p className="max-w-xl text-sm font-medium text-slate-600">{NEXT_ACTION_REASON.practice}</p>
                 <button
                   className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-6 py-3 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-sky-600 active:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400/30"
                   type="button"
@@ -341,7 +402,8 @@ export function StepPage() {
             ) : null}
 
             {activeMode === 'test' && modeStatus.test ? (
-              <div className="mt-4 flex justify-center">
+              <div className="mt-4 flex flex-col items-center gap-3 text-center">
+                <p className="max-w-xl text-sm font-medium text-slate-600">{NEXT_ACTION_REASON.test}</p>
                 <button
                   className="inline-flex items-center gap-2 rounded-xl bg-violet-500 px-6 py-3 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-violet-600 active:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-400/30"
                   type="button"
@@ -374,6 +436,9 @@ export function StepPage() {
                   {nextStep
                     ? `このステップを完了しました！ 次は「${nextStep.title}」へ進めます。`
                     : 'おめでとうございます！ 現在の学習フローをすべて完了しました。'}
+                </p>
+                <p className="mt-2 text-sm font-medium text-emerald-700">
+                  {nextStep ? NEXT_ACTION_REASON.challenge : 'ここまでの知識を復習やミニプロジェクトで固めましょう。'}
                 </p>
                 <button
                   className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary-mint px-6 py-3 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-primary-dark active:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-primary-mint/30"

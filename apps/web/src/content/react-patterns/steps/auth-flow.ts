@@ -288,6 +288,24 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   // TODO: useContext で取得し、null チェック後に返す
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { createContext, useContext, useState } from 'react'\n\nconst AuthContext = createContext(null)\n\nexport function AuthProvider({ children }) {\n  const [user, setUser] = useState(null)\n  const login = async (email, password) => setUser({ id: '1', email })\n  const logout = () => setUser(null)\n\n  return (\n    <AuthContext.Provider value={____0}>\n      {children}\n    </AuthContext.Provider>\n  )\n}\n\nexport function useAuth() {\n  ____1\n}`,
+            blanks: [
+              {
+                id: 'provider-value',
+                label: 'Provider value',
+                correctTokens: ['{', 'user,', 'isAuthenticated:', '!!user,', 'login,', 'logout', '}'],
+                distractorTokens: ['useReducer', 'useState', 'localStorage', 'useRef'],
+              },
+              {
+                id: 'use-auth-hook',
+                label: 'useAuth hook',
+                correctTokens: ['const ctx', '=', 'useContext(AuthContext)', 'if (!ctx)', 'throw', "new Error('useAuth must be used within AuthProvider')", 'return', 'ctx'],
+                distractorTokens: ['useReducer', 'useState', 'localStorage', 'useRef'],
+              },
+            ],
+          },
       },
       {
         id: 'auth-flow-2',
@@ -332,6 +350,24 @@ function App() {
     </AuthProvider>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'\nimport { useAuth } from './AuthContext'\n\nfunction ProtectedRoute({ children }) {\n  const { isAuthenticated } = useAuth()\n  const location = useLocation()\n\n  ____0\n\n  return children\n}\n\nfunction LoginPage() {\n  const { login } = useAuth()\n  const navigate = useNavigate()\n  const location = useLocation()\n\n  const handleSubmit = async (e) => {\n    e.preventDefault()\n    await login('user@example.com', 'password')\n    ____1\n  }\n\n  return <form onSubmit={handleSubmit}><button>ログイン</button></form>\n}`,
+            blanks: [
+              {
+                id: 'protected-route',
+                label: 'ProtectedRoute',
+                correctTokens: ['if', '(!isAuthenticated)', 'return', '<Navigate', 'to="/login"', 'state={{ from: location.pathname }}', 'replace', '/>'],
+                distractorTokens: ['useParams', 'Redirect', 'history.push', 'window.location'],
+              },
+              {
+                id: 'login-redirect',
+                label: 'ログイン後遷移',
+                correctTokens: ['const from', '=', "location.state?.from ?? '/dashboard'", 'navigate', '(from, { replace: true })'],
+                distractorTokens: ['useParams', 'window.location', 'history.push', 'Redirect'],
+              },
+            ],
+          },
       },
     ],
   },

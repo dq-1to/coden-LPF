@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, BookOpen } from 'lucide-react'
+import { ArrowLeft, BookOpen, ChevronRight, GraduationCap } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useGreetingName } from '../hooks/useGreetingName'
@@ -11,6 +11,7 @@ import {
   selectQuestions,
 } from '../services/baseNookService'
 import { BASE_NOOK_TOPICS } from '../content/base-nook/topics'
+import { getStepsRelatedToBaseNook } from '../content/base-nook/stepLinks'
 import { ArticleView } from '../features/base-nook/components/ArticleView'
 import { QuizView } from '../features/base-nook/components/QuizView'
 import { AppHeader } from '../features/dashboard/components/AppHeader'
@@ -79,6 +80,7 @@ export function BaseNookTopicPage() {
   }, [solvedIds, topic])
 
   const allCleared = topic ? solvedIds.size >= topic.questions.length : false
+  const relatedStepLinks = useMemo(() => (topic ? getStepsRelatedToBaseNook(topic.id) : []), [topic])
 
   if (!topic) {
     return (
@@ -131,6 +133,33 @@ export function BaseNookTopicPage() {
             <section className="mb-10 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
               <ArticleView markdown={topic.article} />
             </section>
+
+            {relatedStepLinks.length > 0 ? (
+              <section className="mb-10 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 shadow-sm sm:p-5">
+                <div className="mb-3 flex items-center gap-2 text-amber-900">
+                  <GraduationCap size={20} aria-hidden="true" />
+                  <h2 className="text-lg font-bold">この基礎を使うStep</h2>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {relatedStepLinks.map((step) => (
+                    <Link
+                      key={step.id}
+                      to={`/step/${step.id}`}
+                      className="group rounded-xl border border-amber-200 bg-white p-4 text-left transition hover:border-amber-300 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300/50"
+                    >
+                      <div className="mb-1 flex items-center justify-between gap-3">
+                        <span className="text-xs font-semibold text-amber-700">
+                          Step {step.order} / {step.courseTitle}
+                        </span>
+                        <ChevronRight className="size-4 shrink-0 text-amber-500 transition group-hover:translate-x-0.5" aria-hidden="true" />
+                      </div>
+                      <h3 className="font-bold text-text-dark group-hover:text-amber-800">{step.title}</h3>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-600">{step.description}</p>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
             {/* クイズパート */}
             <section>

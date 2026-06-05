@@ -206,6 +206,24 @@ const ok: ApiResponse = { status: "success", data: "ユーザー情報" };
 const ng: ApiResponse = { status: "error", message: "認証エラー" };
 console.log(handleResponse(ok)); // "データ: ユーザー情報"
 console.log(handleResponse(ng)); // "エラー: 認証エラー"`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `____0\n\nfunction handleResponse(res: ApiResponse): string {\n  ____1\n}\n\nconst ok: ApiResponse = { status: "success", data: "ユーザー情報" };\nconst ng: ApiResponse = { status: "error", message: "認証エラー" };\nconsole.log(handleResponse(ok));\nconsole.log(handleResponse(ng));`,
+            blanks: [
+              {
+                id: 'api-response',
+                label: 'ApiResponse型',
+                correctTokens: ['type', 'ApiResponse', '=', '{', 'status', ':', "'success'", ';', 'data', ':', 'string', '}', '|', '{', 'status', ':', "'error'", ';', 'message', ':', 'string', '}'],
+                distractorTokens: ['interface', 'enum', 'class', 'typeof'],
+              },
+              {
+                id: 'handle-body',
+                label: '分岐処理',
+                correctTokens: ['if', '(', 'res.status', '===', "'success'", ')', '{', 'return', "'データ: '", '+', 'res.data', '}', 'return', "'エラー: '", '+', 'res.message'],
+                distractorTokens: ['try', 'catch', 'switch', 'res.type'],
+              },
+            ],
+          },
       },
       {
         id: 'ts-union-narrowing-2',
@@ -240,6 +258,30 @@ function getArea(shape: Shape): number {
 
 console.log(getArea({ kind: "circle", radius: 5 }));               // ~78.54
 console.log(getArea({ kind: "rectangle", width: 4, height: 6 }));  // 24`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `____0\n\n____1\n\nfunction getArea(shape: Shape): number {\n  switch (shape.kind) {\n    ____2\n    default:\n      return assertNever(shape);\n  }\n}\n\nconsole.log(getArea({ kind: "circle", radius: 5 }));\nconsole.log(getArea({ kind: "rectangle", width: 4, height: 6 }));`,
+            blanks: [
+              {
+                id: 'shape-type',
+                label: 'Shape型',
+                correctTokens: ['type', 'Shape', '=', '{', 'kind', ':', "'circle'", ';', 'radius', ':', 'number', '}', '|', '{', 'kind', ':', "'rectangle'", ';', 'width', ':', 'number', ';', 'height', ':', 'number', '}'],
+                distractorTokens: ['typeof', 'instanceof', 'enum', 'any'],
+              },
+              {
+                id: 'assert-never',
+                label: 'assertNever',
+                correctTokens: ['function', 'assertNever', '(', 'x', ':', 'never', ')', ':', 'never', '{', 'throw', 'new', 'Error', '(', '`Unexpected: ${x}`', ')', '}'],
+                distractorTokens: ['void', 'undefined', 'unknown', 'any'],
+              },
+              {
+                id: 'switch-cases',
+                label: 'caseブロック',
+                correctTokens: ['case', "'circle'", ':', 'return', 'Math.PI', '*', 'shape.radius', '**', '2', 'case', "'rectangle'", ':', 'return', 'shape.width', '*', 'shape.height'],
+                distractorTokens: ['shape.size', 'shape.area', 'Math.sqrt', 'shape.length'],
+              },
+            ],
+          },
       },
     ],
   },

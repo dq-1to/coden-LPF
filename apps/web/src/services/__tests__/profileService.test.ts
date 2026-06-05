@@ -26,13 +26,14 @@ describe('getProfile', () => {
       id: 'user-1',
       display_name: 'Coden User',
       created_at: '2026-01-01T00:00:00.000Z',
+      is_admin: false,
     }
     maybeSingle.mockResolvedValue({ data: profile, error: null })
 
     const result = await getProfile('user-1')
 
     expect(from).toHaveBeenCalledWith('profiles')
-    expect(select).toHaveBeenCalledWith('id, display_name, created_at')
+    expect(select).toHaveBeenCalledWith('id, display_name, created_at, is_admin')
     expect(eq).toHaveBeenCalledWith('id', 'user-1')
     expect(result).toEqual(profile)
   })

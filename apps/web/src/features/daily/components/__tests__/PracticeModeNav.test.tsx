@@ -24,6 +24,14 @@ describe('PracticeModeNav', () => {
     expect(screen.getAllByText('リーディング').length).toBeGreaterThanOrEqual(1)
   })
 
+  it('各練習モードの役割ラベルを表示する', () => {
+    renderWithRouter('/daily')
+    expect(screen.getAllByText('昨日の復習').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('バグ修正').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('成果物作成').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('コードを読む').length).toBeGreaterThanOrEqual(1)
+  })
+
   it('現在のパスに対応するリンクがアクティブになる', () => {
     renderWithRouter('/daily')
     const activeLinks = screen.getAllByRole('link', { current: 'page' })

@@ -236,6 +236,30 @@ class ErrorBoundary extends React.Component {
     return this.props.children
   }
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `class ErrorBoundary extends React.Component {\n  constructor(props) {\n    super(props)\n    this.state = { hasError: false, error: null }\n  }\n\n  static getDerivedStateFromError(error) {\n    ____0\n  }\n\n  componentDidCatch(error, info) {\n    ____1\n  }\n\n  handleReset = () => {\n    ____2\n  }\n\n  render() {\n    if (this.state.hasError) {\n      return (\n        <div>\n          <p>エラー: {this.state.error?.message}</p>\n          <button onClick={this.handleReset}>再試行</button>\n        </div>\n      )\n    }\n    return this.props.children\n  }\n}`,
+            blanks: [
+              {
+                id: 'derived-state',
+                label: 'エラー検知',
+                correctTokens: ['return', '{', 'hasError', ':', 'true', ',', 'error', '}'],
+                distractorTokens: ['componentDidMount', 'shouldComponentUpdate', 'useEffect', 'false'],
+              },
+              {
+                id: 'did-catch',
+                label: 'エラーログ',
+                correctTokens: ['console.error', '(', 'error', ',', 'info.componentStack', ')'],
+                distractorTokens: ['componentDidMount', 'useEffect', 'setState', 'console.warn'],
+              },
+              {
+                id: 'handle-reset',
+                label: 'リセット',
+                correctTokens: ['this.setState', '(', '{', 'hasError', ':', 'false', ',', 'error', ':', 'null', '}', ')'],
+                distractorTokens: ['useState', 'setState', 'useEffect', 'forceUpdate'],
+              },
+            ],
+          },
       },
       {
         id: 'error-boundary-2',
@@ -273,6 +297,24 @@ function App() {
     </div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `class ErrorBoundary extends React.Component {\n  constructor(props) {\n    super(props)\n    this.state = { hasError: false }\n  }\n\n  ____0\n\n  render() {\n    ____1\n  }\n}\n\nfunction App() {\n  return (\n    <div>\n      <ErrorBoundary fallback={<p>ヘッダーエラー</p>}>\n        <Header />\n      </ErrorBoundary>\n      <ErrorBoundary>\n        <Footer />\n      </ErrorBoundary>\n    </div>\n  )\n}`,
+            blanks: [
+              {
+                id: 'derived-state',
+                label: 'エラー検知',
+                correctTokens: ['static', 'getDerivedStateFromError', '(error)', '{', 'return', '{', 'hasError', ':', 'true', '}', '}'],
+                distractorTokens: ['componentDidCatch', 'componentDidMount', 'useEffect', 'try', 'Suspense'],
+              },
+              {
+                id: 'render-fallback',
+                label: 'fallback分岐',
+                correctTokens: ['if', '(this.state.hasError)', '{', 'return', 'this.props.fallback', '??', '<p>予期しないエラーが発生しました</p>', '}', 'return', 'this.props.children'],
+                distractorTokens: ['||', '&&', 'try/catch', 'Suspense', 'componentDidCatch'],
+              },
+            ],
+          },
       },
     ],
   },

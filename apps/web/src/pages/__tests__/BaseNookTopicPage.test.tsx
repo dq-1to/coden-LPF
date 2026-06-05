@@ -85,6 +85,14 @@ describe('BaseNookTopicPage', () => {
     expect(screen.getByText('Quiz')).toBeTruthy()
   })
 
+  it('関連するStepがある topic では Step への導線を表示すること', async () => {
+    renderWithRoute('props-vs-state')
+
+    expect(await screen.findByText('この基礎を使うStep')).toBeTruthy()
+    expect(screen.getByRole('link', { name: /useState基礎/ }).getAttribute('href')).toBe('/step/usestate-basic')
+    expect(screen.getByRole('link', { name: /イベント処理/ }).getAttribute('href')).toBe('/step/events')
+  })
+
   it('エラー時にエラーメッセージが role="alert" で表示されること', async () => {
     getTopicProgressMock.mockRejectedValue(new Error('進捗の取得に失敗しました'))
     renderWithRoute('javascript')

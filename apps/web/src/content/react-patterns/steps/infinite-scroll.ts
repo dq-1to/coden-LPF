@@ -252,6 +252,24 @@ useEffect(() => {
     </div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `function InfiniteList() {\n  const [items, setItems] = useState(generateItems(1, 10))\n  const [hasMore, setHasMore] = useState(true)\n  const [page, setPage] = useState(1)\n  const sentinelRef = useRef(null)\n\n  function generateItems(start, count) {\n    return Array.from({ length: count }, (_, i) => ({ id: start + i, name: "アイテム " + (start + i) }))\n  }\n\n  useEffect(() => {\n    ____0\n  }, [hasMore, page])\n\n  const loadMore = () => {\n    const newItems = generateItems(page * 10 + 1, 10)\n    setItems((prev) => [...prev, ...newItems])\n    setPage((p) => p + 1)\n    if (page >= 4) setHasMore(false)\n  }\n\n  return (\n    <div style={{ height: '400px', overflowY: 'auto' }}>\n      {items.map((item) => (<div key={item.id}>{item.name}</div>))}\n      ____1\n    </div>\n  )\n}`,
+            blanks: [
+              {
+                id: 'observer-setup',
+                label: 'Observer設定',
+                correctTokens: ['const observer', '=', 'new IntersectionObserver', '(', '(entries) => {', 'if (entries[0].isIntersecting && hasMore) loadMore()', '}', ')', 'if (sentinelRef.current) observer.observe(sentinelRef.current)', 'return', '() => observer.disconnect()'],
+                distractorTokens: ['MutationObserver', 'addEventListener', 'ResizeObserver', 'scroll'],
+              },
+              {
+                id: 'sentinel-element',
+                label: 'センチネル表示',
+                correctTokens: ['{hasMore', '&&', '<div ref={sentinelRef}>', '読み込み中...', '</div>', '}'],
+                distractorTokens: ['useRef', 'useState', 'hasLess', '!isLoading'],
+              },
+            ],
+          },
       },
       {
         id: 'infinite-scroll-2',
@@ -312,6 +330,24 @@ useEffect(() => {
     </div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `function InfiniteListWithLoading() {\n  const [items, setItems] = useState([])\n  const [hasMore, setHasMore] = useState(true)\n  const [isLoading, setIsLoading] = useState(false)\n  const sentinelRef = useRef(null)\n\n  const loadMore = async () => {\n    if (isLoading || !hasMore) return\n    setIsLoading(true)\n    await new Promise((r) => setTimeout(r, 500))\n    setItems((prev) => [...prev, ...Array.from({ length: 10 }, (_, i) => ({ id: prev.length + i + 1 }))])\n    setIsLoading(false)\n  }\n\n  useEffect(() => {\n    const observer = new IntersectionObserver((entries) => {\n      ____0\n    }, ____1)\n    if (sentinelRef.current) observer.observe(sentinelRef.current)\n    return () => observer.disconnect()\n  }, [hasMore, isLoading])\n\n  return (\n    <div>\n      {items.map((item) => <div key={item.id}>Item {item.id}</div>)}\n      {isLoading && <p>読み込み中...</p>}\n      <div ref={sentinelRef} />\n    </div>\n  )\n}`,
+            blanks: [
+              {
+                id: 'loading-guard',
+                label: 'isLoading guard',
+                correctTokens: ['if', '(', 'entries[0].isIntersecting', '&&', '!isLoading', '&&', 'hasMore', ')', 'loadMore()'],
+                distractorTokens: ['MutationObserver', 'addEventListener', 'scroll', 'useState'],
+              },
+              {
+                id: 'root-margin',
+                label: 'rootMargin設定',
+                correctTokens: ['{', 'rootMargin:', "'0px 0px 200px 0px'", '}'],
+                distractorTokens: ['threshold:', 'root:', 'MutationObserver', 'scroll'],
+              },
+            ],
+          },
       },
     ],
   },

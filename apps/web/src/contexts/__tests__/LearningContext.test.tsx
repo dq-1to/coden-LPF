@@ -5,6 +5,7 @@ import { useAuth } from '../AuthContext'
 import { getLearningStats } from '../../services/statsService'
 import { getAllStepProgress } from '../../services/progressService'
 import type { LearningStats } from '../../services/statsService'
+import type { StepProgressRow } from '../../services/progressService'
 import type { User } from '@supabase/supabase-js'
 
 // --- Mocks ---
@@ -33,6 +34,7 @@ const mockGetAllStepProgress = vi.mocked(getAllStepProgress)
 
 interface LearningContextType {
   stats: LearningStats | null
+  allStepProgress: readonly StepProgressRow[]
   completedStepIds: ReadonlySet<string>
   completedStepsCount: number
   isLoadingStats: boolean
@@ -81,6 +83,7 @@ describe('LearningContext', () => {
       user: fakeUser,
       session: null,
       isLoadingAuth: false,
+      isAdmin: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
@@ -111,6 +114,8 @@ describe('LearningContext', () => {
     })
 
     expect(captured!.stats).toEqual(fakeStats)
+    expect(captured!.allStepProgress).toHaveLength(3)
+    expect(captured!.allStepProgress[0]?.step_id).toBe('usestate-basic')
     expect(captured!.completedStepIds.has('usestate-basic')).toBe(true)
     expect(captured!.completedStepIds.has('events')).toBe(true)
     expect(captured!.completedStepIds.has('conditional')).toBe(false)
@@ -121,6 +126,7 @@ describe('LearningContext', () => {
       user: null,
       session: null,
       isLoadingAuth: false,
+      isAdmin: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
@@ -142,6 +148,7 @@ describe('LearningContext', () => {
     })
 
     expect(captured!.stats).toBeNull()
+    expect(captured!.allStepProgress).toHaveLength(0)
     expect(captured!.completedStepIds.size).toBe(0)
   })
 

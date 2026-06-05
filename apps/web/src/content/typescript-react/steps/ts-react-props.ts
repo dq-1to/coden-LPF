@@ -184,6 +184,24 @@ function Card({ title, description, children }: CardProps) {
 // 動作確認
 // <Card title="React学習">本文テキスト</Card>
 // <Card title="TypeScript" description="型安全な開発" />`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import type { ReactNode } from 'react'\\n\\n____0\\n\\n____1 {\\n  return (\\n    <div>\\n      <h2>{title}</h2>\\n      {description && <p>{description}</p>}\\n      {children}\\n    </div>\\n  )\\n}`,
+            blanks: [
+              {
+                id: 'card-props',
+                label: 'CardProps定義',
+                correctTokens: ['interface', 'CardProps', '{', 'title', ':', 'string', ';', 'description?', ':', 'string', ';', 'children?', ':', 'ReactNode', '}'],
+                distractorTokens: ['any', 'Element', 'FC', 'HTMLElement'],
+              },
+              {
+                id: 'card-signature',
+                label: 'Card関数',
+                correctTokens: ['function', 'Card', '(', '{', 'title', ',', 'description', ',', 'children', '}', ':', 'CardProps', ')'],
+                distractorTokens: ['Props', 'React.FC', 'const', '=>'],
+              },
+            ],
+          },
       },
       {
         id: 'ts-react-props-2',
@@ -209,6 +227,24 @@ function IconButton({ icon, label, ...rest }: IconButtonProps) {
 
 // 動作確認（disabled などネイティブPropsが使える）
 // <IconButton icon="★" label="お気に入り" disabled />`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import type { ComponentProps, ReactNode } from 'react'\\n\\n____0\\n\\nfunction IconButton({ icon, label, ...rest }: IconButtonProps) {\\n  ____1\\n}`,
+            blanks: [
+              {
+                id: 'iconbutton-props',
+                label: 'Props定義',
+                correctTokens: ['interface', 'IconButtonProps', 'extends', "ComponentProps<'button'>", '{', 'icon', ':', 'ReactNode', ';', 'label', ':', 'string', '}'],
+                distractorTokens: ['HTMLAttributes', 'ButtonHTMLAttributes', 'FC', 'DetailedHTMLProps'],
+              },
+              {
+                id: 'iconbutton-return',
+                label: 'return文',
+                correctTokens: ['return', '(', '<button {...rest}>', '<span>{icon}</span>', '{label}', '</button>', ')'],
+                distractorTokens: ['<div>', '<a>', 'onClick', 'className'],
+              },
+            ],
+          },
       },
     ],
   },

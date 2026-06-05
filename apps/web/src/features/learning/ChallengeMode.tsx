@@ -5,6 +5,7 @@ import { ErrorBanner } from '../../components/ErrorBanner'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
 import { JudgmentResult } from './components/JudgmentResult'
+import { useJudgmentAction } from './hooks/useJudgmentAction'
 import { getMissingKeywords } from './utils/keywordMatcher'
 import { ChallengePuzzleMulti } from './ChallengePuzzle/ChallengePuzzleMulti'
 
@@ -27,8 +28,8 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
   const [pattern, setPattern] = useState<ChallengePattern>(() => getRandomPattern(task))
   const [code, setCode] = useState(() => pattern.starterCode)
   const [checked, setChecked] = useState(false)
-  const [reported, setReported] = useState(false)
   const [submissionError, setSubmissionError] = useState<string | null>(null)
+  const { handleResult } = useJudgmentAction(stepId, 'challenge', onComplete)
 
   const hasMobilePuzzle = isMobile && pattern.mobilePuzzle != null
 
@@ -37,7 +38,6 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     setPattern(nextPattern)
     setCode(nextPattern.starterCode)
     setChecked(false)
-    setReported(false)
     setSubmissionError(null)
   }, [stepId, task])
 
@@ -68,10 +68,11 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
       }
     }
 
-    if (hasSatisfiedRequirements && !reported) {
-      onComplete()
-      setReported(true)
-    }
+    await handleResult(hasSatisfiedRequirements, {
+      questionId: pattern.id,
+      expected: pattern.expectedKeywords.join(', '),
+      userInput: code,
+    })
   }
 
   const handleCodeChange = useCallback((nextValue: string) => {

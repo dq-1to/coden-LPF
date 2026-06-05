@@ -8,18 +8,25 @@ import type { Session, User } from '@supabase/supabase-js'
 
 const mockUnsubscribe = vi.fn()
 
-vi.mock('../../lib/supabaseClient', () => ({
-  supabase: {
-    auth: {
-      getSession: vi.fn(),
-      onAuthStateChange: vi.fn(),
-      signInWithPassword: vi.fn(),
-      signUp: vi.fn(),
-      signOut: vi.fn(),
+vi.mock('../../lib/supabaseClient', () => {
+  const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+  const eq = vi.fn(() => ({ maybeSingle }))
+  const select = vi.fn(() => ({ eq }))
+  const from = vi.fn(() => ({ select }))
+  return {
+    supabase: {
+      auth: {
+        getSession: vi.fn(),
+        onAuthStateChange: vi.fn(),
+        signInWithPassword: vi.fn(),
+        signUp: vi.fn(),
+        signOut: vi.fn(),
+      },
+      from,
     },
-  },
-  supabaseConfigError: null,
-}))
+    supabaseConfigError: null,
+  }
+})
 
 const mockGetSession = vi.mocked(supabase.auth.getSession)
 const mockOnAuthStateChange = vi.mocked(supabase.auth.onAuthStateChange)

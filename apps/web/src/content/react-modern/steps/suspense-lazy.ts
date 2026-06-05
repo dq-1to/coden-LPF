@@ -209,6 +209,24 @@ function App() {
     </Routes>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { Suspense, lazy } from 'react'\nimport { Routes, Route } from 'react-router-dom'\n\n____0\n\nfunction App() {\n  return (\n    ____1\n  )\n}`,
+            blanks: [
+              {
+                id: 'lazy-imports',
+                label: 'lazy定義',
+                correctTokens: ['const', 'HomePage', '=', "lazy(() => import('./pages/HomePage'))", 'const', 'AboutPage', '=', "lazy(() => import('./pages/AboutPage'))", 'const', 'ContactPage', '=', "lazy(() => import('./pages/ContactPage'))"],
+                distractorTokens: ['require', 'useEffect', 'useState', 'memo'],
+              },
+              {
+                id: 'suspense-routes',
+                label: 'Suspense+Routes',
+                correctTokens: ['<Suspense fallback={<p>読み込み中...</p>}>', '<Routes>', '<Route path="/" element={<HomePage />} />', '<Route path="/about" element={<AboutPage />} />', '<Route path="/contact" element={<ContactPage />} />', '</Routes>', '</Suspense>'],
+                distractorTokens: ['<ErrorBoundary>', '<Provider>', 'fallback=""', 'children'],
+              },
+            ],
+          },
       },
       {
         id: 'suspense-lazy-2',
@@ -236,6 +254,24 @@ function App() {
     <div>ここに実装</div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { Suspense, lazy } from 'react'\n\n____0\n\nfunction App() {\n  return (\n    ____1\n  )\n}`,
+            blanks: [
+              {
+                id: 'lazy-imports',
+                label: 'lazy定義',
+                correctTokens: ['const', 'AppHeader', '=', "lazy(() => import('./AppHeader'))", 'const', 'MainContent', '=', "lazy(() => import('./MainContent'))"],
+                distractorTokens: ['require', 'useEffect', 'useState', 'memo'],
+              },
+              {
+                id: 'nested-suspense',
+                label: 'Suspenseネスト',
+                correctTokens: ['<Suspense fallback={<p>ヘッダー読み込み中...</p>}>', '<AppHeader />', '<Suspense fallback={<p>コンテンツ読み込み中...</p>}>', '<MainContent />', '</Suspense>', '</Suspense>'],
+                distractorTokens: ['<ErrorBoundary>', 'fallback=""', 'children', '<Provider>'],
+              },
+            ],
+          },
       },
     ],
   },

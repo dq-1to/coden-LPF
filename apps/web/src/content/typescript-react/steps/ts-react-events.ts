@@ -205,6 +205,30 @@ function ContactForm() {
     </form>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useState } from 'react'\\nimport type { ChangeEvent, FormEvent } from 'react'\\n\\n____0\\n\\nfunction ContactForm() {\\n  const [form, setForm] = useState<FormData>({ name: '', email: '' })\\n\\n  ____1\\n\\n  ____2\\n\\n  return (\\n    <form onSubmit={handleSubmit}>\\n      <input name="name" value={form.name} onChange={handleChange} />\\n      <input name="email" value={form.email} onChange={handleChange} />\\n      <button type="submit">送信</button>\\n    </form>\\n  )\\n}`,
+            blanks: [
+              {
+                id: 'form-data',
+                label: 'FormData型',
+                correctTokens: ['interface', 'FormData', '{', 'name', ':', 'string', ';', 'email', ':', 'string', '}'],
+                distractorTokens: ['MouseEvent', 'KeyboardEvent', 'any', 'Event'],
+              },
+              {
+                id: 'change-handler',
+                label: 'onChange',
+                correctTokens: ['const', 'handleChange', '=', '(e: ChangeEvent<HTMLInputElement>)', '=>', '{', 'setForm(prev =>', '({ ...prev,', '[e.target.name]: e.target.value', '}))', '}'],
+                distractorTokens: ['MouseEvent', 'KeyboardEvent', 'onClick', 'onBlur'],
+              },
+              {
+                id: 'submit-handler',
+                label: 'onSubmit',
+                correctTokens: ['const', 'handleSubmit', '=', '(e: FormEvent<HTMLFormElement>)', '=>', '{', 'e.preventDefault()', 'console.log(form)', '}'],
+                distractorTokens: ['MouseEvent', 'Event', 'e.stopPropagation()', 'onBlur'],
+              },
+            ],
+          },
       },
       {
         id: 'ts-react-events-2',
@@ -243,6 +267,24 @@ function SearchField() {
     </div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useState } from 'react'\\nimport type { ChangeEvent, KeyboardEvent } from 'react'\\n\\nconst DUMMY_DATA = ['TypeScript', 'React', 'JavaScript', 'CSS', 'HTML', 'Node.js']\\n\\nfunction SearchField() {\\n  const [query, setQuery] = useState('')\\n  const [results, setResults] = useState<string[]>([])\\n\\n  ____0\\n\\n  ____1\\n\\n  return (\\n    <div>\\n      <input value={query} onChange={handleChange} onKeyDown={handleKeyDown}\\n        placeholder="Enterで検索、Escapeでクリア" />\\n      <ul>\\n        {results.map(r => <li key={r}>{r}</li>)}\\n      </ul>\\n    </div>\\n  )\\n}`,
+            blanks: [
+              {
+                id: 'search-change',
+                label: 'onChange',
+                correctTokens: ['const', 'handleChange', '=', '(e: ChangeEvent<HTMLInputElement>)', '=>', '{', 'setQuery(e.target.value)', '}'],
+                distractorTokens: ['MouseEvent', 'FocusEvent', 'onClick', 'onBlur'],
+              },
+              {
+                id: 'search-keydown',
+                label: 'onKeyDown',
+                correctTokens: ['const', 'handleKeyDown', '=', '(e: KeyboardEvent<HTMLInputElement>)', '=>', '{', "if (e.key === 'Enter')", '{', 'setResults(', 'DUMMY_DATA.filter(d =>', 'd.toLowerCase().includes(query.toLowerCase()))', ')', '}', "if (e.key === 'Escape')", '{', "setQuery('')", 'setResults([])', '}', '}'],
+                distractorTokens: ['MouseEvent', 'FocusEvent', 'e.keyCode', 'onBlur'],
+              },
+            ],
+          },
       },
     ],
   },

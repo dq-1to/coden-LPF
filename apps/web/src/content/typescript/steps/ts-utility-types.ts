@@ -224,6 +224,24 @@ const user: UserRecord = {
 };
 const profile = toPublicProfile(user);
 console.log(profile); // { id: 1, name: "Alice", email: "alice@example.com", role: "user" }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `interface UserRecord {\n  id: number;\n  name: string;\n  email: string;\n  passwordHash: string;\n  role: 'admin' | 'user';\n}\n\n____0\n\nfunction toPublicProfile(user: UserRecord): PublicProfile {\n  ____1\n}\n\nconst user: UserRecord = {\n  id: 1, name: "Alice", email: "alice@example.com",\n  passwordHash: "hash_secret", role: "user",\n};\nconsole.log(toPublicProfile(user));`,
+            blanks: [
+              {
+                id: 'public-profile',
+                label: 'PublicProfile型',
+                correctTokens: ['type', 'PublicProfile', '=', 'Omit', '<', 'UserRecord', ',', "'passwordHash'", '>'],
+                distractorTokens: ['Pick', 'Partial', 'Exclude', 'Extract'],
+              },
+              {
+                id: 'to-profile',
+                label: '変換関数',
+                correctTokens: ['const', '{', 'passwordHash', ',', '...profile', '}', '=', 'user', 'return', 'profile'],
+                distractorTokens: ['delete user.passwordHash', 'Object.keys', 'JSON.parse', 'structuredClone'],
+              },
+            ],
+          },
       },
       {
         id: 'ts-utility-types-2',
@@ -251,6 +269,24 @@ function hasPermission(role: Role, perm: Permission): boolean {
 console.log(hasPermission("admin", "delete"));  // true
 console.log(hasPermission("viewer", "write"));  // false
 console.log(hasPermission("editor", "read"));   // true`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `type Role = 'admin' | 'editor' | 'viewer';\ntype Permission = 'read' | 'write' | 'delete';\n\n____0\n\nfunction hasPermission(role: Role, perm: Permission): boolean {\n  ____1\n}\n\nconsole.log(hasPermission("admin", "delete"));\nconsole.log(hasPermission("viewer", "write"));\nconsole.log(hasPermission("editor", "read"));`,
+            blanks: [
+              {
+                id: 'role-permissions',
+                label: 'permissions定義',
+                correctTokens: ['const', 'rolePermissions', ':', 'Record<Role, Permission[]>', '=', '{', 'admin', ':', '[', "'read'", ',', "'write'", ',', "'delete'", ']', ',', 'editor', ':', '[', "'read'", ',', "'write'", ']', ',', 'viewer', ':', '[', "'read'", ']', '}'],
+                distractorTokens: ['Map', 'Object', 'Partial', 'Required'],
+              },
+              {
+                id: 'has-permission',
+                label: 'hasPermission',
+                correctTokens: ['return', 'rolePermissions[role]', '.includes', '(', 'perm', ')'],
+                distractorTokens: ['rolePermissions.get', 'rolePermissions.has', 'indexOf', 'find'],
+              },
+            ],
+          },
       },
     ],
   },

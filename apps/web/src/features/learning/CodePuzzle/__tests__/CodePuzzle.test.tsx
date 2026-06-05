@@ -6,7 +6,7 @@ import { CodePuzzle } from '../CodePuzzle'
 
 vi.mock('prismjs', () => ({
   default: {
-    highlight: (_code: string) => _code,
+    tokenize: (_code: string) => [_code],
     languages: { tsx: {}, javascript: {} },
   },
 }))

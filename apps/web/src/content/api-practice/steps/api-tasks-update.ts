@@ -185,6 +185,30 @@ export function TaskList() {
     </ul>
   );
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useEffect, useState } from 'react';\n\ninterface Task { id: string; title: string; completed: boolean; }\n\nexport function TaskList() {\n  const [tasks, setTasks] = useState<Task[]>([]);\n  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());\n\n  useEffect(() => {\n    fetch('/tasks').then(r => r.json()).then(d => setTasks(d));\n  }, []);\n\n  async function handleToggle(task: Task) {\n    setUpdatingIds(prev => new Set(prev).add(task.id));\n    ____0\n    try {\n      ____1\n    } catch {\n      ____2\n    } finally {\n      setUpdatingIds(prev => { const s = new Set(prev); s.delete(task.id); return s; });\n    }\n  }\n\n  return (\n    <ul>\n      {tasks.map((task) => (\n        <li key={task.id}>\n          <input type="checkbox" checked={task.completed}\n            disabled={updatingIds.has(task.id)}\n            onChange={() => void handleToggle(task)} />\n          {task.title}\n        </li>\n      ))}\n    </ul>\n  );\n}`,
+            blanks: [
+              {
+                id: 'optimistic',
+                label: '楽観的更新',
+                correctTokens: ['setTasks', '(', 'prev', '=>', 'prev.map', '(', 't', '=>', 't.id', '===', 'task.id', '?', '{', '...t', ',', 'completed', ':', '!', 't.completed', '}', ':', 't', ')', ')'],
+                distractorTokens: ['filter', 'find', 'push', 'splice', 'setData'],
+              },
+              {
+                id: 'patch-req',
+                label: 'PATCH送信',
+                correctTokens: ['await', 'fetch', '(', '`/tasks/${task.id}`', ',', '{', 'method', ':', "'PATCH'", ',', 'headers', ':', '{', "'Content-Type'", ':', "'application/json'", '}', ',', 'body', ':', 'JSON.stringify', '(', '{', 'completed', ':', '!', 'task.completed', '}', ')', '}', ')'],
+                distractorTokens: ["'PUT'", "'DELETE'", 'axios', 'JSON.parse', 'XMLHttpRequest'],
+              },
+              {
+                id: 'rollback',
+                label: 'ロールバック',
+                correctTokens: ['setTasks', '(', 'prev', '=>', 'prev.map', '(', 't', '=>', 't.id', '===', 'task.id', '?', '{', '...t', ',', 'completed', ':', 'task.completed', '}', ':', 't', ')', ')'],
+                distractorTokens: ['filter', 'find', 'push', 'setError', 'console.log'],
+              },
+            ],
+          },
         },
       ],
     },

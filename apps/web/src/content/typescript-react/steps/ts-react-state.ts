@@ -209,6 +209,24 @@ function UserProfile() {
     </div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `interface User {\\n  id: number;\\n  name: string;\\n  email: string;\\n}\\n\\nfunction UserProfile() {\\n  ____0\\n\\n  ____1\\n\\n  return (\\n    <div>\\n      {user ? <p>{user.name} ({user.email})</p> : <p>ログインしてください</p>}\\n      <button onClick={handleLogin}>ログイン</button>\\n      <button onClick={handleLogout}>ログアウト</button>\\n    </div>\\n  )\\n}`,
+            blanks: [
+              {
+                id: 'user-state',
+                label: 'useState定義',
+                correctTokens: ['const', '[user, setUser]', '=', 'useState', '<User | null>', '(', 'null', ')'],
+                distractorTokens: ['undefined', 'any', 'string', 'useRef'],
+              },
+              {
+                id: 'login-logout',
+                label: 'login/logout',
+                correctTokens: ['function', 'handleLogin', '()', '{', 'setUser', '(', "{ id: 1, name: 'Alice', email: 'alice@example.com' }", ')', '}', 'function', 'handleLogout', '()', '{', 'setUser', '(', 'null', ')', '}'],
+                distractorTokens: ['dispatch', 'setState', 'resetUser', 'useRef'],
+              },
+            ],
+          },
       },
       {
         id: 'ts-react-state-2',
@@ -241,6 +259,24 @@ function LoginForm() {
     </form>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `type FormState = {\\n  email: string;\\n  password: string;\\n  error: string | null;\\n}\\n\\n____0\\n\\nfunction reducer(state: FormState, action: FormAction): FormState {\\n  ____1\\n}\\n\\nfunction LoginForm() {\\n  const [state, dispatch] = useReducer(reducer, { email: '', password: '', error: null })\\n  return (\\n    <form>\\n      <input value={state.email}\\n        onChange={e => dispatch({ type: 'SET_EMAIL', email: e.target.value })} />\\n      <input type="password" value={state.password}\\n        onChange={e => dispatch({ type: 'SET_PASSWORD', password: e.target.value })} />\\n    </form>\\n  )\\n}`,
+            blanks: [
+              {
+                id: 'form-action',
+                label: 'FormAction型',
+                correctTokens: ['type', 'FormAction', '=', "{ type: 'SET_EMAIL'; email: string }", '|', "{ type: 'SET_PASSWORD'; password: string }", '|', "{ type: 'CLEAR_ERROR' }"],
+                distractorTokens: ['useState', 'setState', 'enum', 'any'],
+              },
+              {
+                id: 'reducer-body',
+                label: 'reducer実装',
+                correctTokens: ['switch', '(action.type)', '{', "case 'SET_EMAIL':", 'return', '{ ...state,', 'email: action.email }', "case 'SET_PASSWORD':", 'return', '{ ...state,', 'password: action.password }', "case 'CLEAR_ERROR':", 'return', '{ ...state,', 'error: null }', 'default:', 'return', 'state', '}'],
+                distractorTokens: ['useState', 'dispatch', 'action.value', 'any'],
+              },
+            ],
+          },
       },
     ],
   },

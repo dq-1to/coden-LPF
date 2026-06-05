@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Button } from '../../components/Button'
 import type { PracticeQuestion } from '../../content/fundamentals/steps'
-import { useJudgmentAction } from './hooks/useJudgmentAction'
+import { useJudgmentAction, type ReviewPayload } from './hooks/useJudgmentAction'
 import { useStepReset } from './hooks/useStepReset'
 
 interface PracticeModeProps {
@@ -18,7 +18,7 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [hints, setHints] = useState<Record<string, boolean>>({})
   const [isJudged, setIsJudged] = useState(false)
-  const { handleResult } = useJudgmentAction(stepId, onComplete)
+  const { handleResult } = useJudgmentAction(stepId, 'practice', onComplete)
 
   useStepReset(stepId, () => {
     setAnswers({})
@@ -35,9 +35,23 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
     [answers, questions],
   )
 
-  function handleJudge() {
+  function getReviewPayload(question: PracticeQuestion): ReviewPayload {
+    return {
+      questionId: question.id,
+      expected: question.answer,
+      userInput: answers[question.id] ?? '',
+    }
+  }
+
+  async function handleJudge() {
     setIsJudged(true)
-    handleResult(isAllCorrect)
+    const payloads = questions.filter((question) => {
+      const answer = answers[question.id] ?? ''
+      const isCorrect = normalize(answer) === normalize(question.answer)
+      return isAllCorrect || !isCorrect
+    }).map(getReviewPayload)
+
+    await handleResult(isAllCorrect, payloads)
   }
 
   function handleAnswerChange(questionId: string, value: string) {
@@ -142,7 +156,7 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
       })}
 
       <div className="flex flex-col items-start gap-4 pt-4 sm:flex-row sm:items-center">
-        <Button size="lg" onClick={handleJudge}>
+        <Button size="lg" onClick={() => void handleJudge()}>
           判定する
         </Button>
 

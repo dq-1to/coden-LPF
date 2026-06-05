@@ -66,6 +66,7 @@ export function CurriculumPage() {
                 <h3 className="mt-3 text-sm font-bold text-slate-900 group-hover:text-primary-dark">
                   {card.title}
                 </h3>
+                <p className="mt-1 text-xs font-semibold text-slate-600">{card.purpose}</p>
                 <p className="mt-1 text-xs text-slate-500">{card.description}</p>
               </Link>
             ))}

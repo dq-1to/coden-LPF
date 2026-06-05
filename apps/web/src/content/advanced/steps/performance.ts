@@ -193,6 +193,24 @@ export function OptimizedCounter() {
     </div>
   );
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useState, useCallback, memo } from 'react';\n\n____0\n\nexport function OptimizedCounter() {\n  const [count, setCount] = useState(0);\n  const [theme, setTheme] = useState<'light' | 'dark'>('light');\n\n  const handleIncrement = ____1\n  const handleDecrement = useCallback(() => setCount(c => c - 1), []);\n\n  return (\n    <div>\n      <p>カウント: {count}</p>\n      <ActionButton onClick={handleIncrement} label="増やす" />\n      <ActionButton onClick={handleDecrement} label="減らす" />\n      <button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}>\n        テーマ切り替え（{theme}）\n      </button>\n    </div>\n  );\n}`,
+            blanks: [
+              {
+                id: 'memo-component',
+                label: 'memoコンポーネント',
+                correctTokens: ['const', 'ActionButton', '=', 'memo', '(', '(', '{', 'onClick', ',', 'label', '}', ')', '=>', '{', 'return', '<button onClick={onClick}>', '{label}', '</button>', '}', ')'],
+                distractorTokens: ['useMemo', 'forwardRef', 'React.lazy', 'useRef', 'useCallback'],
+              },
+              {
+                id: 'use-callback',
+                label: 'useCallback定義',
+                correctTokens: ['useCallback', '(', '(', ')', '=>', 'setCount', '(', 'c', '=>', 'c', '+', '1', ')', ',', '[', ']', ')'],
+                distractorTokens: ['useMemo', 'useRef', 'React.lazy', 'forwardRef'],
+              },
+            ],
+          },
         },
       ],
     },

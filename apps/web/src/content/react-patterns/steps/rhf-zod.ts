@@ -252,6 +252,24 @@ function LoginForm() {
     </form>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useForm } from 'react-hook-form'\nimport { zodResolver } from '@hookform/resolvers/zod'\nimport { z } from 'zod'\n\nconst schema = z.object({\n  email: z.string().email('有効なメールアドレス'),\n  password: z.string().min(8, '8文字以上'),\n})\n\ntype FormData = z.infer<typeof schema>\n\nfunction LoginForm() {\n  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({\n    ____0\n  })\n\n  return (\n    <form onSubmit={handleSubmit((data) => console.log(data))}>\n      <input {...register('email')} placeholder="メール" />\n      ____1\n      <button type="submit">ログイン</button>\n    </form>\n  )\n}`,
+            blanks: [
+              {
+                id: 'zod-resolver',
+                label: 'zodResolver設定',
+                correctTokens: ['resolver:', 'zodResolver', '(', 'schema', ')'],
+                distractorTokens: ['yupResolver', 'useFormik', 'Formik', 'validate'],
+              },
+              {
+                id: 'error-display',
+                label: 'エラー表示',
+                correctTokens: ['{errors.email', '&&', '<p>', '{errors.email.message}', '</p>', '}'],
+                distractorTokens: ['errors.root', 'validate', 'useState', 'useForm'],
+              },
+            ],
+          },
       },
       {
         id: 'rhf-zod-2',
@@ -295,6 +313,24 @@ function SignupForm() {
     </form>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useForm } from 'react-hook-form'\nimport { zodResolver } from '@hookform/resolvers/zod'\nimport { z } from 'zod'\n\nconst signupSchema = z.object({\n  email: z.string().email(),\n  password: z.string().min(8),\n  confirmPassword: z.string(),\n}).refine(\n  ____0\n)\n\ntype SignupData = z.infer<typeof signupSchema>\n\nfunction SignupForm() {\n  const { register, handleSubmit, formState: { errors } } = useForm<SignupData>({\n    resolver: zodResolver(signupSchema),\n  })\n\n  return (\n    <form onSubmit={handleSubmit((data) => console.log(data))}>\n      <input {...register('email')} />\n      <input {...register('password')} type="password" />\n      <input {...register('confirmPassword')} type="password" />\n      ____1\n      <button type="submit">登録</button>\n    </form>\n  )\n}`,
+            blanks: [
+              {
+                id: 'refine',
+                label: 'refine定義',
+                correctTokens: ['(data) => data.password === data.confirmPassword', ',', '{', 'message:', "'パスワードが一致しません'", ',', 'path:', "['confirmPassword']", '}'],
+                distractorTokens: ['superRefine', 'validate', 'yup', 'parse'],
+              },
+              {
+                id: 'confirm-error',
+                label: 'エラー表示',
+                correctTokens: ['{errors.confirmPassword', '&&', '<p>', '{errors.confirmPassword.message}', '</p>', '}'],
+                distractorTokens: ['errors.root', 'validate', 'useState', 'Formik'],
+              },
+            ],
+          },
       },
     ],
   },

@@ -117,6 +117,7 @@ export interface PracticeCard {
   readonly to: string
   readonly icon: LucideIcon
   readonly title: string
+  readonly purpose: string
   readonly description: string
   readonly color: string
 }
@@ -127,6 +128,7 @@ export const PRACTICE_MODE_CARDS: readonly PracticeCard[] = [
     to: '/daily',
     icon: Zap,
     title: 'デイリーチャレンジ',
+    purpose: '昨日の復習',
     description: '日替わり1問で知識を定着',
     color: 'text-amber-600 bg-amber-50 border-amber-200',
   },
@@ -134,6 +136,7 @@ export const PRACTICE_MODE_CARDS: readonly PracticeCard[] = [
     to: '/practice/code-doctor',
     icon: Stethoscope,
     title: 'コードドクター',
+    purpose: 'バグ修正',
     description: 'バグ入りコードを修正',
     color: 'text-rose-600 bg-rose-50 border-rose-200',
   },
@@ -141,6 +144,7 @@ export const PRACTICE_MODE_CARDS: readonly PracticeCard[] = [
     to: '/practice/mini-projects',
     icon: Puzzle,
     title: 'ミニプロジェクト',
+    purpose: '成果物作成',
     description: '仕様からゼロ実装',
     color: 'text-violet-600 bg-violet-50 border-violet-200',
   },
@@ -148,6 +152,7 @@ export const PRACTICE_MODE_CARDS: readonly PracticeCard[] = [
     to: '/practice/code-reading',
     icon: BookOpen,
     title: 'コードリーディング',
+    purpose: 'コードを読む',
     description: 'コードを読んで理解度テスト',
     color: 'text-sky-600 bg-sky-50 border-sky-200',
   },

@@ -170,6 +170,24 @@ const apple: Product = { name: "りんご", price: 150, inStock: true };
 const soldOut: Product = { name: "みかん", price: 100, inStock: false };
 console.log(formatProduct(apple));   // "商品名: りんご, 価格: ¥150"
 console.log(formatProduct(soldOut)); // "商品名: みかん, 価格: ¥100 (在庫なし)"`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `____0\n\nfunction formatProduct(product: Product): string {\n  ____1\n}\n\nconst apple: Product = { name: "りんご", price: 150, inStock: true };\nconst soldOut: Product = { name: "みかん", price: 100, inStock: false };\nconsole.log(formatProduct(apple));\nconsole.log(formatProduct(soldOut));`,
+            blanks: [
+              {
+                id: 'product-type',
+                label: 'Product型',
+                correctTokens: ['type', 'Product', '=', '{', 'name', ':', 'string', ';', 'price', ':', 'number', ';', 'inStock', ':', 'boolean', '}'],
+                distractorTokens: ['interface', 'any', 'object', 'Array'],
+              },
+              {
+                id: 'format-body',
+                label: '関数body',
+                correctTokens: ['const', 'base', '=', '`商品名: ${product.name}, 価格: ¥${product.price}`', 'return', 'product.inStock', '?', 'base', ':', 'base', '+', "' (在庫なし)'"],
+                distractorTokens: ['product.stock', 'product.available', 'toString', 'JSON.stringify'],
+              },
+            ],
+          },
       },
       {
         id: 'ts-types-2',
@@ -194,6 +212,24 @@ function getStatusLabel(status: UserStatus): string {
 console.log(getStatusLabel("pending"));  // "審査中"
 console.log(getStatusLabel("active"));   // "有効"
 console.log(getStatusLabel("inactive")); // "無効"`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `____0\n\nfunction getStatusLabel(status: UserStatus): string {\n  ____1\n}\n\nconsole.log(getStatusLabel("pending"));\nconsole.log(getStatusLabel("active"));\nconsole.log(getStatusLabel("inactive"));`,
+            blanks: [
+              {
+                id: 'status-type',
+                label: 'UserStatus型',
+                correctTokens: ['type', 'UserStatus', '=', "'pending'", '|', "'active'", '|', "'inactive'"],
+                distractorTokens: ['enum', 'string', 'boolean', 'undefined'],
+              },
+              {
+                id: 'switch-body',
+                label: 'switch文',
+                correctTokens: ['switch', '(', 'status', ')', '{', 'case', "'pending'", ':', 'return', "'審査中'", 'case', "'active'", ':', 'return', "'有効'", 'case', "'inactive'", ':', 'return', "'無効'", '}'],
+                distractorTokens: ['if', 'else', "'disabled'", "'banned'", 'default'],
+              },
+            ],
+          },
       },
     ],
   },

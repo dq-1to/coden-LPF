@@ -212,6 +212,30 @@ export function TaskManager() {
     </div>
   );
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useEffect, useState } from 'react';\n\ninterface Task { id: string; title: string; completed: boolean; }\n\nexport function TaskManager() {\n  const [tasks, setTasks] = useState<Task[]>([]);\n  const [inputValue, setInputValue] = useState('');\n  const [submitting, setSubmitting] = useState(false);\n  const [error, setError] = useState<string | null>(null);\n\n  useEffect(() => {\n    fetch('/tasks').then(r => r.json()).then(d => setTasks(d));\n  }, []);\n\n  async function handleSubmit(e: React.FormEvent) {\n    e.preventDefault();\n    ____0\n    setSubmitting(true);\n    try {\n      ____1\n      ____2\n    } finally {\n      setSubmitting(false);\n    }\n  }\n\n  return (\n    <div>\n      <form onSubmit={(e) => void handleSubmit(e)}>\n        <input value={inputValue} onChange={(e) => setInputValue(e.target.value)} />\n        <button type="submit" disabled={submitting}>追加</button>\n      </form>\n      {error && <p>{error}</p>}\n      <ul>{tasks.map(t => <li key={t.id}>{t.title}</li>)}</ul>\n    </div>\n  );\n}`,
+            blanks: [
+              {
+                id: 'validation',
+                label: 'バリデーション',
+                correctTokens: ['if', '(', '!', 'inputValue.trim', '(', ')', ')', '{', 'setError', '(', "'タスク名を入力してください'", ')', 'return', '}'],
+                distractorTokens: ['inputValue.length', 'inputValue.slice', 'throw', 'console.log', 'alert'],
+              },
+              {
+                id: 'post-fetch',
+                label: 'POST送信',
+                correctTokens: ['const', 'res', '=', 'await', 'fetch', '(', "'/tasks'", ',', '{', 'method', ':', "'POST'", ',', 'headers', ':', '{', "'Content-Type'", ':', "'application/json'", '}', ',', 'body', ':', 'JSON.stringify', '(', '{', 'title', ':', 'inputValue', '}', ')', '}', ')'],
+                distractorTokens: ["'PUT'", "'PATCH'", 'axios', 'JSON.parse', 'XMLHttpRequest'],
+              },
+              {
+                id: 'update-list',
+                label: 'リスト更新',
+                correctTokens: ['const', 'newTask', '=', 'await', 'res.json', '(', ')', 'setTasks', '(', 'prev', '=>', '[', '...prev', ',', 'newTask', ']', ')', 'setInputValue', '(', "''", ')'],
+                distractorTokens: ['setData', 'push', 'concat', 'splice', 'setItems'],
+              },
+            ],
+          },
         },
       ],
     },

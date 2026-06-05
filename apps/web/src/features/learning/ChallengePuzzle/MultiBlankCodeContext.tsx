@@ -3,6 +3,7 @@ import 'prismjs/components/prism-markup'
 import 'prismjs/components/prism-jsx'
 import 'prismjs/components/prism-typescript'
 import 'prismjs/components/prism-tsx'
+import { renderTokenStream } from '../utils/renderPrismTokens'
 
 interface BlankInfo {
   label: string
@@ -18,7 +19,6 @@ interface MultiBlankCodeContextProps {
 
 export function MultiBlankCodeContext({ code, blanks, activeIndex, onBlankTap }: MultiBlankCodeContextProps) {
   const lang = Prism.languages['tsx'] ?? Prism.languages['javascript']
-  const langName = Prism.languages['tsx'] ? 'tsx' : 'javascript'
 
   // Split by ____0, ____1, ____2, etc.
   const parts = code.split(/____(\d+)/)
@@ -29,12 +29,11 @@ export function MultiBlankCodeContext({ code, blanks, activeIndex, onBlankTap }:
         // Even indices are code, odd indices are blank numbers
         if (i % 2 === 0) {
           return (
-            <span
-              key={i}
-              dangerouslySetInnerHTML={{
-                __html: lang ? Prism.highlight(part, lang, langName) : part,
-              }}
-            />
+            <span key={i}>
+              {lang
+                ? renderTokenStream(Prism.tokenize(part, lang), `mpart-${String(i)}`)
+                : part}
+            </span>
           )
         }
         const blankIndex = Number(part)

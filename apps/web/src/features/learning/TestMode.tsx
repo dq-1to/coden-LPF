@@ -21,7 +21,7 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
   const isMobile = useIsMobile()
   const [blankInput, setBlankInput] = useState('')
   const [isJudged, setIsJudged] = useState(false)
-  const { handleResult } = useJudgmentAction(stepId, onComplete)
+  const { handleResult } = useJudgmentAction(stepId, 'test', onComplete)
 
   useStepReset(stepId, () => {
     setBlankInput('')
@@ -34,9 +34,17 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
     [blankInput, mergedCode, task.expectedKeywords],
   )
 
-  function handleJudge() {
+  const getReviewPayload = useCallback((userInput: string) => {
+    return {
+      questionId: 'test',
+      expected: task.expectedKeywords.join(', '),
+      userInput,
+    }
+  }, [task.expectedKeywords])
+
+  async function handleJudge() {
     setIsJudged(true)
-    handleResult(isPassed)
+    await handleResult(isPassed, getReviewPayload(mergedCode))
   }
 
   function handleInputChange(value: string) {
@@ -45,12 +53,12 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
   }
 
   const handlePuzzleSubmit = useCallback(
-    (mergedCode: string) => {
+    async (mergedCode: string) => {
       const isCorrect = checkAllKeywords(mergedCode, task.expectedKeywords)
       setIsJudged(true)
-      handleResult(isCorrect)
+      await handleResult(isCorrect, getReviewPayload(mergedCode))
     },
-    [task.expectedKeywords, handleResult],
+    [task.expectedKeywords, handleResult, getReviewPayload],
   )
 
   const parts = task.starterCode.split('____')
@@ -92,7 +100,7 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
           </pre>
 
           <div className="flex flex-col items-start gap-4 pt-4 sm:flex-row sm:items-center">
-            <Button size="lg" onClick={handleJudge}>
+            <Button size="lg" onClick={() => void handleJudge()}>
               判定する
             </Button>
 

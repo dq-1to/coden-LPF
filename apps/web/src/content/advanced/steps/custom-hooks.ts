@@ -226,6 +226,24 @@ export function PersistentCounter() {
     </div>
   );
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useState } from 'react';\n\nfunction useLocalStorage<T>(key: string, initialValue: T) {\n  const [storedValue, setStoredValue] = useState(() => {\n    ____0\n  });\n\n  const setValue = (val: T) => {\n    setStoredValue(val);\n    ____1\n  };\n\n  return { value: storedValue, setValue };\n}\n\nexport function PersistentCounter() {\n  const { value: count, setValue: setCount } = useLocalStorage('count', 0);\n\n  return (\n    <div>\n      <p>カウント: {count}</p>\n      <button onClick={() => setCount(count + 1)}>+1</button>\n      <button onClick={() => setCount(0)}>リセット</button>\n    </div>\n  );\n}`,
+            blanks: [
+              {
+                id: 'read',
+                label: 'localStorage読み込み',
+                correctTokens: ['const', 'item', '=', 'localStorage.getItem', '(', 'key', ')', 'return', 'item', '?', 'JSON.parse', '(', 'item', ')', ':', 'initialValue'],
+                distractorTokens: ['sessionStorage.getItem', 'useEffect', 'JSON.stringify', 'undefined'],
+              },
+              {
+                id: 'write',
+                label: 'localStorage保存',
+                correctTokens: ['localStorage.setItem', '(', 'key', ',', 'JSON.stringify', '(', 'val', ')', ')'],
+                distractorTokens: ['sessionStorage.setItem', 'JSON.parse', 'useEffect', 'getItem'],
+              },
+            ],
+          },
         },
       ],
     },

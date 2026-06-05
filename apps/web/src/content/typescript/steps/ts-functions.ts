@@ -178,6 +178,24 @@ console.log(evens); // [2, 4, 6]
 const words = ["cat", "elephant", "dog", "butterfly", "ant"];
 const longWords = filterByCondition(words, (w) => w.length >= 5);
 console.log(longWords); // ["elephant", "butterfly"]`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `____0 {\n  ____1\n}\n\nconst numbers = [1, 2, 3, 4, 5, 6];\nconst evens = filterByCondition(numbers, (n) => n % 2 === 0);\nconsole.log(evens);\n\nconst words = ["cat", "elephant", "dog", "butterfly", "ant"];\nconst longWords = filterByCondition(words, (w) => w.length >= 5);\nconsole.log(longWords);`,
+            blanks: [
+              {
+                id: 'signature',
+                label: '関数シグネチャ',
+                correctTokens: ['function', 'filterByCondition', '<T>', '(', 'arr', ':', 'T[]', ',', 'predicate', ':', '(', 'item', ':', 'T', ')', '=>', 'boolean', ')', ':', 'T[]'],
+                distractorTokens: ['any[]', 'unknown', 'void', 'forEach'],
+              },
+              {
+                id: 'body',
+                label: '実装body',
+                correctTokens: ['return', 'arr.filter', '(', 'predicate', ')'],
+                distractorTokens: ['arr.map', 'arr.forEach', 'arr.reduce', 'arr.find'],
+              },
+            ],
+          },
       },
       {
         id: 'ts-functions-2',
@@ -199,6 +217,24 @@ function applyTwice(value, fn) {
 
 console.log(applyTwice(3, (n) => n * 2));   // 12
 console.log(applyTwice(5, (n) => n + 10));  // 25`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `____0 {\n  ____1\n}\n\nconsole.log(applyTwice(3, (n) => n * 2));\nconsole.log(applyTwice(5, (n) => n + 10));`,
+            blanks: [
+              {
+                id: 'signature',
+                label: '型注釈',
+                correctTokens: ['function', 'applyTwice', '(', 'value', ':', 'number', ',', 'fn', ':', '(', 'n', ':', 'number', ')', '=>', 'number', ')', ':', 'number'],
+                distractorTokens: ['string', 'any', 'void', 'callback'],
+              },
+              {
+                id: 'body',
+                label: '実装',
+                correctTokens: ['return', 'fn', '(', 'fn', '(', 'value', ')', ')'],
+                distractorTokens: ['fn.call', 'fn.apply', 'fn.bind', 'value.fn'],
+              },
+            ],
+          },
       },
     ],
   },

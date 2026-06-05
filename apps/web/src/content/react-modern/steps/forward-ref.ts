@@ -263,6 +263,24 @@ function SearchForm() {
     </form>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { forwardRef, useRef } from 'react'\n\n____0\n\nfunction SearchForm() {\n  const inputRef = useRef(null)\n\n  function handleSubmit(e) {\n    e.preventDefault()\n    const query = e.target.search.value\n    console.log('検索:', query)\n    e.target.reset()\n    ____1\n  }\n\n  return (\n    <form onSubmit={handleSubmit}>\n      <Input ref={inputRef} name="search" placeholder="検索..." />\n      <button type="submit">検索</button>\n    </form>\n  )\n}`,
+            blanks: [
+              {
+                id: 'forward-ref-wrap',
+                label: 'forwardRef',
+                correctTokens: ['const', 'Input', '=', 'forwardRef', '(', 'function Input(props, ref) {', 'return', '<input ref={ref} {...props} />', '}', ')'],
+                distractorTokens: ['useRef', 'createRef', 'useCallback', 'memo'],
+              },
+              {
+                id: 'focus-call',
+                label: 'focus呼出',
+                correctTokens: ['inputRef.current', '?.', 'focus()'],
+                distractorTokens: ['useRef', 'blur()', 'click()', 'value'],
+              },
+            ],
+          },
       },
       {
         id: 'forward-ref-2',
@@ -305,6 +323,24 @@ function App() {
     </div>
   )
 }`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { forwardRef, useRef, useImperativeHandle } from 'react'\n\nconst VideoPlayer = forwardRef(function VideoPlayer({ src }, ref) {\n  const videoRef = useRef(null)\n\n  ____0\n\n  return <video ref={videoRef} src={src} />\n})\n\nfunction App() {\n  const playerRef = useRef(null)\n\n  return (\n    <div>\n      <VideoPlayer ref={playerRef} src="https://example.com/video.mp4" />\n      ____1\n    </div>\n  )\n}`,
+            blanks: [
+              {
+                id: 'imperative-handle',
+                label: 'useImperativeHandle',
+                correctTokens: ['useImperativeHandle', '(', 'ref', ',', '() => ({', 'play:', '() => videoRef.current.play(),', 'pause:', '() => videoRef.current.pause()', '})', ')'],
+                distractorTokens: ['useRef', 'createRef', 'useCallback', 'useEffect'],
+              },
+              {
+                id: 'control-buttons',
+                label: '制御ボタン',
+                correctTokens: ['<button', 'onClick={() => playerRef.current.play()}>再生</button>', '<button', 'onClick={() => playerRef.current.pause()}>一時停止</button>'],
+                distractorTokens: ['stop()', 'reset()', 'onClick={play}', 'useRef'],
+              },
+            ],
+          },
       },
     ],
   },

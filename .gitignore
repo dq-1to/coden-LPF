@@ -23,4 +23,10 @@ Thumbs.db
 .tmp/
 docs/sessions/
 docs/qa/
+apps/web/docs/
 .playwright-mcp/
+
+# Supabase ローカル seed（実パスワードを含むため Git 管理外）
+# .example のみ管理下、実ファイル（.sql）は環境ごとに作成する
+apps/web/supabase/sql/local/*
+!apps/web/supabase/sql/local/*.example
