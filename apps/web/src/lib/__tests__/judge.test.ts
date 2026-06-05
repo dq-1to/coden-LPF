@@ -78,6 +78,14 @@ describe('judgeKeywords', () => {
       // anyOf は満たすが必須が無い
       expect(judgeKeywords('setX(count + 1)', input).passed).toBe(false)
     })
+
+    it('完全充足した短い候補を一致数の多い未充足候補より優先する', () => {
+      // ['a','b','c'] は一致2だが未充足、['x'] は一致1だが完全充足
+      const result = judgeKeywords('a b x', { anyOf: [['a', 'b', 'c'], ['x']] })
+      expect(result.passed).toBe(true)
+      expect(result.matched).toEqual(['x'])
+      expect(result.missing).toEqual([])
+    })
   })
 
   describe('passThreshold（部分点での合格）', () => {

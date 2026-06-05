@@ -56,7 +56,9 @@ export interface KeywordJudgeInput {
  * - `score`: matched / 有効必須 の割合（0-100）。有効必須が空なら 100
  * - `passed`: score >= passThreshold（既定 100）かつ violations が空
  *
- * `anyOf` 指定時は最も多く一致した候補を requiredKeywords に合成して評価する。
+ * `anyOf` 指定時は各候補を requiredKeywords に合成して個別に評価し、
+ * 合格 > 高スコア の順で最良の結果を返す（一致数だけで選ぶと、完全充足した
+ * 短い候補を一致数の多い未充足候補に取りこぼすため）。
  */
 export function judgeKeywords(code: string, input: KeywordJudgeInput): JudgeResult {
   const lower = code.toLowerCase()
@@ -64,23 +66,25 @@ export function judgeKeywords(code: string, input: KeywordJudgeInput): JudgeResu
 
   const violations = (input.ngKeywords ?? []).filter(includes)
   const baseRequired = input.requiredKeywords ?? []
+  const threshold = input.passThreshold ?? 100
 
-  // 複数正解パターン: 最も多く一致した候補を採用し、base と AND する
-  let effectiveRequired = baseRequired
-  if (input.anyOf && input.anyOf.length > 0) {
-    const bestAlt = input.anyOf.reduce((best, alt) =>
-      alt.filter(includes).length > best.filter(includes).length ? alt : best,
-    )
-    effectiveRequired = [...new Set([...baseRequired, ...bestAlt])]
+  // 評価対象の必須セット一覧（anyOf 指定時は各候補を base と合成）
+  const candidateSets =
+    input.anyOf && input.anyOf.length > 0
+      ? input.anyOf.map((alt) => [...new Set([...baseRequired, ...alt])])
+      : [baseRequired]
+
+  const evaluate = (required: string[]): JudgeResult => {
+    const matched = required.filter(includes)
+    const missing = required.filter((kw) => !includes(kw))
+    const score = required.length === 0 ? 100 : Math.round((matched.length / required.length) * 100)
+    const passed = score >= threshold && violations.length === 0
+    return { passed, score, matched, missing, violations }
   }
 
-  const matched = effectiveRequired.filter(includes)
-  const missing = effectiveRequired.filter((kw) => !includes(kw))
-
-  const score =
-    effectiveRequired.length === 0 ? 100 : Math.round((matched.length / effectiveRequired.length) * 100)
-  const threshold = input.passThreshold ?? 100
-  const passed = score >= threshold && violations.length === 0
-
-  return { passed, score, matched, missing, violations }
+  // 候補ごとに評価し、合格 > 高スコア の順で最良を選ぶ
+  return candidateSets.map(evaluate).reduce((best, cur) => {
+    if (cur.passed !== best.passed) return cur.passed ? cur : best
+    return cur.score > best.score ? cur : best
+  })
 }
