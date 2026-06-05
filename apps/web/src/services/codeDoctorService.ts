@@ -8,6 +8,7 @@ import {
 import { fromSupabaseError } from '../shared/errors'
 import { assertMaxLength, assertUuid } from '../shared/validation'
 import { awardPoints } from './pointService'
+import { judgeKeywords } from '../lib/judge'
 import type { CodeDoctorProblem, CodeDoctorProgress, SubmitDoctorResult } from '../content/code-doctor/types'
 
 // ─── 純粋関数 ────────────────────────────────────────────
@@ -32,18 +33,23 @@ export function getPointsForDifficulty(difficulty: CodeDoctorProblem['difficulty
  * コードが問題の合格条件を満たしているか判定する（純粋関数）
  * - requiredKeywords をすべて含む
  * - ngKeywords をどれも含まない
+ *
+ * 共通ユーティリティ {@link judgeKeywords} に委譲し、後方互換の戻り値へ射影する。
+ * `score` / `matched` など拡張フィールドが必要な場合は judgeKeywords を直接利用する。
  */
 export function judgeCode(
   code: string,
   problem: Pick<CodeDoctorProblem, 'requiredKeywords' | 'ngKeywords'>,
 ): { passed: boolean; missingKeywords: string[]; foundNgKeywords: string[] } {
-  const lower = code.toLowerCase()
-  const missingKeywords = problem.requiredKeywords.filter(
-    (kw) => !lower.includes(kw.toLowerCase()),
-  )
-  const foundNgKeywords = problem.ngKeywords.filter((kw) => lower.includes(kw.toLowerCase()))
-  const passed = missingKeywords.length === 0 && foundNgKeywords.length === 0
-  return { passed, missingKeywords, foundNgKeywords }
+  const result = judgeKeywords(code, {
+    requiredKeywords: problem.requiredKeywords,
+    ngKeywords: problem.ngKeywords,
+  })
+  return {
+    passed: result.passed,
+    missingKeywords: result.missing,
+    foundNgKeywords: result.violations,
+  }
 }
 
 // ─── DB 関数 ─────────────────────────────────────────────

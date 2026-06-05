@@ -6,7 +6,7 @@ import { useIsMobile } from '../../hooks/useIsMobile'
 import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
 import { JudgmentResult } from './components/JudgmentResult'
 import { useJudgmentAction } from './hooks/useJudgmentAction'
-import { getMissingKeywords } from './utils/keywordMatcher'
+import { judgeKeywords } from '../../lib/judge'
 import { ChallengePuzzleMulti } from './ChallengePuzzle/ChallengePuzzleMulti'
 
 interface ChallengeModeProps {
@@ -41,17 +41,16 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     setSubmissionError(null)
   }, [stepId, task])
 
-  const missingKeywords = useMemo(
-    () => getMissingKeywords(code, pattern.expectedKeywords),
+  const judgement = useMemo(
+    () => judgeKeywords(code, { requiredKeywords: pattern.expectedKeywords }),
     [code, pattern.expectedKeywords],
   )
-  const hasSatisfiedRequirements = missingKeywords.length === 0
+  const missingKeywords = judgement.missing
+  const hasSatisfiedRequirements = judgement.passed
   const isPassed = checked && hasSatisfiedRequirements
 
   async function handleCheck() {
-    const matchedKeywords = pattern.expectedKeywords.filter((keyword) =>
-      code.toLowerCase().includes(keyword.toLowerCase()),
-    )
+    const matchedKeywords = judgement.matched
 
     setChecked(true)
     setSubmissionError(null)
