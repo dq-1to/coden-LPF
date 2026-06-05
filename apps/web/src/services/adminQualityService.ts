@@ -1,7 +1,7 @@
-import { getAllSteps } from '../content/courseData'
+import { findCourseByStepId, getAllSteps } from '../content/courseData'
 import { supabase } from '../lib/supabaseClient'
 import { fromSupabaseError } from '../shared/errors'
-import type { Tables } from '../shared/types/database.types'
+import type { Json, Tables } from '../shared/types/database.types'
 
 type StepProgressRow = Pick<
   Tables<'step_progress'>,
@@ -23,7 +23,12 @@ type MiniProjectProgressRow = Pick<
   'project_id' | 'status' | 'completed_at'
 >
 type UserFeedbackRow = Pick<Tables<'user_feedback'>, 'status' | 'created_at'>
+type StepFeedbackRow = Pick<Tables<'user_feedback'>, 'status' | 'created_at' | 'page_url'>
 type ReviewItemRow = Pick<Tables<'review_items'>, 'status' | 'step_id'>
+type LearningEventRow = Pick<
+  Tables<'learning_events'>,
+  'user_id' | 'event_type' | 'step_id' | 'mode' | 'payload' | 'created_at'
+>
 
 export type AdminQualityMetricStatus = 'formal' | 'provisional' | 'future'
 
@@ -72,6 +77,47 @@ export interface AdminQualityStepInsight {
   signal: AdminQualityStepInsightSignal
 }
 
+export interface AdminStepInsight {
+  stepId: string
+  courseId: string | null
+  courseTitle: string | null
+  order: number
+  title: string
+  eventCount: number
+  startedUsers: number
+  readStartedUsers: number
+  practiceStartedUsers: number
+  testStartedUsers: number
+  challengeStartedUsers: number
+  readCompletedUsers: number
+  practiceCompletedUsers: number
+  testCompletedUsers: number
+  challengeCompletedUsers: number
+  completionRate: number | null
+  readToPracticeRate: number | null
+  practiceToTestRate: number | null
+  testToChallengeRate: number | null
+  dropoffRate: number | null
+  practiceSubmissions: number
+  practiceIncorrectRate: number | null
+  testSubmissions: number
+  testFailureRate: number | null
+  challengeSubmissions: number
+  challengePassRate: number | null
+  relatedFeedbackCount: number
+  newFeedbackCount: number
+  bottleneck: string
+  signal: AdminQualityStepInsightSignal
+}
+
+export interface AdminStepInsights {
+  generatedAt: string
+  totalEvents: number
+  observedSteps: number
+  attentionSteps: number
+  rows: AdminStepInsight[]
+}
+
 export interface AdminQualityMiniProjectStatus {
   total: number
   completed: number
@@ -105,6 +151,30 @@ interface StepAggregate {
   challengePassed: number
   openReviewItems: number
 }
+
+type LearningMode = 'read' | 'practice' | 'test' | 'challenge'
+
+interface StepEventAggregate {
+  stepId: string
+  courseId: string | null
+  courseTitle: string | null
+  order: number
+  title: string
+  eventCount: number
+  startedUsers: Set<string>
+  modeStartedUsers: Record<LearningMode, Set<string>>
+  modeCompletedUsers: Record<LearningMode, Set<string>>
+  practiceSubmissions: number
+  practiceIncorrect: number
+  testSubmissions: number
+  testFailures: number
+  challengeSubmissions: number
+  challengePassed: number
+  relatedFeedbackCount: number
+  newFeedbackCount: number
+}
+
+const STEP_INSIGHT_MODES: readonly LearningMode[] = ['read', 'practice', 'test', 'challenge']
 
 function isStepCompleted(row: StepProgressRow): boolean {
   return Boolean(
@@ -249,6 +319,247 @@ function getLowestTransition(
   if (measurable.length === 0) return null
   const [lowest] = measurable.sort((a, b) => a.rate - b.rate)
   return lowest ?? null
+}
+
+function createModeUserSets(): Record<LearningMode, Set<string>> {
+  return {
+    read: new Set<string>(),
+    practice: new Set<string>(),
+    test: new Set<string>(),
+    challenge: new Set<string>(),
+  }
+}
+
+function isStepFeedback(row: StepFeedbackRow, stepId: string): boolean {
+  return Boolean(row.page_url?.includes(`/step/${stepId}`))
+}
+
+function getPayloadBoolean(payload: Json | null, key: string): boolean | null {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null
+  const value = payload[key]
+  return typeof value === 'boolean' ? value : null
+}
+
+function isLearningMode(value: string | null): value is LearningMode {
+  return STEP_INSIGHT_MODES.includes(value as LearningMode)
+}
+
+function buildStepEventAggregates(
+  events: LearningEventRow[],
+  feedbackRows: StepFeedbackRow[],
+): StepEventAggregate[] {
+  const implementedSteps = getAllSteps().filter((step) => step.isImplemented)
+  const aggregates = new Map<string, StepEventAggregate>()
+
+  for (const step of implementedSteps) {
+    const course = findCourseByStepId(step.id)
+    aggregates.set(step.id, {
+      stepId: step.id,
+      courseId: course?.id ?? null,
+      courseTitle: course?.title ?? null,
+      order: step.order,
+      title: step.title,
+      eventCount: 0,
+      startedUsers: new Set<string>(),
+      modeStartedUsers: createModeUserSets(),
+      modeCompletedUsers: createModeUserSets(),
+      practiceSubmissions: 0,
+      practiceIncorrect: 0,
+      testSubmissions: 0,
+      testFailures: 0,
+      challengeSubmissions: 0,
+      challengePassed: 0,
+      relatedFeedbackCount: 0,
+      newFeedbackCount: 0,
+    })
+  }
+
+  for (const row of events) {
+    if (!row.step_id) continue
+    const aggregate = aggregates.get(row.step_id)
+    if (!aggregate) continue
+
+    aggregate.eventCount += 1
+    aggregate.startedUsers.add(row.user_id)
+
+    if (row.event_type === 'mode_started' && isLearningMode(row.mode)) {
+      aggregate.modeStartedUsers[row.mode].add(row.user_id)
+    }
+
+    if (row.event_type === 'mode_completed' && isLearningMode(row.mode)) {
+      aggregate.modeCompletedUsers[row.mode].add(row.user_id)
+    }
+
+    if (row.event_type === 'practice_answer_submitted') {
+      aggregate.practiceSubmissions += 1
+      if (getPayloadBoolean(row.payload, 'isCorrect') === false) {
+        aggregate.practiceIncorrect += 1
+      }
+    }
+
+    if (row.event_type === 'test_submitted') {
+      aggregate.testSubmissions += 1
+      if (getPayloadBoolean(row.payload, 'isCorrect') === false) {
+        aggregate.testFailures += 1
+      }
+    }
+
+    if (row.event_type === 'challenge_submitted') {
+      aggregate.challengeSubmissions += 1
+      if (getPayloadBoolean(row.payload, 'isCorrect') === true) {
+        aggregate.challengePassed += 1
+      }
+    }
+  }
+
+  for (const row of feedbackRows) {
+    for (const aggregate of aggregates.values()) {
+      if (!isStepFeedback(row, aggregate.stepId)) continue
+      aggregate.relatedFeedbackCount += 1
+      if (row.status === 'new') {
+        aggregate.newFeedbackCount += 1
+      }
+    }
+  }
+
+  return [...aggregates.values()]
+}
+
+function selectBottleneck(indicators: readonly { label: string; score: number | null }[]): string {
+  const measurable = indicators.filter((item): item is { label: string; score: number } => item.score !== null)
+  if (measurable.length === 0) return 'データ不足'
+  const [worst] = measurable.sort((a, b) => b.score - a.score)
+  return worst ? `${worst.label} ${formatPercent(worst.score)}` : 'データ不足'
+}
+
+function getStepInsightSignal(row: {
+  eventCount: number
+  dropoffRate: number | null
+  practiceIncorrectRate: number | null
+  practiceSubmissions: number
+  testFailureRate: number | null
+  testSubmissions: number
+  challengePassRate: number | null
+  challengeSubmissions: number
+  relatedFeedbackCount: number
+}): AdminQualityStepInsightSignal {
+  if (row.eventCount === 0 && row.relatedFeedbackCount === 0) return 'insufficient'
+
+  const hasAttentionSignal =
+    (row.dropoffRate !== null && row.dropoffRate >= 0.6) ||
+    (row.practiceIncorrectRate !== null && row.practiceSubmissions >= 3 && row.practiceIncorrectRate >= 0.5) ||
+    (row.testFailureRate !== null && row.testSubmissions >= 3 && row.testFailureRate >= 0.5) ||
+    (row.challengePassRate !== null && row.challengeSubmissions >= 3 && row.challengePassRate < 0.4) ||
+    row.relatedFeedbackCount >= 3
+
+  if (hasAttentionSignal) return 'attention'
+
+  const hasWatchSignal =
+    (row.dropoffRate !== null && row.dropoffRate >= 0.3) ||
+    (row.practiceIncorrectRate !== null && row.practiceSubmissions > 0 && row.practiceIncorrectRate >= 0.3) ||
+    (row.testFailureRate !== null && row.testSubmissions > 0 && row.testFailureRate >= 0.3) ||
+    (row.challengePassRate !== null && row.challengeSubmissions > 0 && row.challengePassRate < 0.7) ||
+    row.relatedFeedbackCount > 0
+
+  return hasWatchSignal ? 'watch' : 'healthy'
+}
+
+function buildAdminStepInsightRows(aggregates: StepEventAggregate[]): AdminStepInsight[] {
+  return aggregates
+    .map((row) => {
+      const startedUsers = row.startedUsers.size
+      const readStartedUsers = row.modeStartedUsers.read.size
+      const practiceStartedUsers = row.modeStartedUsers.practice.size
+      const testStartedUsers = row.modeStartedUsers.test.size
+      const challengeStartedUsers = row.modeStartedUsers.challenge.size
+      const readCompletedUsers = row.modeCompletedUsers.read.size
+      const practiceCompletedUsers = row.modeCompletedUsers.practice.size
+      const testCompletedUsers = row.modeCompletedUsers.test.size
+      const challengeCompletedUsers = row.modeCompletedUsers.challenge.size
+      const completionRate = safeRate(challengeCompletedUsers, startedUsers)
+      const readToPracticeRate = safeRate(practiceStartedUsers, readStartedUsers)
+      const practiceToTestRate = safeRate(testStartedUsers, practiceStartedUsers)
+      const testToChallengeRate = safeRate(challengeStartedUsers, testStartedUsers)
+      const challengeReachRate = safeRate(challengeStartedUsers, startedUsers)
+      const dropoffRate = challengeReachRate === null ? null : 1 - challengeReachRate
+      const practiceIncorrectRate = safeRate(row.practiceIncorrect, row.practiceSubmissions)
+      const testFailureRate = safeRate(row.testFailures, row.testSubmissions)
+      const challengePassRate = safeRate(row.challengePassed, row.challengeSubmissions)
+      const bottleneck = selectBottleneck([
+        { label: '離脱率', score: dropoffRate },
+        { label: 'Practice誤答率', score: practiceIncorrectRate },
+        { label: 'Test失敗率', score: testFailureRate },
+        {
+          label: 'Challenge不合格率',
+          score: challengePassRate === null ? null : 1 - challengePassRate,
+        },
+        {
+          label: 'Read→Practice未遷移',
+          score: readToPracticeRate === null ? null : 1 - readToPracticeRate,
+        },
+        {
+          label: 'Practice→Test未遷移',
+          score: practiceToTestRate === null ? null : 1 - practiceToTestRate,
+        },
+        {
+          label: 'Test→Challenge未遷移',
+          score: testToChallengeRate === null ? null : 1 - testToChallengeRate,
+        },
+      ])
+      const signal = getStepInsightSignal({
+        eventCount: row.eventCount,
+        dropoffRate,
+        practiceIncorrectRate,
+        practiceSubmissions: row.practiceSubmissions,
+        testFailureRate,
+        testSubmissions: row.testSubmissions,
+        challengePassRate,
+        challengeSubmissions: row.challengeSubmissions,
+        relatedFeedbackCount: row.relatedFeedbackCount,
+      })
+
+      return {
+        stepId: row.stepId,
+        courseId: row.courseId,
+        courseTitle: row.courseTitle,
+        order: row.order,
+        title: row.title,
+        eventCount: row.eventCount,
+        startedUsers,
+        readStartedUsers,
+        practiceStartedUsers,
+        testStartedUsers,
+        challengeStartedUsers,
+        readCompletedUsers,
+        practiceCompletedUsers,
+        testCompletedUsers,
+        challengeCompletedUsers,
+        completionRate,
+        readToPracticeRate,
+        practiceToTestRate,
+        testToChallengeRate,
+        dropoffRate,
+        practiceSubmissions: row.practiceSubmissions,
+        practiceIncorrectRate,
+        testSubmissions: row.testSubmissions,
+        testFailureRate,
+        challengeSubmissions: row.challengeSubmissions,
+        challengePassRate,
+        relatedFeedbackCount: row.relatedFeedbackCount,
+        newFeedbackCount: row.newFeedbackCount,
+        bottleneck,
+        signal,
+      }
+    })
+    .sort((a, b) => {
+      const signalOrder: Record<AdminQualityStepInsightSignal, number> = {
+        attention: 0,
+        watch: 1,
+        healthy: 2,
+        insufficient: 3,
+      }
+      return signalOrder[a.signal] - signalOrder[b.signal] || a.order - b.order
+    })
 }
 
 function buildStepInsights(aggregates: StepAggregate[]): AdminQualityStepInsight[] {
@@ -486,5 +797,32 @@ export async function getAdminQualityDashboard(): Promise<AdminQualityDashboard>
       inProgress: miniProjectInProgress,
       notStarted: miniProjectNotStarted,
     },
+  }
+}
+
+export async function getAdminStepInsights(): Promise<AdminStepInsights> {
+  const [eventsRes, feedbackRes] = await Promise.all([
+    supabase
+      .from('learning_events')
+      .select('user_id, event_type, step_id, mode, payload, created_at'),
+    supabase.from('user_feedback').select('status, created_at, page_url'),
+  ])
+
+  if (eventsRes.error)
+    throw fromSupabaseError(eventsRes.error, 'Step Insightsのイベントログ取得に失敗しました')
+  if (feedbackRes.error)
+    throw fromSupabaseError(feedbackRes.error, 'Step Insightsのフィードバック取得に失敗しました')
+
+  const events = (eventsRes.data ?? []) as LearningEventRow[]
+  const feedbackRows = (feedbackRes.data ?? []) as StepFeedbackRow[]
+  const rows = buildAdminStepInsightRows(buildStepEventAggregates(events, feedbackRows))
+  const observedRows = rows.filter((row) => row.eventCount > 0 || row.relatedFeedbackCount > 0)
+
+  return {
+    generatedAt: new Date().toISOString(),
+    totalEvents: events.length,
+    observedSteps: observedRows.length,
+    attentionSteps: rows.filter((row) => row.signal === 'attention').length,
+    rows,
   }
 }

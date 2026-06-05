@@ -62,6 +62,11 @@ const AdminQualityDashboardPage = lazy(() =>
     default: m.AdminQualityDashboardPage,
   })),
 )
+const AdminStepInsightsPage = lazy(() =>
+  import('./pages/admin/AdminStepInsightsPage').then((m) => ({
+    default: m.AdminStepInsightsPage,
+  })),
+)
 const AdminOpsPage = lazy(() =>
   import('./pages/admin/AdminOpsPage').then((m) => ({ default: m.AdminOpsPage })),
 )
@@ -275,6 +280,18 @@ const router = createBrowserRouter([
         <AdminGuard>
           <Suspense fallback={<PageLoading />}>
             <AdminQualityDashboardPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/step-insights',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminStepInsightsPage />
           </Suspense>
         </AdminGuard>
       </ProtectedRoute>
