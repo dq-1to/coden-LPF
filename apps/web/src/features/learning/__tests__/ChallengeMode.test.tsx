@@ -174,6 +174,63 @@ describe('ChallengeMode', () => {
     expect(screen.getByText('onClick')).toBeTruthy()
   })
 
+  it('violations 表示: ngKeywords を含むと「避けたい書き方」と違反語が表示され不合格になること', async () => {
+    const user = userEvent.setup()
+    const onComplete = vi.fn()
+    const ngTask: ChallengeTask = {
+      patterns: [
+        {
+          id: 'ng-pattern',
+          prompt: 'index を key にしない',
+          requirements: ['mapを使う'],
+          hints: ['key={item.id}'],
+          expectedKeywords: ['map', 'key='],
+          ngKeywords: ['key={index}'],
+          starterCode: '',
+        },
+      ],
+    }
+
+    render(<ChallengeMode stepId="step-ng" task={ngTask} onComplete={onComplete} />)
+
+    const editor = await screen.findByLabelText('challenge-editor')
+    // 必須は満たすが ngKeyword を含む
+    fireEvent.change(editor, { target: { value: 'items.map((item, index) => <li key={index}>{item}</li>)' } })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(onComplete).not.toHaveBeenCalled()
+    expect(screen.getByText('避けたい書き方が含まれています:')).toBeTruthy()
+    expect(screen.getByText('key={index}')).toBeTruthy()
+  })
+
+  it('anyOf: いずれかの正解パターンを満たせば合格すること', async () => {
+    const user = userEvent.setup()
+    const onComplete = vi.fn()
+    const anyOfTask: ChallengeTask = {
+      patterns: [
+        {
+          id: 'anyof-pattern',
+          prompt: 'カウントを増やす',
+          requirements: ['setCountを使う'],
+          hints: ['count + 1 でも prev => prev + 1 でも可'],
+          expectedKeywords: ['setCount'],
+          anyOf: [['count + 1'], ['prev => prev + 1']],
+          starterCode: '',
+        },
+      ],
+    }
+
+    render(<ChallengeMode stepId="step-anyof" task={anyOfTask} onComplete={onComplete} />)
+
+    const editor = await screen.findByLabelText('challenge-editor')
+    // 2つ目の正解パターンを使用
+    fireEvent.change(editor, { target: { value: 'setCount(prev => prev + 1)' } })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(onComplete).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('status').textContent).toContain('Challengeを完了しました')
+  })
+
   it('ヒント表示: 判定失敗時にヒントが表示されること', async () => {
     // Arrange
     const user = userEvent.setup()
