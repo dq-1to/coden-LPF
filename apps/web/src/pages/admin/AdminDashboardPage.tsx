@@ -26,6 +26,13 @@ const SECTIONS: SectionCard[] = [
     accent: 'bg-teal-100 text-teal-700',
   },
   {
+    to: '/admin/step-insights',
+    title: 'Step Insights',
+    description: 'ステップ別の遷移率・離脱率・誤答率を確認する',
+    icon: BarChart3,
+    accent: 'bg-rose-100 text-rose-700',
+  },
+  {
     to: '/admin/feedback',
     title: 'フィードバック',
     description: 'ユーザーから届いた不具合報告・要望・レビューを確認する',

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getAdminQualityDashboard } from '../adminQualityService'
+import { getAdminQualityDashboard, getAdminStepInsights } from '../adminQualityService'
 
 type TableName =
   | 'profiles'
@@ -9,6 +9,7 @@ type TableName =
   | 'mini_project_progress'
   | 'user_feedback'
   | 'review_items'
+  | 'learning_events'
 
 const tableState: Record<TableName, { data: unknown[]; count: number | null; error: unknown }> = {
   profiles: { data: [], count: 0, error: null },
@@ -18,6 +19,7 @@ const tableState: Record<TableName, { data: unknown[]; count: number | null; err
   mini_project_progress: { data: [], count: null, error: null },
   user_feedback: { data: [], count: null, error: null },
   review_items: { data: [], count: null, error: null },
+  learning_events: { data: [], count: null, error: null },
 }
 
 const from = vi.fn((table: TableName) => ({
@@ -176,6 +178,181 @@ describe('getAdminQualityDashboard', () => {
     await expect(getAdminQualityDashboard()).rejects.toMatchObject({
       name: 'AppError',
       userMessage: '品質KPIのステップ進捗取得に失敗しました',
+    })
+  })
+})
+
+describe('getAdminStepInsights', () => {
+  beforeEach(resetState)
+
+  it('learning_events からステップ別の遷移率・誤答率・離脱率を集計する', async () => {
+    tableState.learning_events.data = [
+      {
+        user_id: 'u1',
+        event_type: 'step_started',
+        step_id: 'usestate-basic',
+        mode: null,
+        payload: null,
+        created_at: '2026-06-05T00:00:00Z',
+      },
+      {
+        user_id: 'u1',
+        event_type: 'mode_started',
+        step_id: 'usestate-basic',
+        mode: 'read',
+        payload: null,
+        created_at: '2026-06-05T00:01:00Z',
+      },
+      {
+        user_id: 'u1',
+        event_type: 'mode_started',
+        step_id: 'usestate-basic',
+        mode: 'practice',
+        payload: null,
+        created_at: '2026-06-05T00:02:00Z',
+      },
+      {
+        user_id: 'u1',
+        event_type: 'mode_started',
+        step_id: 'usestate-basic',
+        mode: 'test',
+        payload: null,
+        created_at: '2026-06-05T00:03:00Z',
+      },
+      {
+        user_id: 'u1',
+        event_type: 'mode_started',
+        step_id: 'usestate-basic',
+        mode: 'challenge',
+        payload: null,
+        created_at: '2026-06-05T00:04:00Z',
+      },
+      {
+        user_id: 'u1',
+        event_type: 'mode_completed',
+        step_id: 'usestate-basic',
+        mode: 'challenge',
+        payload: null,
+        created_at: '2026-06-05T00:05:00Z',
+      },
+      {
+        user_id: 'u1',
+        event_type: 'practice_answer_submitted',
+        step_id: 'usestate-basic',
+        mode: 'practice',
+        payload: { isCorrect: true },
+        created_at: '2026-06-05T00:06:00Z',
+      },
+      {
+        user_id: 'u1',
+        event_type: 'test_submitted',
+        step_id: 'usestate-basic',
+        mode: 'test',
+        payload: { isCorrect: true },
+        created_at: '2026-06-05T00:07:00Z',
+      },
+      {
+        user_id: 'u1',
+        event_type: 'challenge_submitted',
+        step_id: 'usestate-basic',
+        mode: 'challenge',
+        payload: { isCorrect: true },
+        created_at: '2026-06-05T00:08:00Z',
+      },
+      {
+        user_id: 'u2',
+        event_type: 'step_started',
+        step_id: 'usestate-basic',
+        mode: null,
+        payload: null,
+        created_at: '2026-06-05T01:00:00Z',
+      },
+      {
+        user_id: 'u2',
+        event_type: 'mode_started',
+        step_id: 'usestate-basic',
+        mode: 'read',
+        payload: null,
+        created_at: '2026-06-05T01:01:00Z',
+      },
+      {
+        user_id: 'u2',
+        event_type: 'mode_started',
+        step_id: 'usestate-basic',
+        mode: 'practice',
+        payload: null,
+        created_at: '2026-06-05T01:02:00Z',
+      },
+      {
+        user_id: 'u2',
+        event_type: 'practice_answer_submitted',
+        step_id: 'usestate-basic',
+        mode: 'practice',
+        payload: { isCorrect: false },
+        created_at: '2026-06-05T01:03:00Z',
+      },
+      {
+        user_id: 'u2',
+        event_type: 'test_submitted',
+        step_id: 'usestate-basic',
+        mode: 'test',
+        payload: { isCorrect: false },
+        created_at: '2026-06-05T01:04:00Z',
+      },
+    ]
+    tableState.user_feedback.data = [
+      {
+        status: 'new',
+        created_at: '2026-06-05T02:00:00Z',
+        page_url: 'http://localhost:5173/step/usestate-basic?mode=practice',
+      },
+      {
+        status: 'resolved',
+        created_at: '2026-06-05T03:00:00Z',
+        page_url: 'http://localhost:5173/step/events',
+      },
+    ]
+
+    const insights = await getAdminStepInsights()
+    const row = insights.rows.find((item) => item.stepId === 'usestate-basic')
+
+    expect(from).toHaveBeenCalledWith('learning_events')
+    expect(insights.totalEvents).toBe(14)
+    expect(insights.observedSteps).toBeGreaterThan(0)
+    expect(row).toEqual(
+      expect.objectContaining({
+        stepId: 'usestate-basic',
+        startedUsers: 2,
+        readStartedUsers: 2,
+        practiceStartedUsers: 2,
+        testStartedUsers: 1,
+        challengeStartedUsers: 1,
+        challengeCompletedUsers: 1,
+        completionRate: 0.5,
+        readToPracticeRate: 1,
+        practiceToTestRate: 0.5,
+        testToChallengeRate: 1,
+        dropoffRate: 0.5,
+        practiceSubmissions: 2,
+        practiceIncorrectRate: 0.5,
+        testSubmissions: 2,
+        testFailureRate: 0.5,
+        challengeSubmissions: 1,
+        challengePassRate: 1,
+        relatedFeedbackCount: 1,
+        newFeedbackCount: 1,
+        bottleneck: '離脱率 50.0%',
+        signal: 'watch',
+      }),
+    )
+  })
+
+  it('イベントログ取得エラーを AppError に変換する', async () => {
+    tableState.learning_events.error = { code: 'DB_ERROR', message: 'forbidden' }
+
+    await expect(getAdminStepInsights()).rejects.toMatchObject({
+      name: 'AppError',
+      userMessage: 'Step Insightsのイベントログ取得に失敗しました',
     })
   })
 })
