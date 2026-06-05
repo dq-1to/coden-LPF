@@ -11,7 +11,10 @@
     "typecheck": "npm --workspace @coden/web run typecheck",
     "lint": "npm --workspace @coden/web run lint",
     "test": "npm --workspace @coden/web run test",
-    "api:dev": "npm --workspace @coden/web run api:dev"
+    "api:dev": "npm --workspace @coden/web run api:dev",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:report": "playwright show-report"
   },
   "msw": {
     "workerDirectory": [
@@ -22,6 +25,7 @@
     "node": ">=22.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "lefthook": "^2.1.4"
   }
 }
