@@ -8,6 +8,7 @@ import { previewByStepId } from '../testModePreview'
 
 const recordWrongAnswer = vi.fn()
 const resolveReviewItem = vi.fn()
+const trackLearningEvent = vi.fn()
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
@@ -35,6 +36,10 @@ vi.mock('../../../services/reviewService', () => ({
   resolveReviewItem: (...args: unknown[]) => resolveReviewItem(...args),
 }))
 
+vi.mock('../../../services/eventService', () => ({
+  trackLearningEvent: (...args: unknown[]) => trackLearningEvent(...args),
+}))
+
 const firstTask: TestTask = {
   instruction: '最初の問題',
   starterCode: 'const [count, setCount] = useState(0)\n____',
@@ -57,6 +62,7 @@ describe('TestMode', () => {
   beforeEach(() => {
     recordWrongAnswer.mockReset()
     resolveReviewItem.mockReset()
+    trackLearningEvent.mockReset()
     recordWrongAnswer.mockResolvedValue(undefined)
     resolveReviewItem.mockResolvedValue(undefined)
   })
@@ -71,6 +77,18 @@ describe('TestMode', () => {
     await user.click(screen.getByRole('button', { name: '判定する' }))
 
     expect(onComplete).toHaveBeenCalledTimes(1)
+    expect(trackLearningEvent).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      eventType: 'test_submitted',
+      stepId: 'step-a',
+      mode: 'test',
+      courseId: null,
+      payload: {
+        isCorrect: true,
+        itemCount: 1,
+        questionIds: ['test'],
+      },
+    })
     expect(resolveReviewItem).toHaveBeenCalledWith({
       userId: '00000000-0000-0000-0000-000000000001',
       stepId: 'step-a',

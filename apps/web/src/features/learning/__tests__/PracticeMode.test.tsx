@@ -6,6 +6,7 @@ import type { PracticeQuestion } from '../../../content/fundamentals/steps'
 
 const recordWrongAnswer = vi.fn()
 const resolveReviewItem = vi.fn()
+const trackLearningEvent = vi.fn()
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
@@ -16,6 +17,10 @@ vi.mock('@/contexts/AuthContext', () => ({
 vi.mock('../../../services/reviewService', () => ({
   recordWrongAnswer: (...args: unknown[]) => recordWrongAnswer(...args),
   resolveReviewItem: (...args: unknown[]) => resolveReviewItem(...args),
+}))
+
+vi.mock('../../../services/eventService', () => ({
+  trackLearningEvent: (...args: unknown[]) => trackLearningEvent(...args),
 }))
 
 const firstQuestions: PracticeQuestion[] = [
@@ -57,6 +62,7 @@ describe('PracticeMode', () => {
   beforeEach(() => {
     recordWrongAnswer.mockReset()
     resolveReviewItem.mockReset()
+    trackLearningEvent.mockReset()
     recordWrongAnswer.mockResolvedValue(undefined)
     resolveReviewItem.mockResolvedValue(undefined)
   })
@@ -81,6 +87,18 @@ describe('PracticeMode', () => {
     await user.click(screen.getByRole('button', { name: '判定する' }))
 
     expect(onComplete).toHaveBeenCalledTimes(1)
+    expect(trackLearningEvent).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      eventType: 'practice_answer_submitted',
+      stepId: 'step-choice',
+      mode: 'practice',
+      courseId: null,
+      payload: {
+        isCorrect: true,
+        itemCount: 1,
+        questionIds: ['q-choice'],
+      },
+    })
     expect(screen.getByRole('status').textContent).toContain('Practiceを完了しました')
   })
 
@@ -93,6 +111,18 @@ describe('PracticeMode', () => {
     await user.click(screen.getByRole('button', { name: '判定する' }))
 
     expect(onComplete).not.toHaveBeenCalled()
+    expect(trackLearningEvent).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      eventType: 'practice_answer_submitted',
+      stepId: 'step-choice',
+      mode: 'practice',
+      courseId: null,
+      payload: {
+        isCorrect: false,
+        itemCount: 1,
+        questionIds: ['q-choice'],
+      },
+    })
     expect(screen.getByRole('status').textContent).toContain('まだ不正解の問題があります')
   })
 

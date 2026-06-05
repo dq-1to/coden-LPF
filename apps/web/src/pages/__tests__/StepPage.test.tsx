@@ -8,6 +8,7 @@ const useChallengeSubmissionMock = vi.fn()
 const useRecentChallengeSubmissionsMock = vi.fn()
 const useLearningStepMock = vi.fn()
 const readModeMock = vi.fn()
+const trackLearningEvent = vi.fn()
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
@@ -68,6 +69,10 @@ vi.mock('@/features/learning/hooks/useLearningStep', () => ({
   useLearningStep: (...args: unknown[]) => useLearningStepMock(...args),
 }))
 
+vi.mock('@/services/eventService', () => ({
+  trackLearningEvent: (...args: unknown[]) => trackLearningEvent(...args),
+}))
+
 function mockLearningStep(
   modeStatus = {
     read: false,
@@ -120,6 +125,7 @@ describe('StepPage', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
     readModeMock.mockClear()
+    trackLearningEvent.mockClear()
   })
 
   afterEach(() => {
@@ -151,12 +157,35 @@ describe('StepPage', () => {
     expect(screen.getByRole('navigation', { name: 'パンくずリスト' }).textContent).toContain('カリキュラム')
     expect(screen.getByText('Step 1 / 40')).toBeTruthy()
     expect(screen.getAllByText('React基礎').length).toBeGreaterThan(0)
+    expect(trackLearningEvent).toHaveBeenCalledWith({
+      userId: 'user-1',
+      eventType: 'step_started',
+      stepId: 'usestate-basic',
+      courseId: 'react-fundamentals',
+      payload: {
+        order: 1,
+      },
+    })
+    expect(trackLearningEvent).toHaveBeenCalledWith({
+      userId: 'user-1',
+      eventType: 'mode_started',
+      stepId: 'usestate-basic',
+      mode: 'read',
+      courseId: 'react-fundamentals',
+    })
 
     await user.click(screen.getByRole('tab', { name: 'Practice' }))
 
     expect(screen.getByRole('tab', { name: 'Practice' }).getAttribute('aria-current')).toBe('step')
     expect(screen.getByRole('tab', { name: 'Read' }).getAttribute('aria-current')).toBeNull()
     expect(screen.getByRole('tab', { name: 'Practice' }).className).toContain('min-h-11')
+    expect(trackLearningEvent).toHaveBeenCalledWith({
+      userId: 'user-1',
+      eventType: 'mode_started',
+      stepId: 'usestate-basic',
+      mode: 'practice',
+      courseId: 'react-fundamentals',
+    })
   })
 
   it('ReadMode に Step メタ情報を渡す', () => {

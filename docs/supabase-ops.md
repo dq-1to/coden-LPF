@@ -45,7 +45,7 @@ NNN_short_description.sql
 - RLS対象テーブルを作る場合、同じファイル内に RLS 有効化と policy を含める
 - RPCを追加する場合、権限、`security definer`、`search_path`、admin判定の有無を明記する
 
-2026-06-05 時点の最新は `021_admin_select_review_items.sql`。次の新規SQLは `022_*.sql` から始める。
+2026-06-05 時点の最新は `022_learning_events.sql`。次の新規SQLは `023_*.sql` から始める。
 
 ---
 
@@ -74,6 +74,7 @@ NNN_short_description.sql
 | 019 | `019_feedback_images.sql` | feedback画像 |
 | 020 | `020_review_items.sql` | 復習キュー |
 | 021 | `021_admin_select_review_items.sql` | review_items admin横断SELECT |
+| 022 | `022_learning_events.sql` | 学習イベントログ |
 
 READMEのSQL一覧よりこの表を優先する。READMEを更新するタイミングでは、この表と差分が出ないようにする。
 

@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import { renderHook } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { useLearningStep } from '../useLearningStep'
 
 // コンテキストフックをモック
@@ -22,6 +22,10 @@ vi.mock('@/services/progressService', () => ({
   upsertProgress: vi.fn(),
 }))
 
+vi.mock('@/services/eventService', () => ({
+  trackLearningEvent: vi.fn(),
+}))
+
 vi.mock('@/services/statsService', () => ({
   recordStudyActivity: vi.fn(),
 }))
@@ -33,12 +37,15 @@ vi.mock('@/services/pointService', () => ({
 import { useAuth } from '@/contexts/AuthContext'
 import { useLearningContext } from '@/contexts/LearningContext'
 import { useAchievementContext } from '@/contexts/AchievementContext'
-import { getStepProgress } from '@/services/progressService'
+import { getStepProgress, upsertProgress } from '@/services/progressService'
+import { trackLearningEvent } from '@/services/eventService'
 
 const mockUseAuth = vi.mocked(useAuth)
 const mockUseLearningContext = vi.mocked(useLearningContext)
 const mockUseAchievementContext = vi.mocked(useAchievementContext)
 const mockGetStepProgress = vi.mocked(getStepProgress)
+const mockUpsertProgress = vi.mocked(upsertProgress)
+const mockTrackLearningEvent = vi.mocked(trackLearningEvent)
 
 const mockUser = { id: 'test-user', email: 'test@example.com', user_metadata: {} }
 
@@ -67,6 +74,7 @@ beforeEach(() => {
   } as unknown as ReturnType<typeof useAchievementContext>)
 
   mockGetStepProgress.mockResolvedValue(null)
+  mockUpsertProgress.mockResolvedValue(undefined)
 })
 
 describe('useLearningStep', () => {
@@ -99,5 +107,40 @@ describe('useLearningStep', () => {
     const { result } = renderHook(() => useLearningStep('api-error-loading'))
 
     expect(result.current.isUnavailableStep).toBe(false)
+  })
+
+  it('handleModeComplete は進捗保存後に mode_completed イベントを記録する', async () => {
+    const { result } = renderHook(() => useLearningStep('usestate-basic'))
+
+    await waitFor(() => {
+      expect(mockGetStepProgress).toHaveBeenCalledWith('test-user', 'usestate-basic')
+    })
+
+    mockGetStepProgress.mockResolvedValueOnce({
+      user_id: 'test-user',
+      step_id: 'usestate-basic',
+      read_done: true,
+      practice_done: false,
+      test_done: false,
+      challenge_done: false,
+      updated_at: '2026-06-05T00:00:00.000Z',
+      completed_at: null,
+    })
+
+    await act(async () => {
+      await result.current.handleModeComplete('read')
+    })
+
+    expect(mockUpsertProgress).toHaveBeenCalledWith('test-user', 'usestate-basic', { read_done: true })
+    expect(mockTrackLearningEvent).toHaveBeenCalledWith({
+      userId: 'test-user',
+      eventType: 'mode_completed',
+      stepId: 'usestate-basic',
+      mode: 'read',
+      courseId: 'react-fundamentals',
+      payload: {
+        stepCompleted: false,
+      },
+    })
   })
 })
