@@ -22,6 +22,7 @@ import { useLearningStep } from '../features/learning/hooks/useLearningStep'
 import { useRecentChallengeSubmissions } from '../features/learning/hooks/useRecentChallengeSubmissions'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useSignOut } from '../hooks/useSignOut'
+import { trackLearningEvent } from '../services/eventService'
 import { PULSE_ANIMATION_MS } from '../shared/constants'
 import { getDisplayName } from '../shared/utils/getDisplayName'
 
@@ -96,6 +97,8 @@ export function StepPage() {
   const challengeCompleteRef = useRef<HTMLDivElement | null>(null)
   const previousModeStatusRef = useRef<Record<LearningMode, boolean> | null>(null)
   const pulseTimeoutsRef = useRef<number[]>([])
+  const trackedStepStartedRef = useRef<string | null>(null)
+  const trackedModeStartedRef = useRef<Set<string>>(new Set())
   const saveChallengeSubmission = useChallengeSubmission(stepId)
   const recentChallengeSubmissions = useRecentChallengeSubmissions(stepId)
   const handleChallengeSubmitResult = useCallback(
@@ -198,6 +201,38 @@ export function StepPage() {
   const isCourseLocked = !isLoadingStats && stepCourse
     ? getCourseLockStatus(stepCourse, completedStepIds).locked
     : false
+
+  useEffect(() => {
+    if (!user?.id || !step || isUnavailableStep || isCourseLocked) return
+
+    const courseId = stepCourse?.id ?? null
+    const stepKey = `${user.id}:${step.id}`
+
+    if (trackedStepStartedRef.current !== stepKey) {
+      trackLearningEvent({
+        userId: user.id,
+        eventType: 'step_started',
+        stepId: step.id,
+        courseId,
+        payload: {
+          order: step.order,
+        },
+      })
+      trackedStepStartedRef.current = stepKey
+    }
+
+    const modeKey = `${stepKey}:${activeMode}`
+    if (!trackedModeStartedRef.current.has(modeKey)) {
+      trackLearningEvent({
+        userId: user.id,
+        eventType: 'mode_started',
+        stepId: step.id,
+        mode: activeMode,
+        courseId,
+      })
+      trackedModeStartedRef.current.add(modeKey)
+    }
+  }, [activeMode, isCourseLocked, isUnavailableStep, step, stepCourse?.id, user?.id])
 
   if (isUnavailableStep || isCourseLocked) {
     return <Navigate to="/" replace />

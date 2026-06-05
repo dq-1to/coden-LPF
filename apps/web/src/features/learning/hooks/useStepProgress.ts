@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { findCourseByStepId } from '@/content/courseData'
 import type { LearningMode, LearningStepContent } from '@/content/fundamentals/steps'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLearningContext } from '@/contexts/LearningContext'
 import { useAchievementContext } from '@/contexts/AchievementContext'
+import { trackLearningEvent } from '@/services/eventService'
 import { awardPoints } from '@/services/pointService'
 import { POINTS_PER_MODE_COMPLETE } from '@/shared/constants'
 import { getStepProgress, updateModeCompletion, upsertProgress } from '@/services/progressService'
@@ -104,6 +106,17 @@ export function useStepProgress(stepId: string, step: LearningStepContent | unde
           latestProgress?.practice_done &&
           latestProgress?.test_done &&
           latestProgress?.challenge_done
+        trackLearningEvent({
+          userId: user.id,
+          eventType: 'mode_completed',
+          stepId: step.id,
+          mode,
+          courseId: findCourseByStepId(step.id)?.id ?? null,
+          payload: {
+            stepCompleted: Boolean(isNowStepCompleted && !wasStepCompleted),
+          },
+        })
+
         if (isNowStepCompleted && !wasStepCompleted) {
           await recordStudyActivity()
         }

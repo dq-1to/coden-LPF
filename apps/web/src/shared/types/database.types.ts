@@ -92,6 +92,39 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_events: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          event_type: string
+          id: number
+          mode: string | null
+          payload: Json | null
+          step_id: string | null
+          user_id: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: number
+          mode?: string | null
+          payload?: Json | null
+          step_id?: string | null
+          user_id: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: number
+          mode?: string | null
+          payload?: Json | null
+          step_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       learning_stats: {
         Row: {
           current_streak: number

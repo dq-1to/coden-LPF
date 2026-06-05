@@ -6,6 +6,7 @@ import type { ChallengeTask } from '../../../content/fundamentals/steps'
 
 const recordWrongAnswer = vi.fn()
 const resolveReviewItem = vi.fn()
+const trackLearningEvent = vi.fn()
 
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
@@ -16,6 +17,10 @@ vi.mock('@/contexts/AuthContext', () => ({
 vi.mock('@/services/reviewService', () => ({
   recordWrongAnswer: (...args: unknown[]) => recordWrongAnswer(...args),
   resolveReviewItem: (...args: unknown[]) => resolveReviewItem(...args),
+}))
+
+vi.mock('@/services/eventService', () => ({
+  trackLearningEvent: (...args: unknown[]) => trackLearningEvent(...args),
 }))
 
 vi.mock('@/components/CodeEditor', () => ({
@@ -77,6 +82,7 @@ describe('ChallengeMode', () => {
   beforeEach(() => {
     recordWrongAnswer.mockReset()
     resolveReviewItem.mockReset()
+    trackLearningEvent.mockReset()
     recordWrongAnswer.mockResolvedValue(undefined)
     resolveReviewItem.mockResolvedValue(undefined)
   })
@@ -95,6 +101,18 @@ describe('ChallengeMode', () => {
     await user.click(screen.getByRole('button', { name: '判定する' }))
 
     expect(onComplete).toHaveBeenCalledTimes(1)
+    expect(trackLearningEvent).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      eventType: 'challenge_submitted',
+      stepId: 'step-a',
+      mode: 'challenge',
+      courseId: null,
+      payload: {
+        isCorrect: true,
+        itemCount: 1,
+        questionIds: ['pattern-1'],
+      },
+    })
     expect(onSubmitResult).toHaveBeenCalledWith({
       code: 'const [count, setCount] = useState(0); <button onClick={() => setCount(count + 1)} />',
       isPassed: true,
@@ -132,6 +150,18 @@ describe('ChallengeMode', () => {
 
     // Assert
     expect(screen.getByRole('status').textContent).toContain('要件を満たしていません。')
+    expect(trackLearningEvent).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      eventType: 'challenge_submitted',
+      stepId: 'step-a',
+      mode: 'challenge',
+      courseId: null,
+      payload: {
+        isCorrect: false,
+        itemCount: 1,
+        questionIds: ['pattern-1'],
+      },
+    })
     expect(recordWrongAnswer).toHaveBeenCalledWith({
       userId: '00000000-0000-0000-0000-000000000001',
       stepId: 'step-a',
