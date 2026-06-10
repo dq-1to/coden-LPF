@@ -5,8 +5,8 @@
 ## 前提
 
 1. `apps/web/.env.local` に有効な `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` が設定済み。
-2. テストアカウントが投入済み（`apps/web/supabase/sql/025_seed_e2e_accounts.sql`）。
-   - `e2e-general@coden.dev` / `e2e-admin@coden.dev` / `e2e-complete@coden.dev`（PW: `TestPass123!`）
+2. テストアカウントが投入済み（Git 管理外の E2E seed SQL で用意）。
+   - 例: `e2e-general@coden.dev` / `e2e-admin@coden.dev` / `e2e-complete@coden.dev`
 3. ブラウザ導入: `npx playwright install chromium`
 
 ## 実行

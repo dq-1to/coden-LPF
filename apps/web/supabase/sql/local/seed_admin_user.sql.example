@@ -8,7 +8,7 @@
 --
 -- 本ファイル（.example）は Git 管理下、コピー先の .sql は Git 管理外（apps/web/supabase/sql/local/ は .gitignore 対象）
 --
--- email_change 系カラムを空文字にするのは GoTrue の 500 エラー回避パターン（002_seed_test_users.sql 準拠）
+-- email_change 系カラムを空文字にするのは GoTrue の 500 エラー回避パターン。
 
 with upsert_admin as (
   insert into auth.users (

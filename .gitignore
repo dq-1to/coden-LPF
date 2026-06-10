@@ -33,7 +33,8 @@ playwright-report/
 blob-report/
 playwright/.cache/
 
-# Supabase ローカル seed（実パスワードを含むため Git 管理外）
-# .example のみ管理下、実ファイル（.sql）は環境ごとに作成する
+# Supabase seed / cleanup SQL（固定アカウント・実データを含み得るため Git 管理外）
+apps/web/supabase/sql/*seed*.sql
+apps/web/supabase/sql/*cleanup*.sql
 apps/web/supabase/sql/local/*
 !apps/web/supabase/sql/local/*.example

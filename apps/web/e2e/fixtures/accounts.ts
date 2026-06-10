@@ -1,6 +1,6 @@
 /**
- * E2E テストアカウント定義（apps/web/supabase/sql/025_seed_e2e_accounts.sql で投入）。
- * 実値は環境変数で上書き可能。パスワードは既定でシードと同じ TestPass123!。
+ * E2E テストアカウント定義（Git 管理外の seed SQL で投入）。
+ * 実値は環境変数で上書き可能。パスワードは既定のテスト用値を使う。
  * admin のみ別アカウント検証用に E2E_ADMIN_PASSWORD で個別上書きできる。
  */
 export const PASSWORD = process.env.E2E_PASSWORD ?? 'TestPass123!'
