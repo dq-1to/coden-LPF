@@ -24,13 +24,13 @@ export default defineConfig({
     target: 'ES2020',
     rollupOptions: {
       output: {
+        // dict 形式 manualChunks はパッケージのバレルごとチャンク化して
+        // tree-shaking を無効化し（lucide-react 全アイコン 601KB）、さらに
+        // vendor チャンクが entry の静的依存に入って lazy 化を無効化するため、
+        // eager 必須の react / supabase のみ残し、他は自然分割に任せる（#295）
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-codemirror': ['@uiw/react-codemirror', '@codemirror/view', '@codemirror/state'],
-          'vendor-markdown': ['react-markdown', 'remark-gfm'],
-          'vendor-prism': ['prismjs'],
-          'vendor-icons': ['lucide-react'],
         },
       },
     },
