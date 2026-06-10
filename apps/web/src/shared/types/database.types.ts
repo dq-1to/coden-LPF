@@ -489,6 +489,12 @@ export type Database = {
         Args: Record<string, never>
         Returns: undefined
       }
+      unlock_achievement_tx: {
+        Args: {
+          p_badge_id: string
+        }
+        Returns: boolean
+      }
       is_admin: {
         Args: Record<string, never>
         Returns: boolean

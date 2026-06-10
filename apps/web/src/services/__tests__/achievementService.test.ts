@@ -9,6 +9,7 @@ import type { LearningStats } from '../statsService'
 vi.mock('../../lib/supabaseClient', () => ({
   supabase: {
     from: vi.fn(),
+    rpc: vi.fn(),
   },
 }))
 
@@ -26,6 +27,7 @@ vi.mock('../statsService', () => ({
 }))
 
 const mockFrom = vi.mocked(supabase.from)
+const mockRpc = vi.mocked(supabase.rpc)
 const mockGetAllStepProgress = vi.mocked(getAllStepProgress)
 const mockGetLearningStats = vi.mocked(getLearningStats)
 
@@ -70,7 +72,6 @@ function mockFromWithTable(overrides: Record<string, unknown[]>) {
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockResolvedValue({ data, error: null }),
       }),
-      insert: vi.fn().mockResolvedValue({ error: null }),
     } as unknown as ReturnType<typeof supabase.from>
   })
 }
@@ -79,13 +80,13 @@ describe('checkAndUnlockAchievements', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    // デフォルト: 既存バッジなし、INSERT 成功、全 DB クエリは空
+    // デフォルト: 既存バッジなし、RPC 付与成功、全 DB クエリは空
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockResolvedValue({ data: [], error: null }),
       }),
-      insert: vi.fn().mockResolvedValue({ error: null }),
     } as unknown as ReturnType<typeof supabase.from>)
+    mockRpc.mockResolvedValue({ data: true, error: null } as unknown as Awaited<ReturnType<typeof supabase.rpc>>)
 
     // デフォルト: ステップ未完了、ストリーク 0
     mockGetAllStepProgress.mockResolvedValue([])
@@ -204,7 +205,6 @@ describe('checkAndUnlockAchievements', () => {
           error: null,
         }),
       }),
-      insert: vi.fn().mockResolvedValue({ error: null }),
     } as unknown as ReturnType<typeof supabase.from>)
 
     mockGetAllStepProgress.mockResolvedValue([makeCompletedProgress('usestate-basic')])
