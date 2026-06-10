@@ -32,7 +32,7 @@ vi.mock('@/services/dailyChallengeService', () => ({
   getTodayJst: () => '2026-04-02',
 }))
 
-vi.mock('@/components/PracticePageLayout', () => ({
+vi.mock('@/features/practice/components/PracticePageLayout', () => ({
   PracticePageLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }))
 

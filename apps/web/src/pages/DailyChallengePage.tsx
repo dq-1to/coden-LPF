@@ -7,7 +7,7 @@ import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
 import { WeeklyStatus } from '../features/daily/components/WeeklyStatus'
 import { DailyChallengeCard } from '../features/daily/components/DailyChallengeCard'
 import { CompletedView } from '../features/daily/components/CompletedView'
-import { PracticePageLayout } from '../components/PracticePageLayout'
+import { PracticePageLayout } from '../features/practice/components/PracticePageLayout'
 import { Spinner } from '../components/Spinner'
 import type { TodayChallengeResult, SubmitResult, WeeklyStatusEntry } from '../content/daily/types'
 
