@@ -139,9 +139,20 @@ const from = vi.fn((table: string) => {
   throw new Error(`unexpected table: ${table}`)
 })
 
+const rpcState = {
+  calls: [] as Array<{ fn: string; args: Record<string, unknown> }>,
+  result: { error: null as unknown },
+}
+
+const rpcMock = vi.fn((fn: string, args: Record<string, unknown>) => {
+  rpcState.calls.push({ fn, args })
+  return Promise.resolve({ data: null, error: rpcState.result.error })
+})
+
 vi.mock('../../lib/supabaseClient', () => ({
   supabase: {
     from: (...args: unknown[]) => from(...(args as [string])),
+    rpc: (...args: unknown[]) => rpcMock(...(args as [string, Record<string, unknown>])),
     storage: {
       from: (...args: unknown[]) => storageFrom(...(args as [string])),
     },
@@ -170,6 +181,8 @@ function resetState() {
   storageState.uploadCalls = []
   storageState.uploadResult = { error: null }
   storageState.signedUrlsResult = { data: null, error: null }
+  rpcState.calls = []
+  rpcState.result = { error: null }
 }
 
 describe('FEEDBACK_CATEGORIES / FEEDBACK_STATUSES', () => {
@@ -546,7 +559,7 @@ describe('uploadFeedbackImages', () => {
 describe('submitFeedback with files', () => {
   beforeEach(resetState)
 
-  it('画像付き送信で INSERT → Storage アップロード → UPDATE の順に実行する', async () => {
+  it('画像付き送信で INSERT → Storage アップロード → RPC 保存の順に実行する', async () => {
     const feedbackRow = {
       id: VALID_FEEDBACK_ID,
       user_id: VALID_USER_ID,
@@ -556,10 +569,6 @@ describe('submitFeedback with files', () => {
       image_paths: [],
     }
     userFeedbackState.insertResult = { data: feedbackRow, error: null }
-    userFeedbackState.updateResult = {
-      data: { ...feedbackRow, image_paths: ['path/a.png'] },
-      error: null,
-    }
 
     const files = [createTestFile('screenshot.png', 1024)]
     const result = await submitFeedback({
@@ -573,12 +582,38 @@ describe('submitFeedback with files', () => {
     expect(userFeedbackState.insertPayload).not.toBeNull()
     // Storage アップロードが呼ばれている
     expect(storageState.uploadCalls).toHaveLength(1)
-    // UPDATE で image_paths が設定されている
-    expect(userFeedbackState.updatePayload).toHaveProperty('image_paths')
-    expect(result.image_paths).toEqual(['path/a.png'])
+    // RPC で image_paths が保存されている（直接 UPDATE は RLS で封鎖済み）
+    const uploadedPath = storageState.uploadCalls[0]?.path
+    expect(rpcState.calls).toHaveLength(1)
+    expect(rpcState.calls[0]?.fn).toBe('update_own_feedback_images')
+    expect(rpcState.calls[0]?.args).toEqual({
+      p_feedback_id: VALID_FEEDBACK_ID,
+      p_image_paths: [uploadedPath],
+    })
+    expect(result.image_paths).toEqual([uploadedPath])
   })
 
-  it('画像なし送信では Storage アップロードも UPDATE も呼ばない', async () => {
+  it('image_paths 保存 RPC が失敗したらアプリ共通エラーを投げる', async () => {
+    userFeedbackState.insertResult = {
+      data: { id: VALID_FEEDBACK_ID, image_paths: [] },
+      error: null,
+    }
+    rpcState.result = { error: { message: 'permission denied' } }
+
+    await expect(
+      submitFeedback({
+        userId: VALID_USER_ID,
+        category: 'bug',
+        message: 'hello',
+        files: [createTestFile('screenshot.png', 1024)],
+      }),
+    ).rejects.toMatchObject({
+      name: 'AppError',
+      userMessage: '画像パスの保存に失敗しました',
+    })
+  })
+
+  it('画像なし送信では Storage アップロードも RPC も呼ばない', async () => {
     userFeedbackState.insertResult = {
       data: { id: VALID_FEEDBACK_ID, image_paths: [] },
       error: null,
@@ -590,7 +625,7 @@ describe('submitFeedback with files', () => {
     })
 
     expect(storageState.uploadCalls).toHaveLength(0)
-    expect(userFeedbackState.updatePayload).toBeNull()
+    expect(rpcState.calls).toHaveLength(0)
   })
 })
 
