@@ -495,6 +495,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_own_feedback_images: {
+        Args: {
+          p_feedback_id: string
+          p_image_paths: Json
+        }
+        Returns: undefined
+      }
       is_admin: {
         Args: Record<string, never>
         Returns: boolean
