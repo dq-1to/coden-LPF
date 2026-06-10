@@ -22,7 +22,7 @@ vi.mock('@/services/codeReadingService', () => ({
   submitReading: vi.fn(),
 }))
 
-vi.mock('@/components/PracticePageLayout', () => ({
+vi.mock('@/features/practice/components/PracticePageLayout', () => ({
   PracticePageLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }))
 

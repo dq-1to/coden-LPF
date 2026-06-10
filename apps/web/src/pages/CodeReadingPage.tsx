@@ -8,7 +8,7 @@ import {
 } from '../services/codeReadingService'
 import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
 import { ReadingCard } from '../features/code-reading/components/ReadingCard'
-import { PracticePageLayout } from '../components/PracticePageLayout'
+import { PracticePageLayout } from '../features/practice/components/PracticePageLayout'
 import { Spinner } from '../components/Spinner'
 import { CODE_READING_PROBLEMS } from '../content/code-reading/problems'
 import type {

@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import { useSignOut } from '../hooks/useSignOut'
-import { AppHeader } from '../features/dashboard/components/AppHeader'
-import { getDisplayName } from '../shared/utils/getDisplayName'
+import { useAuth } from '../../../contexts/AuthContext'
+import { useSignOut } from '../../../hooks/useSignOut'
+import { AppHeader } from '../../dashboard/components/AppHeader'
+import { getDisplayName } from '../../../shared/utils/getDisplayName'
 
 interface PracticePageLayoutProps {
   children: React.ReactNode

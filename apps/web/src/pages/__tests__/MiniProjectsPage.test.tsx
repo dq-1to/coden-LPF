@@ -20,7 +20,7 @@ vi.mock('@/services/miniProjectService', () => ({
   getProjectProgressMap: (...args: unknown[]) => getProjectProgressMapMock(...args),
 }))
 
-vi.mock('@/components/PracticePageLayout', () => ({
+vi.mock('@/features/practice/components/PracticePageLayout', () => ({
   PracticePageLayout: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }))
 
