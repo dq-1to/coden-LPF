@@ -76,8 +76,12 @@ export function DashboardPage() {
   }, [userId])
 
   const recommendedAction = useMemo(
-    () => getRecommendedAction({ progress: allStepProgress }),
-    [allStepProgress],
+    () => getRecommendedAction({
+      progress: allStepProgress,
+      reviewCount,
+      enableReviewQueue: true,
+    }),
+    [allStepProgress, reviewCount],
   )
   const shouldShowReviewQueue = isLoadingReview || Boolean(reviewError) || reviewCount > 0
 
