@@ -152,18 +152,16 @@ export async function getUnlockedAchievements(userId: string): Promise<BadgeId[]
   return (data ?? []).map((row) => row.badge_id).filter(isBadgeId)
 }
 
-export async function unlockAchievement(userId: string, badgeId: BadgeId): Promise<boolean> {
-  const { error } = await supabase.from('achievements').insert({ user_id: userId, badge_id: badgeId })
+export async function unlockAchievement(badgeId: BadgeId): Promise<boolean> {
+  // RLS で achievements への直 INSERT は封鎖済み（025）。付与は RPC 経由に限定し、
+  // 既保持の場合は false が返る。
+  const { data, error } = await supabase.rpc('unlock_achievement_tx', { p_badge_id: badgeId })
 
-  if (!error) {
-    return true
+  if (error) {
+    throw fromSupabaseError(error, 'バッジの付与に失敗しました')
   }
 
-  if (error.code === '23505') {
-    return false
-  }
-
-  throw fromSupabaseError(error, 'バッジの付与に失敗しました')
+  return data === true
 }
 
 export async function checkAndUnlockAchievements(userId: string): Promise<BadgeId[]> {
@@ -219,7 +217,7 @@ export async function checkAndUnlockAchievements(userId: string): Promise<BadgeI
 
   // 並列で一括解禁
   const results = await Promise.allSettled(
-    candidates.map((badgeId) => unlockAchievement(userId, badgeId)),
+    candidates.map((badgeId) => unlockAchievement(badgeId)),
   )
 
   const newlyUnlocked: BadgeId[] = []

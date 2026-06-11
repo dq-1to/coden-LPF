@@ -31,6 +31,9 @@ const MiniProjectDetailPage = lazy(() =>
 const MiniProjectsPage = lazy(() =>
   import('./pages/MiniProjectsPage').then((m) => ({ default: m.MiniProjectsPage })),
 )
+const NotificationsPage = lazy(() =>
+  import('./pages/NotificationsPage').then((m) => ({ default: m.NotificationsPage })),
+)
 const BaseNookPage = lazy(() => import('./pages/BaseNookPage').then((m) => ({ default: m.BaseNookPage })))
 const BaseNookTopicPage = lazy(() =>
   import('./pages/BaseNookTopicPage').then((m) => ({ default: m.BaseNookTopicPage })),
@@ -48,6 +51,9 @@ const AdminFeedbackListPage = lazy(() =>
 const AdminFeedbackDetailPage = lazy(() =>
   import('./pages/admin/AdminFeedbackDetailPage').then((m) => ({ default: m.AdminFeedbackDetailPage })),
 )
+const AdminNotificationsPage = lazy(() =>
+  import('./pages/admin/AdminNotificationsPage').then((m) => ({ default: m.AdminNotificationsPage })),
+)
 const AdminUsersPage = lazy(() =>
   import('./pages/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage })),
 )
@@ -56,6 +62,16 @@ const AdminUserDetailPage = lazy(() =>
 )
 const AdminStatsPage = lazy(() =>
   import('./pages/admin/AdminStatsPage').then((m) => ({ default: m.AdminStatsPage })),
+)
+const AdminQualityDashboardPage = lazy(() =>
+  import('./pages/admin/AdminQualityDashboardPage').then((m) => ({
+    default: m.AdminQualityDashboardPage,
+  })),
+)
+const AdminStepInsightsPage = lazy(() =>
+  import('./pages/admin/AdminStepInsightsPage').then((m) => ({
+    default: m.AdminStepInsightsPage,
+  })),
 )
 const AdminOpsPage = lazy(() =>
   import('./pages/admin/AdminOpsPage').then((m) => ({ default: m.AdminOpsPage })),
@@ -119,6 +135,16 @@ const router = createBrowserRouter([
       <ProtectedRoute>
         <Suspense fallback={<PageLoading />}>
           <ProfilePage />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/notifications',
+    element: (
+      <ProtectedRoute>
+        <Suspense fallback={<PageLoading />}>
+          <NotificationsPage />
         </Suspense>
       </ProtectedRoute>
     ),
@@ -240,6 +266,18 @@ const router = createBrowserRouter([
     ),
   },
   {
+    path: '/admin/notifications',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminNotificationsPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: '/admin/users',
     element: (
       <ProtectedRoute>
@@ -258,6 +296,30 @@ const router = createBrowserRouter([
         <AdminGuard>
           <Suspense fallback={<PageLoading />}>
             <AdminUserDetailPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/quality',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminQualityDashboardPage />
+          </Suspense>
+        </AdminGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/step-insights',
+    element: (
+      <ProtectedRoute>
+        <AdminGuard>
+          <Suspense fallback={<PageLoading />}>
+            <AdminStepInsightsPage />
           </Suspense>
         </AdminGuard>
       </ProtectedRoute>

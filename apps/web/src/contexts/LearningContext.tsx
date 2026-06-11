@@ -1,10 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useAuth } from './AuthContext'
 import { getLearningStats, type LearningStats } from '../services/statsService'
-import { getAllStepProgress, isStepCompleted } from '../services/progressService'
+import { getAllStepProgress, isStepCompleted, type StepProgressRow } from '../services/progressService'
 
 interface LearningContextType {
     stats: LearningStats | null
+    allStepProgress: readonly StepProgressRow[]
     completedStepIds: ReadonlySet<string>
     completedStepsCount: number
     isLoadingStats: boolean
@@ -12,9 +13,11 @@ interface LearningContextType {
 }
 
 const EMPTY_SET: ReadonlySet<string> = new Set()
+const EMPTY_PROGRESS: readonly StepProgressRow[] = []
 
 const LearningContext = createContext<LearningContextType>({
     stats: null,
+    allStepProgress: EMPTY_PROGRESS,
     completedStepIds: EMPTY_SET,
     completedStepsCount: 0,
     isLoadingStats: true,
@@ -24,6 +27,7 @@ const LearningContext = createContext<LearningContextType>({
 export function LearningProvider({ children }: { children: ReactNode }) {
     const { user } = useAuth()
     const [stats, setStats] = useState<LearningStats | null>(null)
+    const [allStepProgress, setAllStepProgress] = useState<readonly StepProgressRow[]>(EMPTY_PROGRESS)
     const [completedStepIds, setCompletedStepIds] = useState<ReadonlySet<string>>(EMPTY_SET)
     const [isLoadingStats, setIsLoadingStats] = useState(true)
     const isMountedRef = useRef(true)
@@ -40,6 +44,7 @@ export function LearningProvider({ children }: { children: ReactNode }) {
     const refreshStats = useCallback(async () => {
         if (!user) {
             setStats(null)
+            setAllStepProgress(EMPTY_PROGRESS)
             setCompletedStepIds(EMPTY_SET)
             setIsLoadingStats(false)
             return
@@ -52,6 +57,7 @@ export function LearningProvider({ children }: { children: ReactNode }) {
             ])
             if (!isMountedRef.current) return
             setStats(currentStats)
+            setAllStepProgress(progresses)
             const ids = new Set(
                 progresses.filter(isStepCompleted).map((p) => p.step_id),
             )
@@ -79,8 +85,8 @@ export function LearningProvider({ children }: { children: ReactNode }) {
     }, [refreshStats])
 
     const value = useMemo(
-        () => ({ stats, completedStepIds, completedStepsCount, isLoadingStats, refreshStats }),
-        [stats, completedStepIds, completedStepsCount, isLoadingStats, refreshStats],
+        () => ({ stats, allStepProgress, completedStepIds, completedStepsCount, isLoadingStats, refreshStats }),
+        [stats, allStepProgress, completedStepIds, completedStepsCount, isLoadingStats, refreshStats],
     )
 
     return (

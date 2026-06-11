@@ -47,6 +47,18 @@ describe('DailyChallengeCard', () => {
     expect(screen.getByText('onclick')).toBeTruthy()
   })
 
+  it('復習優先の理由がある場合は表示される', () => {
+    render(
+      <DailyChallengeCard
+        question={blankQuestion}
+        dateStr="2026-04-02"
+        reviewReason="Practiceで復習待ちになったStepから出題しています。"
+        onSubmit={vi.fn()}
+      />,
+    )
+    expect(screen.getByText('Practiceで復習待ちになったStepから出題しています。')).toBeTruthy()
+  })
+
   it('ヒントの表示/非表示を切り替えられる', () => {
     render(
       <DailyChallengeCard question={blankQuestion} dateStr="2026-04-02" onSubmit={vi.fn()} />,

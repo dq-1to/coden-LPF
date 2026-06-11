@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Flame, Gem, Menu } from 'lucide-react'
+import { Flame, Gem, Mailbox, Menu } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useFeedbackContext } from '@/contexts/FeedbackContext'
 import { useLearningContext } from '@/contexts/LearningContext'
+import { getUnreadCount, subscribeNotificationsUpdated } from '@/services/notificationService'
 import { AppHeaderDesktopNav } from './AppHeaderDesktopNav'
 import { AppHeaderMobileDrawer } from './AppHeaderMobileDrawer'
 
@@ -14,11 +15,13 @@ interface AppHeaderProps {
 
 export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
   const { stats } = useLearningContext()
-  const { isAdmin } = useAuth()
+  const { isAdmin, user } = useAuth()
   const { openFeedback } = useFeedbackContext()
   const location = useLocation()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const userId = user?.id ?? null
 
   const closeDrawer = useCallback(() => {
     setIsDrawerOpen(false)
@@ -29,6 +32,34 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
   useEffect(() => {
     closeDrawer()
   }, [location.pathname, closeDrawer])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadUnreadCount() {
+      if (!userId) {
+        setUnreadCount(0)
+        return
+      }
+
+      try {
+        const count = await getUnreadCount(userId)
+        if (!cancelled) setUnreadCount(count)
+      } catch {
+        if (!cancelled) setUnreadCount(0)
+      }
+    }
+
+    void loadUnreadCount()
+    const unsubscribe = subscribeNotificationsUpdated(() => {
+      void loadUnreadCount()
+    })
+
+    return () => {
+      cancelled = true
+      unsubscribe()
+    }
+  }, [userId])
 
   const navLinkClass = (active: boolean) =>
     `pb-1 ${active ? 'border-b-2 border-primary-mint text-slate-900' : 'text-slate-500 hover:text-slate-700'}`
@@ -61,6 +92,23 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
           <div className="hidden rounded-full border border-primary-mint/30 bg-secondary-bg px-3 py-1 text-xs font-semibold text-primary-dark sm:block">
             <Flame className="inline-block h-3.5 w-3.5" aria-hidden="true" /> {stats?.current_streak ?? 0}日連続
           </div>
+          <Link
+            to="/notifications"
+            className={`relative inline-flex h-10 w-10 items-center justify-center rounded-lg border text-slate-600 transition hover:bg-slate-50 ${
+              location.pathname.startsWith('/notifications')
+                ? 'border-primary-mint bg-secondary-bg text-primary-dark'
+                : 'border-slate-200 bg-white'
+            }`}
+            aria-label={unreadCount > 0 ? `お知らせ、未読 ${unreadCount} 件` : 'お知らせ'}
+            aria-current={location.pathname.startsWith('/notifications') ? 'page' : undefined}
+          >
+            <Mailbox className="h-5 w-5" aria-hidden="true" />
+            {unreadCount > 0 ? (
+              <span className="absolute -right-1 -top-1 rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white shadow-sm">
+                新着
+              </span>
+            ) : null}
+          </Link>
           <div className="hidden text-sm font-medium text-slate-600 sm:block">{displayName}</div>
           <button
             className="hidden rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 md:block"
@@ -89,6 +137,7 @@ export function AppHeader({ displayName, onSignOut }: AppHeaderProps) {
         displayName={displayName}
         pathname={location.pathname}
         stats={stats}
+        unreadCount={unreadCount}
         isAdmin={isAdmin}
         openFeedback={openFeedback}
         onClose={closeDrawer}

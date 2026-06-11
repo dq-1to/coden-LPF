@@ -39,6 +39,8 @@ import { typescriptReactSteps, getTypescriptReactStep } from '../typescript-reac
 import { reactModernSteps, getReactModernStep } from '../react-modern/steps'
 import { reactPatternsSteps, getReactPatternsStep } from '../react-patterns/steps'
 import type { LearningStepContent } from '../fundamentals/steps'
+import { BASE_NOOK_TOPICS } from '../base-nook/topics'
+import { STEP_LEARNING_GOALS } from '../stepLearningGoals'
 
 // 全コンテンツを order 順に結合
 const allContentSteps: LearningStepContent[] = [
@@ -54,6 +56,8 @@ const allContentSteps: LearningStepContent[] = [
 
 // courseData の全ステップ（order 昇順）
 const allCourseSteps = getAllSteps().sort((a, b) => a.order - b.order)
+const reactFundamentalsStepIds = ['usestate-basic', 'events', 'conditional', 'lists']
+const baseNookTopicIds = new Set(BASE_NOOK_TOPICS.map((topic) => topic.id))
 
 // ─────────────────────────────────────────
 // 1. courseData 整合性
@@ -172,6 +176,51 @@ describe('4モードコンテンツ品質検証', () => {
       })
     })
   }
+})
+
+// ─────────────────────────────────────────
+// 3.5. Step メタ情報
+// ─────────────────────────────────────────
+describe('Step メタ情報', () => {
+  it('全40ステップに learningGoal が付与されている', () => {
+    expect(Object.keys(STEP_LEARNING_GOALS)).toHaveLength(40)
+
+    for (const step of allContentSteps) {
+      expect(step.learningGoal, `${step.id}: learningGoal が空`).toBeTruthy()
+    }
+  })
+
+  it('learningGoal 定義は courseData の全 stepId と一致する', () => {
+    const courseStepIds = new Set(allCourseSteps.map((step) => step.id))
+    const goalStepIds = Object.keys(STEP_LEARNING_GOALS)
+
+    expect(goalStepIds).toHaveLength(courseStepIds.size)
+    for (const stepId of goalStepIds) {
+      expect(courseStepIds.has(stepId), `${stepId}: courseData に存在しない learningGoal`).toBe(true)
+    }
+  })
+
+  it('React基礎4ステップに学習メタ情報が付与されている', () => {
+    const reactFundamentalsSteps = fundamentalsSteps.filter((step) => reactFundamentalsStepIds.includes(step.id))
+
+    expect(reactFundamentalsSteps).toHaveLength(4)
+    for (const step of reactFundamentalsSteps) {
+      expect(step.learningGoal, `${step.id}: learningGoal が空`).toBeTruthy()
+      expect(step.prerequisites?.length, `${step.id}: prerequisites が空`).toBeGreaterThan(0)
+      expect(step.commonMistakes?.length, `${step.id}: commonMistakes が空`).toBeGreaterThan(0)
+      expect(step.relatedBaseNook?.length, `${step.id}: relatedBaseNook が空`).toBeGreaterThan(0)
+    }
+  })
+
+  it('React基礎4ステップの relatedBaseNook は存在する Base Nook topic を参照する', () => {
+    const reactFundamentalsSteps = fundamentalsSteps.filter((step) => reactFundamentalsStepIds.includes(step.id))
+
+    for (const step of reactFundamentalsSteps) {
+      for (const topicId of step.relatedBaseNook ?? []) {
+        expect(baseNookTopicIds.has(topicId), `${step.id}: ${topicId} が Base Nook に存在しない`).toBe(true)
+      }
+    }
+  })
 })
 
 // ─────────────────────────────────────────

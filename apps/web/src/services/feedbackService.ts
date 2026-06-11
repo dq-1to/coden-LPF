@@ -142,20 +142,20 @@ export async function submitFeedback(input: SubmitFeedbackInput): Promise<UserFe
     throw fromSupabaseError(error, 'フィードバックの送信に失敗しました')
   }
 
-  // 2. 画像があれば Storage にアップロードし image_paths を UPDATE
+  // 2. 画像があれば Storage にアップロードし image_paths を保存する。
+  //    本人の直接 UPDATE は RLS で封鎖済み（026）。RPC がパス形式
+  //    （自分のディレクトリ配下・最大3枚）を検証して image_paths のみ更新する
   if (files.length > 0) {
     const paths = await uploadFeedbackImages(input.userId, data.id, files)
-    const { data: updated, error: updateError } = await supabase
-      .from('user_feedback')
-      .update({ image_paths: paths as Json[] })
-      .eq('id', data.id)
-      .select()
-      .single()
+    const { error: updateError } = await supabase.rpc('update_own_feedback_images', {
+      p_feedback_id: data.id,
+      p_image_paths: paths as Json[],
+    })
 
     if (updateError) {
       throw fromSupabaseError(updateError, '画像パスの保存に失敗しました')
     }
-    return updated
+    return { ...data, image_paths: paths as Json[] }
   }
 
   return data

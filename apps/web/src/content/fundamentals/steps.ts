@@ -1,3 +1,5 @@
+import { withLearningGoals } from '../stepLearningGoals'
+
 export type LearningMode = 'read' | 'practice' | 'test' | 'challenge'
 
 export interface PracticeQuestion {
@@ -34,7 +36,14 @@ export interface ChallengePattern {
   prompt: string
   requirements: string[]
   hints: string[]
+  /** 常に含まれている必要があるキーワード */
   expectedKeywords: string[]
+  /** 含まれていてはいけないキーワード（アンチパターン抑止。任意） */
+  ngKeywords?: string[]
+  /** 複数正解パターン（いずれかを満たせば可。任意） */
+  anyOf?: string[][]
+  /** 部分点での合格閾値（0-100。未指定なら全要件一致。任意） */
+  passThreshold?: number
   starterCode: string
   mobilePuzzle?: ChallengeMobilePuzzle
 }
@@ -48,18 +57,30 @@ export interface LearningStepContent {
   order: number
   title: string
   summary: string
+  learningGoal?: string
+  prerequisites?: string[]
+  commonMistakes?: string[]
+  relatedBaseNook?: string[]
   readMarkdown: string
   practiceQuestions: PracticeQuestion[]
   testTask: TestTask
   challengeTask: ChallengeTask
 }
 
-export const fundamentalsSteps: LearningStepContent[] = [
+export const fundamentalsSteps: LearningStepContent[] = withLearningGoals([
   {
     id: 'usestate-basic',
     order: 1,
     title: 'useStateの基礎',
     summary: 'コンポーネントに「記憶」を持たせる useState フックの基本を学ぶ。',
+    learningGoal: 'useStateで画面の状態を保持し、ユーザー操作に応じて再レンダリングされる流れを説明・実装できるようになる。',
+    prerequisites: ['Reactコンポーネントが関数としてUIを返すこと', 'ボタンのクリックなど、ユーザー操作で画面が変わるイメージを持っていること'],
+    commonMistakes: [
+      '通常の変数を書き換えても画面が更新されると思い込む',
+      'stateを直接代入で変更し、setStateを使わない',
+      '更新後の値をすぐ同じ処理内で読もうとして、反映タイミングを誤解する',
+    ],
+    relatedBaseNook: ['component', 'props-vs-state'],
     readMarkdown: `# State: コンポーネントの記憶
 
 UIの一部はユーザーの操作に応じて変化する必要があります。画面上のカウンターやテキスト入力など、時間とともに変化するデータをReactでは **State（状態）** と呼びます。
@@ -227,6 +248,14 @@ return <button onClick={() => ____}>-1 ({count})</button>`,
     order: 2,
     title: 'イベントへの応答',
     summary: 'onClick や onChange などのイベントハンドラを設定し、ユーザー操作を処理する。',
+    learningGoal: 'onClickやonChangeに関数を渡し、ユーザー操作をきっかけにstateや表示を更新できるようになる。',
+    prerequisites: ['JSXでボタンやinputを描画できること', 'useStateで値を保持する基本を理解していること'],
+    commonMistakes: [
+      'イベントハンドラに関数の実行結果を渡して、描画時に処理が走ってしまう',
+      'inputのvalueとonChangeをつなげず、入力欄とstateがずれる',
+      'イベントオブジェクトから値を取り出す位置を間違える',
+    ],
+    relatedBaseNook: ['jsx', 'dom', 'props-vs-state'],
     readMarkdown: `# イベントへの応答
 
 Reactでは、クリックしたり、マウスを重ねたり、入力フォームのテキストが変更されたりといった「ユーザーアクション」に対する処理を簡単に追加できます。
@@ -394,6 +423,14 @@ export function NameInput() {
     order: 3,
     title: '条件付きレンダリング',
     summary: '条件によって表示するコンポーネントや要素を分岐させる。',
+    learningGoal: 'booleanやstateの値に応じて、必要なUIだけを表示・非表示に切り替えられるようになる。',
+    prerequisites: ['JSX内でJavaScript式を埋め込めること', 'stateやpropsの値を画面表示に使う基本を理解していること'],
+    commonMistakes: [
+      'JSXの中でif文をそのまま式として書こうとする',
+      '0や空文字が&&の左辺に来たとき、意図しない値が表示される',
+      '条件分岐が深くなり、どのUIが表示されるか読み取りづらくなる',
+    ],
+    relatedBaseNook: ['jsx', 'javascript'],
     readMarkdown: `# 条件付きレンダリング
 
 コンポーネントは、状態や与えられたプロパティ(Props)に応じて、表示する内容を変えたい場面がよくあります。ReactではJavaScriptの強力な構文を使って柔軟に条件付きレンダリングを記述できます。
@@ -499,7 +536,19 @@ function Notifications({ unreadCount }) {
           requirements: ['trueなら「ようこそ」を描画', 'falseならログインボタンを描画', '三項演算子を使う'],
           hints: ['isLoggedIn ? A : B を使う'],
           expectedKeywords: ['isLoggedIn', '?', ':'],
-          starterCode: `import { useState } from 'react';\n\nexport function AuthPanel() {\n  const [isLoggedIn, setIsLoggedIn] = useState(false);\n\n  return (\n    <div>\n      {/* TODO: 以下のコメント部分を三項演算子(?と:)に置き換え、\n          isLoggedInが true なら <p>ようこそ！</p> を、\n          false なら <button onClick={() => setIsLoggedIn(true)}>ログイン</button> を表示してください。 \n      */}\n      {/* ここに三項演算子を書く */}\n    </div>\n  );\n}`
+          starterCode: `import { useState } from 'react';\n\nexport function AuthPanel() {\n  const [isLoggedIn, setIsLoggedIn] = useState(false);\n\n  return (\n    <div>\n      {/* TODO: 以下のコメント部分を三項演算子(?と:)に置き換え、\n          isLoggedInが true なら <p>ようこそ！</p> を、\n          false なら <button onClick={() => setIsLoggedIn(true)}>ログイン</button> を表示してください。 \n      */}\n      {/* ここに三項演算子を書く */}\n    </div>\n  );\n}`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `import { useState } from 'react';\n\nexport function AuthPanel() {\n  const [isLoggedIn, setIsLoggedIn] = useState(false);\n\n  return (\n    <div>\n      ____0\n    </div>\n  );\n}`,
+            blanks: [
+              {
+                id: 'ternary',
+                label: '条件分岐',
+                correctTokens: ['{', 'isLoggedIn', '?', '<p>', 'ようこそ！', '</p>', ':', '<button', 'onClick', '=', '{', '(', ')', '=>', 'setIsLoggedIn', '(', 'true', ')', '}', '>', 'ログイン', '</button>', '}'],
+                distractorTokens: ['&&', '||', 'if', 'isActive', 'false'],
+              },
+            ],
+          },
         },
         {
           id: 'conditional-badge',
@@ -507,7 +556,19 @@ function Notifications({ unreadCount }) {
           requirements: ['&&演算子を使う', 'hasNewMessageがtrueの時のみ表示'],
           hints: ['条件 && 要素 の形を使う'],
           expectedKeywords: ['&&', 'hasNewMessage'],
-          starterCode: `export function Notification({ hasNewMessage }) {\n  return (\n    <div>\n      メッセージ\n      {/* TODO: hasNewMessage が true のときだけ <span>New!</span> が表示されるように論理積(&&)演算子を使って記述してください */}\n      \n    </div>\n  );\n}`
+          starterCode: `export function Notification({ hasNewMessage }) {\n  return (\n    <div>\n      メッセージ\n      {/* TODO: hasNewMessage が true のときだけ <span>New!</span> が表示されるように論理積(&&)演算子を使って記述してください */}\n      \n    </div>\n  );\n}`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `export function Notification({ hasNewMessage }) {\n  return (\n    <div>\n      メッセージ\n      ____0\n    </div>\n  );\n}`,
+            blanks: [
+              {
+                id: 'conditional',
+                label: '条件付き表示',
+                correctTokens: ['{', 'hasNewMessage', '&&', '<span>', 'New!', '</span>', '}'],
+                distractorTokens: ['||', 'isRead', '?', ':', 'if'],
+              },
+            ],
+          },
         }
       ]
     },
@@ -517,6 +578,14 @@ function Notifications({ unreadCount }) {
     order: 4,
     title: 'リストのレンダリング',
     summary: '配列のデータを map() メソッドで JSX に変換し、リストを描画する。',
+    learningGoal: '配列データをmapでJSXに変換し、安定したkeyを付けてリストUIを描画できるようになる。',
+    prerequisites: ['JavaScriptの配列とmapの基本', 'JSXで複数の要素を表示する基本'],
+    commonMistakes: [
+      'mapの戻り値を書き忘れて、何も表示されない',
+      'keyに配列indexを安易に使い、並び替えや削除で表示がずれる',
+      'リスト内の各要素に一意なidが必要な理由を見落とす',
+    ],
+    relatedBaseNook: ['javascript', 'jsx'],
     readMarkdown: `# リストのレンダリング
 
 アプリを作っていると、データの配列をもとに「同じ構造のコンポーネント」をいくつも生成したい場面が多々あります（商品一覧、Todoリスト、など）。
@@ -608,7 +677,21 @@ export function List() {
           requirements: ['mapメソッドを使う', 'keyプロパティを指定する', 'todoのtitleを表示する'],
           hints: ['todos.map(todo => ...) とする', 'key={todo.id} のように一意な値を渡す'],
           expectedKeywords: ['map', 'key=', 'todo.id'],
-          starterCode: `export function TodoList() {\n  const todos = [\n    { id: 1, title: 'Reactを学ぶ' },\n    { id: 2, title: 'TypeScriptを学ぶ' },\n  ];\n\n  return (\n    <ul>\n      {/* TODO: todos を map し、それぞれ <li> タグとして描画してください。\n          <li> には必ず key に todo.id を指定し、中身に todo.title を表示してください。 \n      */}\n      \n    </ul>\n  );\n}`
+          // 配列インデックスを key にするアンチパターンを抑止する
+          ngKeywords: ['key={index}', 'key={i}'],
+          starterCode: `export function TodoList() {\n  const todos = [\n    { id: 1, title: 'Reactを学ぶ' },\n    { id: 2, title: 'TypeScriptを学ぶ' },\n  ];\n\n  return (\n    <ul>\n      {/* TODO: todos を map し、それぞれ <li> タグとして描画してください。\n          <li> には必ず key に todo.id を指定し、中身に todo.title を表示してください。 \n      */}\n      \n    </ul>\n  );\n}`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `export function TodoList() {\n  const todos = [\n    { id: 1, title: 'Reactを学ぶ' },\n    { id: 2, title: 'TypeScriptを学ぶ' },\n  ];\n\n  return (\n    <ul>\n      ____0\n    </ul>\n  );\n}`,
+            blanks: [
+              {
+                id: 'map',
+                label: 'リスト描画',
+                correctTokens: ['{', 'todos.map', '(', '(', 'todo', ')', '=>', '<li', 'key', '=', '{', 'todo.id', '}', '>', '{', 'todo.title', '}', '</li>', ')', '}'],
+                distractorTokens: ['forEach', 'filter', 'index', 'todo.name', 'reduce'],
+              },
+            ],
+          },
         },
         {
           id: 'lists-filter',
@@ -616,12 +699,30 @@ export function List() {
           requirements: ['filterとmapを組み合わせて使う', 'keyを指定する'],
           hints: ['todos.filter(t => t.isCompleted).map(...)'],
           expectedKeywords: ['filter', 'map', 'key='],
-          starterCode: `export function CompletedTasks() {\n  const todos = [\n    { id: 1, title: '掃除', isCompleted: true },\n    { id: 2, title: '洗濯', isCompleted: false },\n    { id: 3, title: '買い物', isCompleted: true },\n  ];\n\n  return (\n    <ul>\n      {/* TODO: todosから isCompleted が true なものだけを filter で抽出し、\n          その後 map で <li> として描画してください。key の指定も忘れずに！ */}\n      \n    </ul>\n  );\n}`
+          starterCode: `export function CompletedTasks() {\n  const todos = [\n    { id: 1, title: '掃除', isCompleted: true },\n    { id: 2, title: '洗濯', isCompleted: false },\n    { id: 3, title: '買い物', isCompleted: true },\n  ];\n\n  return (\n    <ul>\n      {/* TODO: todosから isCompleted が true なものだけを filter で抽出し、\n          その後 map で <li> として描画してください。key の指定も忘れずに！ */}\n      \n    </ul>\n  );\n}`,
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext: `export function CompletedTasks() {\n  const todos = [\n    { id: 1, title: '掃除', isCompleted: true },\n    { id: 2, title: '洗濯', isCompleted: false },\n    { id: 3, title: '買い物', isCompleted: true },\n  ];\n\n  return (\n    <ul>\n      {todos\n        ____0\n        ____1}\n    </ul>\n  );\n}`,
+            blanks: [
+              {
+                id: 'filter',
+                label: 'フィルタリング',
+                correctTokens: ['.filter', '(', '(', 't', ')', '=>', 't.isCompleted', ')'],
+                distractorTokens: ['find', 'some', 'forEach', 't.isDone', 'includes'],
+              },
+              {
+                id: 'map',
+                label: 'リスト描画',
+                correctTokens: ['.map', '(', '(', 't', ')', '=>', '<li', 'key', '=', '{', 't.id', '}', '>', '{', 't.title', '}', '</li>', ')'],
+                distractorTokens: ['index', 't.name', 'forEach', 'reduce'],
+              },
+            ],
+          },
         }
       ]
     },
   },
-]
+])
 
 export function getFundamentalsStep(stepId: string) {
   return fundamentalsSteps.find((step) => step.id === stepId)

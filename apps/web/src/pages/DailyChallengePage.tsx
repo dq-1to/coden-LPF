@@ -7,7 +7,7 @@ import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
 import { WeeklyStatus } from '../features/daily/components/WeeklyStatus'
 import { DailyChallengeCard } from '../features/daily/components/DailyChallengeCard'
 import { CompletedView } from '../features/daily/components/CompletedView'
-import { PracticePageLayout } from '../components/PracticePageLayout'
+import { PracticePageLayout } from '../features/practice/components/PracticePageLayout'
 import { Spinner } from '../components/Spinner'
 import type { TodayChallengeResult, SubmitResult, WeeklyStatusEntry } from '../content/daily/types'
 
@@ -50,7 +50,13 @@ export function DailyChallengePage() {
     if (!user || !challenge?.question) {
       throw new Error('問題が読み込まれていません')
     }
-    const result = await submitDailyAnswer(user.id, challenge.question, answer, challenge.dateStr)
+    const result = await submitDailyAnswer(
+      user.id,
+      challenge.question,
+      answer,
+      challenge.dateStr,
+      challenge.reviewTarget,
+    )
     // 回答後に状態を更新
     setChallenge((prev) =>
       prev
@@ -107,6 +113,7 @@ export function DailyChallengePage() {
               <DailyChallengeCard
                 question={challenge.question}
                 dateStr={challenge.dateStr}
+                reviewReason={challenge.reviewReason}
                 onSubmit={handleSubmit}
               />
             ) : null}

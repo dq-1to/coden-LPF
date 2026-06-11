@@ -4,12 +4,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PracticeMode } from '../PracticeMode'
 import type { PracticeQuestion } from '../../../content/fundamentals/steps'
 
-const addToReviewList = vi.fn()
-const removeFromReviewList = vi.fn()
+const recordWrongAnswer = vi.fn()
+const resolveReviewItem = vi.fn()
+const trackLearningEvent = vi.fn()
 
-vi.mock('../../../services/reviewListService', () => ({
-  addToReviewList: (...args: unknown[]) => addToReviewList(...args),
-  removeFromReviewList: (...args: unknown[]) => removeFromReviewList(...args),
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { id: '00000000-0000-0000-0000-000000000001' },
+  }),
+}))
+
+vi.mock('../../../services/reviewService', () => ({
+  recordWrongAnswer: (...args: unknown[]) => recordWrongAnswer(...args),
+  resolveReviewItem: (...args: unknown[]) => resolveReviewItem(...args),
+}))
+
+vi.mock('../../../services/eventService', () => ({
+  trackLearningEvent: (...args: unknown[]) => trackLearningEvent(...args),
 }))
 
 const firstQuestions: PracticeQuestion[] = [
@@ -49,8 +60,11 @@ describe('PracticeMode', () => {
   })
 
   beforeEach(() => {
-    addToReviewList.mockReset()
-    removeFromReviewList.mockReset()
+    recordWrongAnswer.mockReset()
+    resolveReviewItem.mockReset()
+    trackLearningEvent.mockReset()
+    recordWrongAnswer.mockResolvedValue(undefined)
+    resolveReviewItem.mockResolvedValue(undefined)
   })
 
   it('choices がある問題は選択ボタンを表示し、input は表示しない', () => {
@@ -73,6 +87,18 @@ describe('PracticeMode', () => {
     await user.click(screen.getByRole('button', { name: '判定する' }))
 
     expect(onComplete).toHaveBeenCalledTimes(1)
+    expect(trackLearningEvent).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      eventType: 'practice_answer_submitted',
+      stepId: 'step-choice',
+      mode: 'practice',
+      courseId: null,
+      payload: {
+        isCorrect: true,
+        itemCount: 1,
+        questionIds: ['q-choice'],
+      },
+    })
     expect(screen.getByRole('status').textContent).toContain('Practiceを完了しました')
   })
 
@@ -85,6 +111,18 @@ describe('PracticeMode', () => {
     await user.click(screen.getByRole('button', { name: '判定する' }))
 
     expect(onComplete).not.toHaveBeenCalled()
+    expect(trackLearningEvent).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      eventType: 'practice_answer_submitted',
+      stepId: 'step-choice',
+      mode: 'practice',
+      courseId: null,
+      payload: {
+        isCorrect: false,
+        itemCount: 1,
+        questionIds: ['q-choice'],
+      },
+    })
     expect(screen.getByRole('status').textContent).toContain('まだ不正解の問題があります')
   })
 
@@ -98,7 +136,12 @@ describe('PracticeMode', () => {
     await user.click(screen.getByRole('button', { name: '判定する' }))
 
     expect(onComplete).toHaveBeenCalledTimes(1)
-    expect(removeFromReviewList).toHaveBeenCalledWith('step-a')
+    expect(resolveReviewItem).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      stepId: 'step-a',
+      mode: 'practice',
+      questionId: 'q1',
+    })
     expect(screen.getByRole('status').textContent).toContain('Practiceを完了しました')
     expect(screen.getByRole('status').className).toContain('animate-fadeIn')
     expect(screen.getByText('ヒント1')).toBeTruthy()

@@ -7,7 +7,7 @@ import { useIsMobile } from '../hooks/useIsMobile'
 import { getProjectProgressMap, submitProject } from '../services/miniProjectService'
 import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
 import { MilestoneGuide } from '../features/mini-projects/components/MilestoneGuide'
-import { PracticePageLayout } from '../components/PracticePageLayout'
+import { PracticePageLayout } from '../features/practice/components/PracticePageLayout'
 import { MINI_PROJECTS } from '../content/mini-projects/projects'
 import type { MilestoneJudgeResult, MiniProjectProgress, MiniProjectStatus, SubmitProjectResult } from '../content/mini-projects/types'
 

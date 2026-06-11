@@ -5,7 +5,8 @@ import { ErrorBanner } from '../../components/ErrorBanner'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
 import { JudgmentResult } from './components/JudgmentResult'
-import { getMissingKeywords } from './utils/keywordMatcher'
+import { useJudgmentAction } from './hooks/useJudgmentAction'
+import { judgeKeywords } from '../../lib/judge'
 import { ChallengePuzzleMulti } from './ChallengePuzzle/ChallengePuzzleMulti'
 
 interface ChallengeModeProps {
@@ -27,8 +28,8 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
   const [pattern, setPattern] = useState<ChallengePattern>(() => getRandomPattern(task))
   const [code, setCode] = useState(() => pattern.starterCode)
   const [checked, setChecked] = useState(false)
-  const [reported, setReported] = useState(false)
   const [submissionError, setSubmissionError] = useState<string | null>(null)
+  const { handleResult } = useJudgmentAction(stepId, 'challenge', onComplete)
 
   const hasMobilePuzzle = isMobile && pattern.mobilePuzzle != null
 
@@ -37,21 +38,26 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     setPattern(nextPattern)
     setCode(nextPattern.starterCode)
     setChecked(false)
-    setReported(false)
     setSubmissionError(null)
   }, [stepId, task])
 
-  const missingKeywords = useMemo(
-    () => getMissingKeywords(code, pattern.expectedKeywords),
-    [code, pattern.expectedKeywords],
+  const judgement = useMemo(
+    () =>
+      judgeKeywords(code, {
+        requiredKeywords: pattern.expectedKeywords,
+        ngKeywords: pattern.ngKeywords,
+        anyOf: pattern.anyOf,
+        passThreshold: pattern.passThreshold,
+      }),
+    [code, pattern.expectedKeywords, pattern.ngKeywords, pattern.anyOf, pattern.passThreshold],
   )
-  const hasSatisfiedRequirements = missingKeywords.length === 0
+  const missingKeywords = judgement.missing
+  const violations = judgement.violations
+  const hasSatisfiedRequirements = judgement.passed
   const isPassed = checked && hasSatisfiedRequirements
 
   async function handleCheck() {
-    const matchedKeywords = pattern.expectedKeywords.filter((keyword) =>
-      code.toLowerCase().includes(keyword.toLowerCase()),
-    )
+    const matchedKeywords = judgement.matched
 
     setChecked(true)
     setSubmissionError(null)
@@ -68,10 +74,11 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
       }
     }
 
-    if (hasSatisfiedRequirements && !reported) {
-      onComplete()
-      setReported(true)
-    }
+    await handleResult(hasSatisfiedRequirements, {
+      questionId: pattern.id,
+      expected: pattern.expectedKeywords.join(', '),
+      userInput: code,
+    })
   }
 
   const handleCodeChange = useCallback((nextValue: string) => {
@@ -123,12 +130,26 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
 
       {checked && !isPassed ? (
         <div className="rounded-lg border border-rose-200 bg-rose-50 p-4" role="alert">
-          <p className="text-sm font-semibold text-rose-800">以下の要件が未達成です:</p>
-          <ul className="mt-2 list-inside list-disc text-sm text-rose-700">
-            {missingKeywords.map((keyword) => (
-              <li key={keyword}>{keyword}</li>
-            ))}
-          </ul>
+          {missingKeywords.length > 0 && (
+            <>
+              <p className="text-sm font-semibold text-rose-800">以下の要件が未達成です:</p>
+              <ul className="mt-2 list-inside list-disc text-sm text-rose-700">
+                {missingKeywords.map((keyword) => (
+                  <li key={keyword}>{keyword}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          {violations.length > 0 && (
+            <div className={missingKeywords.length > 0 ? 'mt-3' : ''}>
+              <p className="text-sm font-semibold text-amber-800">避けたい書き方が含まれています:</p>
+              <ul className="mt-2 list-inside list-disc text-sm text-amber-700">
+                {violations.map((keyword) => (
+                  <li key={keyword}>{keyword}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           {pattern.hints.length > 0 && (
             <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
               ヒント: {pattern.hints[0]}

@@ -1,0 +1,121 @@
+import { describe, it, expect } from 'vitest'
+import { judgeKeywords } from '../judge'
+
+describe('judgeKeywords', () => {
+  it('必須キーワードをすべて含めば passed: true / score 100', () => {
+    const result = judgeKeywords('const [c, setC] = useState(0)', {
+      requiredKeywords: ['useState', 'setC'],
+    })
+    expect(result.passed).toBe(true)
+    expect(result.score).toBe(100)
+    expect(result.matched).toEqual(['useState', 'setC'])
+    expect(result.missing).toHaveLength(0)
+    expect(result.violations).toHaveLength(0)
+  })
+
+  it('一部のみ満たす場合は部分点 score と missing を返す（passed は false）', () => {
+    const result = judgeKeywords('const x = useState(0)', {
+      requiredKeywords: ['useState', 'onClick', 'return', 'props'],
+    })
+    expect(result.passed).toBe(false)
+    expect(result.score).toBe(25)
+    expect(result.matched).toEqual(['useState'])
+    expect(result.missing).toEqual(['onClick', 'return', 'props'])
+  })
+
+  it('ngKeywords を含むと violations に入り passed: false（必須は満たしていても）', () => {
+    const result = judgeKeywords('var x = 1; useState()', {
+      requiredKeywords: ['useState'],
+      ngKeywords: ['var '],
+    })
+    expect(result.matched).toEqual(['useState'])
+    expect(result.violations).toEqual(['var '])
+    expect(result.passed).toBe(false)
+    // 必須は満たすため score は満点だが passed は違反で false
+    expect(result.score).toBe(100)
+  })
+
+  it('大文字小文字を区別しない', () => {
+    const result = judgeKeywords('USESTATE()', { requiredKeywords: ['useState'] })
+    expect(result.passed).toBe(true)
+  })
+
+  it('requiredKeywords が空なら score 100 / passed: true', () => {
+    const result = judgeKeywords('anything', { requiredKeywords: [] })
+    expect(result.passed).toBe(true)
+    expect(result.score).toBe(100)
+  })
+
+  it('ngKeywords 未指定でも違反なしとして扱う', () => {
+    const result = judgeKeywords('useState', { requiredKeywords: ['useState'] })
+    expect(result.violations).toEqual([])
+    expect(result.passed).toBe(true)
+  })
+
+  describe('anyOf（複数正解パターン）', () => {
+    it('いずれかの候補を満たせば passed: true', () => {
+      const input = { anyOf: [['count + 1'], ['c => c + 1']] }
+      expect(judgeKeywords('setCount(count + 1)', input).passed).toBe(true)
+      expect(judgeKeywords('setCount(c => c + 1)', input).passed).toBe(true)
+    })
+
+    it('どの候補も満たさなければ passed: false で最も近い候補の missing を返す', () => {
+      const result = judgeKeywords('setCount(0)', {
+        anyOf: [
+          ['count', '+ 1'],
+          ['prev', '=> prev'],
+        ],
+      })
+      expect(result.passed).toBe(false)
+      // 'count' のみ一致する最初の候補が採用される
+      expect(result.matched).toEqual(['count'])
+      expect(result.missing).toEqual(['+ 1'])
+    })
+
+    it('requiredKeywords と anyOf は AND される', () => {
+      const input = { requiredKeywords: ['setCount'], anyOf: [['count + 1'], ['c => c + 1']] }
+      expect(judgeKeywords('setCount(count + 1)', input).passed).toBe(true)
+      // anyOf は満たすが必須が無い
+      expect(judgeKeywords('setX(count + 1)', input).passed).toBe(false)
+    })
+
+    it('完全充足した短い候補を一致数の多い未充足候補より優先する', () => {
+      // ['a','b','c'] は一致2だが未充足、['x'] は一致1だが完全充足
+      const result = judgeKeywords('a b x', { anyOf: [['a', 'b', 'c'], ['x']] })
+      expect(result.passed).toBe(true)
+      expect(result.matched).toEqual(['x'])
+      expect(result.missing).toEqual([])
+    })
+  })
+
+  describe('passThreshold（部分点での合格）', () => {
+    it('閾値以上の score で passed: true（一部不足でも合格）', () => {
+      const result = judgeKeywords('useState onClick', {
+        requiredKeywords: ['useState', 'onClick', 'return', 'props'],
+        passThreshold: 50,
+      })
+      expect(result.score).toBe(50)
+      expect(result.passed).toBe(true)
+      expect(result.missing).toEqual(['return', 'props'])
+    })
+
+    it('閾値未満なら passed: false', () => {
+      const result = judgeKeywords('useState', {
+        requiredKeywords: ['useState', 'onClick', 'return', 'props'],
+        passThreshold: 50,
+      })
+      expect(result.score).toBe(25)
+      expect(result.passed).toBe(false)
+    })
+
+    it('閾値を満たしても violations があれば passed: false', () => {
+      const result = judgeKeywords('useState onClick var x', {
+        requiredKeywords: ['useState', 'onClick'],
+        ngKeywords: ['var '],
+        passThreshold: 50,
+      })
+      expect(result.score).toBe(100)
+      expect(result.passed).toBe(false)
+    })
+  })
+})

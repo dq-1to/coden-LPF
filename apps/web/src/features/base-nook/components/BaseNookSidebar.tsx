@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronDown, ChevronUp, Check, Minus } from 'lucide-react'
-import * as Icons from 'lucide-react'
 import type { BaseNookTopic, TopicProgressSummary } from '../../../content/base-nook/types'
+import { getTopicIcon } from '../topicIcons'
 
 interface BaseNookSidebarProps {
   topics: BaseNookTopic[]
@@ -20,7 +20,7 @@ export function BaseNookSidebar({ topics, progressMap }: BaseNookSidebarProps) {
         const correct = progress?.correctCount ?? 0
         const isComplete = correct >= total
 
-        const IconComponent = (Icons as Record<string, Icons.LucideIcon>)[topic.icon] ?? Icons.HelpCircle
+        const IconComponent = getTopicIcon(topic.icon)
 
         return (
           <li key={topic.id}>

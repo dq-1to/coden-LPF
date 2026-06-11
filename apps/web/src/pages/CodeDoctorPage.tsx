@@ -7,7 +7,7 @@ import { getProblemProgressMap, submitDoctorSolution } from '../services/codeDoc
 import { PracticeModeNav } from '../features/daily/components/PracticeModeNav'
 import { ProblemCard } from '../features/code-doctor/components/ProblemCard'
 import { Pagination } from '../components/Pagination'
-import { PracticePageLayout } from '../components/PracticePageLayout'
+import { PracticePageLayout } from '../features/practice/components/PracticePageLayout'
 import { Spinner } from '../components/Spinner'
 import { CODE_DOCTOR_PROBLEMS } from '../content/code-doctor/problems'
 import { estimateBuggyLines } from '../content/code-doctor/estimateBuggyLines'

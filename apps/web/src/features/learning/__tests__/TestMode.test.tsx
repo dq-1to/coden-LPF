@@ -6,8 +6,15 @@ import { getAllCourses, findCategoryByStepId } from '../../../content/courseData
 import type { TestTask } from '../../../content/fundamentals/steps'
 import { previewByStepId } from '../testModePreview'
 
-const addToReviewList = vi.fn()
-const removeFromReviewList = vi.fn()
+const recordWrongAnswer = vi.fn()
+const resolveReviewItem = vi.fn()
+const trackLearningEvent = vi.fn()
+
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { id: '00000000-0000-0000-0000-000000000001' },
+  }),
+}))
 
 vi.mock('@/hooks/useIsMobile', () => ({
   useIsMobile: () => false,
@@ -24,9 +31,13 @@ vi.mock('prismjs/components/prism-jsx', () => ({}))
 vi.mock('prismjs/components/prism-typescript', () => ({}))
 vi.mock('prismjs/components/prism-tsx', () => ({}))
 
-vi.mock('../../../services/reviewListService', () => ({
-  addToReviewList: (...args: unknown[]) => addToReviewList(...args),
-  removeFromReviewList: (...args: unknown[]) => removeFromReviewList(...args),
+vi.mock('../../../services/reviewService', () => ({
+  recordWrongAnswer: (...args: unknown[]) => recordWrongAnswer(...args),
+  resolveReviewItem: (...args: unknown[]) => resolveReviewItem(...args),
+}))
+
+vi.mock('../../../services/eventService', () => ({
+  trackLearningEvent: (...args: unknown[]) => trackLearningEvent(...args),
 }))
 
 const firstTask: TestTask = {
@@ -49,8 +60,11 @@ describe('TestMode', () => {
   })
 
   beforeEach(() => {
-    addToReviewList.mockReset()
-    removeFromReviewList.mockReset()
+    recordWrongAnswer.mockReset()
+    resolveReviewItem.mockReset()
+    trackLearningEvent.mockReset()
+    recordWrongAnswer.mockResolvedValue(undefined)
+    resolveReviewItem.mockResolvedValue(undefined)
   })
 
   it('stepId が変わると入力内容と判定状態をリセットする', async () => {
@@ -63,7 +77,24 @@ describe('TestMode', () => {
     await user.click(screen.getByRole('button', { name: '判定する' }))
 
     expect(onComplete).toHaveBeenCalledTimes(1)
-    expect(removeFromReviewList).toHaveBeenCalledWith('step-a')
+    expect(trackLearningEvent).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      eventType: 'test_submitted',
+      stepId: 'step-a',
+      mode: 'test',
+      courseId: null,
+      payload: {
+        isCorrect: true,
+        itemCount: 1,
+        questionIds: ['test'],
+      },
+    })
+    expect(resolveReviewItem).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      stepId: 'step-a',
+      mode: 'test',
+      questionId: 'test',
+    })
     expect(screen.getByRole('status').textContent).toContain('テスト合格')
     expect(screen.getByRole('status').className).toContain('animate-fadeIn')
 

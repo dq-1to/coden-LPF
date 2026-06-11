@@ -92,6 +92,39 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_events: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          event_type: string
+          id: number
+          mode: string | null
+          payload: Json | null
+          step_id: string | null
+          user_id: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: number
+          mode?: string | null
+          payload?: Json | null
+          step_id?: string | null
+          user_id: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: number
+          mode?: string | null
+          payload?: Json | null
+          step_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       learning_stats: {
         Row: {
           current_streak: number
@@ -122,6 +155,57 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_reads: {
+        Row: {
+          notification_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          notification_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          notification_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          published_at: string
+          target_role: string
+          title: string
+          type: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          published_at?: string
+          target_role: string
+          title: string
+          type: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          published_at?: string
+          target_role?: string
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       point_history: {
         Row: {
           amount: number
@@ -143,6 +227,45 @@ export type Database = {
           id?: string
           reason?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      review_items: {
+        Row: {
+          created_at: string
+          expected: string | null
+          id: string
+          mode: 'practice' | 'test' | 'challenge' | 'daily'
+          question_id: string | null
+          resolved_at: string | null
+          status: 'open' | 'resolved'
+          step_id: string
+          user_id: string
+          user_input: string | null
+        }
+        Insert: {
+          created_at?: string
+          expected?: string | null
+          id?: string
+          mode: 'practice' | 'test' | 'challenge' | 'daily'
+          question_id?: string | null
+          resolved_at?: string | null
+          status?: 'open' | 'resolved'
+          step_id: string
+          user_id: string
+          user_input?: string | null
+        }
+        Update: {
+          created_at?: string
+          expected?: string | null
+          id?: string
+          mode?: 'practice' | 'test' | 'challenge' | 'daily'
+          question_id?: string | null
+          resolved_at?: string | null
+          status?: 'open' | 'resolved'
+          step_id?: string
+          user_id?: string
+          user_input?: string | null
         }
         Relationships: []
       }
@@ -364,6 +487,19 @@ export type Database = {
       }
       record_study_activity: {
         Args: Record<string, never>
+        Returns: undefined
+      }
+      unlock_achievement_tx: {
+        Args: {
+          p_badge_id: string
+        }
+        Returns: boolean
+      }
+      update_own_feedback_images: {
+        Args: {
+          p_feedback_id: string
+          p_image_paths: Json
+        }
         Returns: undefined
       }
       is_admin: {

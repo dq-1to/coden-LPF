@@ -26,7 +26,15 @@ docs/qa/
 apps/web/docs/
 .playwright-mcp/
 
-# Supabase ローカル seed（実パスワードを含むため Git 管理外）
-# .example のみ管理下、実ファイル（.sql）は環境ごとに作成する
+# Playwright E2E 成果物
+apps/web/e2e/.auth/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Supabase seed / cleanup SQL（固定アカウント・実データを含み得るため Git 管理外）
+apps/web/supabase/sql/*seed*.sql
+apps/web/supabase/sql/*cleanup*.sql
 apps/web/supabase/sql/local/*
 !apps/web/supabase/sql/local/*.example
