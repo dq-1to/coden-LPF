@@ -27,7 +27,7 @@ type StepFeedbackRow = Pick<Tables<'user_feedback'>, 'status' | 'created_at' | '
 type ReviewItemRow = Pick<Tables<'review_items'>, 'status' | 'step_id'>
 type LearningEventRow = Pick<
   Tables<'learning_events'>,
-  'user_id' | 'event_type' | 'step_id' | 'mode' | 'payload' | 'created_at'
+  'id' | 'user_id' | 'event_type' | 'step_id' | 'mode' | 'payload' | 'created_at'
 >
 
 export type AdminQualityMetricStatus = 'formal' | 'provisional' | 'future'
@@ -175,6 +175,9 @@ interface StepEventAggregate {
 }
 
 const STEP_INSIGHT_MODES: readonly LearningMode[] = ['read', 'practice', 'test', 'challenge']
+const LEARNING_EVENTS_PAGE_SIZE = 1000
+const LEARNING_EVENTS_SELECT =
+  'id, user_id, event_type, step_id, mode, payload, created_at'
 
 function isStepCompleted(row: StepProgressRow): boolean {
   return Boolean(
@@ -628,6 +631,30 @@ function buildStepInsights(aggregates: StepAggregate[]): AdminQualityStepInsight
   }).sort((a, b) => a.order - b.order)
 }
 
+async function fetchAllLearningEvents(): Promise<LearningEventRow[]> {
+  const rows: LearningEventRow[] = []
+
+  for (let from = 0; ; from += LEARNING_EVENTS_PAGE_SIZE) {
+    const to = from + LEARNING_EVENTS_PAGE_SIZE - 1
+    const { data, error } = await supabase
+      .from('learning_events')
+      .select(LEARNING_EVENTS_SELECT)
+      .order('id', { ascending: true })
+      .range(from, to)
+
+    if (error) {
+      throw fromSupabaseError(error, 'Step Insightsのイベントログ取得に失敗しました')
+    }
+
+    const pageRows = (data ?? []) as LearningEventRow[]
+    rows.push(...pageRows)
+
+    if (pageRows.length < LEARNING_EVENTS_PAGE_SIZE) {
+      return rows
+    }
+  }
+}
+
 export async function getAdminQualityDashboard(): Promise<AdminQualityDashboard> {
   const [
     usersRes,
@@ -801,19 +828,14 @@ export async function getAdminQualityDashboard(): Promise<AdminQualityDashboard>
 }
 
 export async function getAdminStepInsights(): Promise<AdminStepInsights> {
-  const [eventsRes, feedbackRes] = await Promise.all([
-    supabase
-      .from('learning_events')
-      .select('user_id, event_type, step_id, mode, payload, created_at'),
+  const [events, feedbackRes] = await Promise.all([
+    fetchAllLearningEvents(),
     supabase.from('user_feedback').select('status, created_at, page_url'),
   ])
 
-  if (eventsRes.error)
-    throw fromSupabaseError(eventsRes.error, 'Step Insightsのイベントログ取得に失敗しました')
   if (feedbackRes.error)
     throw fromSupabaseError(feedbackRes.error, 'Step Insightsのフィードバック取得に失敗しました')
 
-  const events = (eventsRes.data ?? []) as LearningEventRow[]
   const feedbackRows = (feedbackRes.data ?? []) as StepFeedbackRow[]
   const rows = buildAdminStepInsightRows(buildStepEventAggregates(events, feedbackRows))
   const observedRows = rows.filter((row) => row.eventCount > 0 || row.relatedFeedbackCount > 0)
