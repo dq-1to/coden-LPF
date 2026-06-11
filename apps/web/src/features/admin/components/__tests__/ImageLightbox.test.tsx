@@ -52,6 +52,17 @@ describe('ImageLightbox', () => {
     expect(onClose).toHaveBeenCalledOnce()
   })
 
+  it('操作アイコンは装飾として aria-hidden を持つ', () => {
+    render(
+      <ImageLightbox images={images} currentIndex={1} onClose={vi.fn()} onChangeIndex={vi.fn()} />,
+    )
+
+    for (const name of ['閉じる', '前の画像', '次の画像']) {
+      const button = screen.getByRole('button', { name })
+      expect(button.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true')
+    }
+  })
+
   it('ArrowRight キーで次の画像に切り替わる', () => {
     const onChangeIndex = vi.fn()
     render(
