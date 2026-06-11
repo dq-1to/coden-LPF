@@ -160,7 +160,7 @@ describe('DashboardPage', () => {
     expect(screen.getByRole('link', { name: '始める' }).getAttribute('href')).toBe('/step/usestate-basic')
   })
 
-  it('復習待ちがある場合は復習カードを表示し、今日のおすすめは通常学習を表示する', async () => {
+  it('復習待ちがある場合は復習カードを表示し、今日のおすすめも復習を優先する', async () => {
     testState.getOpenCountMock.mockResolvedValue(2)
     testState.listOpenMock.mockResolvedValue([
       {
@@ -184,8 +184,13 @@ describe('DashboardPage', () => {
     )
 
     expect(await screen.findByText('復習待ち 2 件')).toBeTruthy()
-    expect(screen.getByText('Step 2 の Practice から再開')).toBeTruthy()
+    expect(screen.getByText('昨日間違えた問題を復習')).toBeTruthy()
+    expect(screen.getByText('復習待ちが 2 件あります。まずは弱点を軽く戻しましょう。')).toBeTruthy()
     expect(screen.getByText(/最優先: Step 2/)).toBeTruthy()
-    expect(screen.getByRole('link', { name: '復習へ進む' }).getAttribute('href')).toBe('/step/events?mode=practice')
+    const reviewLinks = screen.getAllByRole('link', { name: '復習へ進む' })
+    expect(reviewLinks.map((link) => link.getAttribute('href'))).toEqual([
+      '/daily',
+      '/step/events?mode=practice',
+    ])
   })
 })

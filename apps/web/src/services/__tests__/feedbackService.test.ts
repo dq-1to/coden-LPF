@@ -544,6 +544,19 @@ describe('uploadFeedbackImages', () => {
     expect(uploaded).not.toMatch(/[^a-zA-Z0-9._\-/]/)
   })
 
+  it('同名ファイルも index 付きのパスにして衝突させない', async () => {
+    const files = [createTestFile('same.png', 100), createTestFile('same.png', 100)]
+    const paths = await uploadFeedbackImages(VALID_USER_ID, VALID_FEEDBACK_ID, files)
+
+    expect(paths[0]).toMatch(
+      new RegExp(`^${VALID_USER_ID}/${VALID_FEEDBACK_ID}/\\d+_0_same\\.png$`),
+    )
+    expect(paths[1]).toMatch(
+      new RegExp(`^${VALID_USER_ID}/${VALID_FEEDBACK_ID}/\\d+_1_same\\.png$`),
+    )
+    expect(new Set(paths).size).toBe(2)
+  })
+
   it('Storage エラー時にアプリ共通エラーを投げる', async () => {
     storageState.uploadResult = { error: { message: 'bucket not found' } }
     const files = [createTestFile('fail.png', 100)]
