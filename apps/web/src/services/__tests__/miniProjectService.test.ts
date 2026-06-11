@@ -1,6 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { supabase } from '../../lib/supabaseClient'
 import { awardPoints } from '../pointService'
+import { trackLearningEvent } from '../eventService'
 import {
   judgeProject,
   calcStatus,
@@ -13,9 +14,11 @@ vi.mock('../../lib/supabaseClient', () => ({
   supabase: { from: vi.fn() },
 }))
 vi.mock('../pointService', () => ({ awardPoints: vi.fn() }))
+vi.mock('../eventService', () => ({ trackLearningEvent: vi.fn() }))
 
 const mockFrom = vi.mocked(supabase.from)
 const mockAwardPoints = vi.mocked(awardPoints)
+const mockTrackLearningEvent = vi.mocked(trackLearningEvent)
 
 // ─── サンプルデータ ──────────────────────────────────────
 
@@ -169,6 +172,17 @@ describe('submitProject', () => {
     expect(result.allPassed).toBe(true)
     expect(result.pointsEarned).toBe(100)
     expect(mockAwardPoints).toHaveBeenCalledWith(100, 'ミニプロジェクト完了（Todo App）')
+    expect(mockTrackLearningEvent).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      eventType: 'mini_project_completed',
+      mode: 'mini_project',
+      payload: {
+        projectId: 'todo-app',
+        difficulty: 'beginner',
+        milestoneCount: 2,
+        pointsEarned: 100,
+      },
+    })
   })
 
   it('初回 completed 時のみポイントを付与する（previousStatus: not_started）', async () => {
@@ -183,6 +197,7 @@ describe('submitProject', () => {
     const result = await submitProject('00000000-0000-0000-0000-000000000001', sampleProject, code, 'completed')
     expect(result.pointsEarned).toBe(0)
     expect(mockAwardPoints).not.toHaveBeenCalled()
+    expect(mockTrackLearningEvent).not.toHaveBeenCalled()
   })
 
   it('一部通過の場合は 0 Pt で allPassed: false', async () => {
@@ -191,6 +206,7 @@ describe('submitProject', () => {
     expect(result.allPassed).toBe(false)
     expect(result.pointsEarned).toBe(0)
     expect(mockAwardPoints).not.toHaveBeenCalled()
+    expect(mockTrackLearningEvent).not.toHaveBeenCalled()
   })
 
   it('milestoneResults の長さがマイルストーン数と一致する', async () => {

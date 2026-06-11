@@ -8,6 +8,7 @@ import {
 import { fromSupabaseError } from '../shared/errors'
 import { assertMaxLength, assertUuid } from '../shared/validation'
 import { awardPoints } from './pointService'
+import { trackLearningEvent } from './eventService'
 import { judgeKeywords } from '../lib/judge'
 import type { CodeDoctorProblem, CodeDoctorProgress, SubmitDoctorResult } from '../content/code-doctor/types'
 
@@ -112,6 +113,16 @@ export async function submitDoctorSolution(
       pointsEarned,
       `コードドクター正解（${problem.difficulty}）`,
     )
+    trackLearningEvent({
+      userId,
+      eventType: 'code_doctor_completed',
+      payload: {
+        problemId: problem.id,
+        category: problem.category,
+        difficulty: problem.difficulty,
+        pointsEarned,
+      },
+    })
   }
 
   return { passed, pointsEarned, missingKeywords, foundNgKeywords, explanation: problem.explanation }

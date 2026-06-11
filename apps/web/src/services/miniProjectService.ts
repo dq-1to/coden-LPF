@@ -3,6 +3,7 @@ import { MAX_CODE_LENGTH, POINTS_MINI_PROJECT_COMPLETE } from '../shared/constan
 import { fromSupabaseError } from '../shared/errors'
 import { assertMaxLength, assertUuid } from '../shared/validation'
 import { awardPoints } from './pointService'
+import { trackLearningEvent } from './eventService'
 import type {
   MiniProject,
   MiniProjectProgress,
@@ -109,6 +110,17 @@ export async function submitProject(
 
   if (isNewlyCompleted) {
     await awardPoints(POINTS_MINI_PROJECT_COMPLETE, `ミニプロジェクト完了（${project.title}）`)
+    trackLearningEvent({
+      userId,
+      eventType: 'mini_project_completed',
+      mode: 'mini_project',
+      payload: {
+        projectId: project.id,
+        difficulty: project.difficulty,
+        milestoneCount: project.milestones.length,
+        pointsEarned,
+      },
+    })
   }
 
   return { milestoneResults, allPassed, pointsEarned, newStatus }

@@ -1,6 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { supabase } from '../../lib/supabaseClient'
 import { awardPoints } from '../pointService'
+import { trackLearningEvent } from '../eventService'
 import {
   getPointsForDifficulty,
   judgeAnswer,
@@ -13,9 +14,11 @@ vi.mock('../../lib/supabaseClient', () => ({
   supabase: { from: vi.fn() },
 }))
 vi.mock('../pointService', () => ({ awardPoints: vi.fn() }))
+vi.mock('../eventService', () => ({ trackLearningEvent: vi.fn() }))
 
 const mockFrom = vi.mocked(supabase.from)
 const mockAwardPoints = vi.mocked(awardPoints)
+const mockTrackLearningEvent = vi.mocked(trackLearningEvent)
 
 // ─── サンプルデータ ──────────────────────────────────────
 
@@ -159,6 +162,17 @@ describe('submitReading', () => {
     expect(result.allCorrect).toBe(true)
     expect(result.pointsEarned).toBe(10)
     expect(mockAwardPoints).toHaveBeenCalledWith(10, 'コードリーディング完了（カスタムフック）')
+    expect(mockTrackLearningEvent).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      eventType: 'code_reading_completed',
+      payload: {
+        problemId: 'cr-001',
+        difficulty: 'basic',
+        correctCount: 3,
+        totalCount: 3,
+        pointsEarned: 10,
+      },
+    })
   })
 
   it('全問正解でも previousCompleted: true の場合はポイントを付与しない', async () => {
@@ -167,6 +181,7 @@ describe('submitReading', () => {
     expect(result.allCorrect).toBe(true)
     expect(result.pointsEarned).toBe(0)
     expect(mockAwardPoints).not.toHaveBeenCalled()
+    expect(mockTrackLearningEvent).not.toHaveBeenCalled()
   })
 
   it('部分正解の場合は allCorrect: false で 0 pt', async () => {
@@ -175,6 +190,7 @@ describe('submitReading', () => {
     expect(result.allCorrect).toBe(false)
     expect(result.pointsEarned).toBe(0)
     expect(mockAwardPoints).not.toHaveBeenCalled()
+    expect(mockTrackLearningEvent).not.toHaveBeenCalled()
   })
 
   it('questionResults の長さが問題数と一致する', async () => {
