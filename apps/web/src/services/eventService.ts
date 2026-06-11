@@ -10,6 +10,8 @@ export type LearningEventType =
   | 'test_submitted'
   | 'challenge_submitted'
   | 'daily_completed'
+  | 'code_doctor_completed'
+  | 'code_reading_completed'
   | 'review_item_created'
   | 'review_item_resolved'
   | 'mini_project_started'

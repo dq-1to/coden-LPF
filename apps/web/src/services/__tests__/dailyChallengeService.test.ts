@@ -1,6 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { supabase } from '../../lib/supabaseClient'
 import { awardPoints } from '../pointService'
+import { trackLearningEvent } from '../eventService'
 import { pickForDaily, recordWrongAnswer, resolveReviewItem } from '../reviewService'
 import {
   getTodayJst,
@@ -23,6 +24,10 @@ vi.mock('../pointService', () => ({
   awardPoints: vi.fn(),
 }))
 
+vi.mock('../eventService', () => ({
+  trackLearningEvent: vi.fn(),
+}))
+
 vi.mock('../reviewService', () => ({
   pickForDaily: vi.fn(),
   recordWrongAnswer: vi.fn(),
@@ -31,6 +36,7 @@ vi.mock('../reviewService', () => ({
 
 const mockFrom = vi.mocked(supabase.from)
 const mockAwardPoints = vi.mocked(awardPoints)
+const mockTrackLearningEvent = vi.mocked(trackLearningEvent)
 const mockPickForDaily = vi.mocked(pickForDaily)
 const mockRecordWrongAnswer = vi.mocked(recordWrongAnswer)
 const mockResolveReviewItem = vi.mocked(resolveReviewItem)
@@ -309,6 +315,18 @@ describe('submitDailyAnswer', () => {
       questionId: 'usestate-basic-daily-0',
     })
     expect(mockAwardPoints).toHaveBeenCalledWith(20, 'デイリーチャレンジ正解')
+    expect(mockTrackLearningEvent).toHaveBeenCalledWith({
+      userId,
+      eventType: 'daily_completed',
+      stepId: 'usestate-basic',
+      mode: 'daily',
+      payload: {
+        questionId: 'usestate-basic-daily-0',
+        challengeDate: dateStr,
+        pointsEarned: 20,
+        streak: 0,
+      },
+    })
   })
 
   it('弱点優先のDaily正解時は元の復習itemも resolved にする', async () => {
@@ -346,6 +364,7 @@ describe('submitDailyAnswer', () => {
       userInput: 'wrongAnswer',
     })
     expect(mockAwardPoints).not.toHaveBeenCalled()
+    expect(mockTrackLearningEvent).not.toHaveBeenCalled()
   })
 
   it('前後の空白を無視して正解判定する', async () => {

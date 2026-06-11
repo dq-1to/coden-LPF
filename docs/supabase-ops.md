@@ -48,7 +48,7 @@ NNN_short_description.sql
 - RLS対象テーブルを作る場合、同じファイル内に RLS 有効化と policy を含める
 - RPCを追加する場合、権限、`security definer`、`search_path`、admin判定の有無を明記する
 
-2026-06-10 時点の管理対象SQLの最新は `026_feedback_update_restriction.sql`。次の新規の管理対象SQLは `027_*.sql` から始める。
+2026-06-11 時点の管理対象SQLの最新は `027_learning_event_completion_types.sql`。次の新規の管理対象SQLは `028_*.sql` から始める。
 
 ---
 
@@ -78,6 +78,9 @@ NNN_short_description.sql
 | 022 | `022_learning_events.sql` | 学習イベントログ |
 | 023 | `023_notifications.sql` | アプリ内通知 / 既読管理 |
 | 024 | `024_feedback_notification_trigger.sql` | feedback作成時のadmin通知trigger |
+| 025 | `025_gamification_write_lockdown.sql` | gamification系テーブルの直接書き込み制限 |
+| 026 | `026_feedback_update_restriction.sql` | user_feedback の一般ユーザー更新制限 |
+| 027 | `027_learning_event_completion_types.sql` | Practice系完了イベントタイプ追加 |
 
 `002` / `005` は過去の seed SQL のため Git 管理対象から除外済み。seed が必要な環境では、Git 管理外の `apps/web/supabase/sql/local/*.sql` などで環境ごとに用意する。
 
