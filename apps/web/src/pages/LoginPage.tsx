@@ -78,6 +78,12 @@ export function LoginPage() {
           {isSubmitting ? 'ログイン中...' : 'ログイン'}
         </Button>
 
+        <p className="text-center text-sm">
+          <Link className="font-medium text-primary-dark underline" to="/forgot-password">
+            パスワードを忘れた方はこちら
+          </Link>
+        </p>
+
         <p className="text-center text-sm text-slate-600">
           はじめて利用しますか？{' '}
           <Link className="font-medium text-primary-dark underline" to="/signup">
