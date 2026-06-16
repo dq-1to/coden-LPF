@@ -10,6 +10,8 @@ interface AuthContextValue {
   isAdmin: boolean
   signIn: (email: string, password: string) => Promise<string | null>
   signUp: (email: string, password: string) => Promise<string | 'CONFIRM_EMAIL' | null>
+  sendPasswordResetEmail: (email: string, redirectTo?: string) => Promise<string | null>
+  updatePassword: (password: string) => Promise<string | null>
   signOut: () => Promise<string | null>
 }
 
@@ -141,6 +143,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // メール確認待ち
         return 'CONFIRM_EMAIL'
+      },
+      sendPasswordResetEmail: async (email, redirectTo) => {
+        if (supabaseConfigError) {
+          return supabaseConfigError
+        }
+
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          ...(redirectTo ? { redirectTo } : {}),
+        })
+        return error?.message ?? null
+      },
+      updatePassword: async (password) => {
+        if (supabaseConfigError) {
+          return supabaseConfigError
+        }
+
+        const { error } = await supabase.auth.updateUser({ password })
+        return error?.message ?? null
       },
       signOut: async () => {
         if (supabaseConfigError) {
