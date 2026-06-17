@@ -3,6 +3,7 @@ import { MAX_ANSWER_LENGTH, POINTS_DAILY_CORRECT, POINTS_DAILY_STREAK_BONUS } fr
 import { fromSupabaseError } from '../shared/errors'
 import { assertMaxLength, assertUuid } from '../shared/validation'
 import { awardPoints } from './pointService'
+import { trackLearningEvent } from './eventService'
 import {
   pickForDaily,
   recordWrongAnswer,
@@ -255,6 +256,19 @@ export async function submitDailyAnswer(
     if (streak > 0 && streak % 7 === 0) {
       await awardPoints(POINTS_DAILY_STREAK_BONUS, `デイリー${streak}日連続ボーナス`)
     }
+
+    trackLearningEvent({
+      userId,
+      eventType: 'daily_completed',
+      stepId: question.stepId,
+      mode: 'daily',
+      payload: {
+        questionId: question.id,
+        challengeDate: dateStr,
+        pointsEarned,
+        streak,
+      },
+    })
   } else {
     try {
       await recordWrongAnswer({

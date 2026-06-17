@@ -9,6 +9,7 @@ import {
 type Row = Record<string, unknown>
 
 const notificationsState = {
+  selectColumns: null as string | null,
   orderCalls: [] as Array<{ column: string; options: Record<string, unknown> | undefined }>,
   limitCalls: [] as number[],
   result: { data: [] as Row[] | null, error: null as unknown },
@@ -40,7 +41,10 @@ function createNotificationsBuilder() {
   }
 
   return {
-    select: () => chain,
+    select: (columns: string) => {
+      notificationsState.selectColumns = columns
+      return chain
+    },
   }
 }
 
@@ -87,6 +91,7 @@ const NOTIFICATION_ID_2 = '33333333-3333-3333-3333-333333333333'
 
 function resetState() {
   vi.clearAllMocks()
+  notificationsState.selectColumns = null
   notificationsState.orderCalls = []
   notificationsState.limitCalls = []
   notificationsState.result = { data: [], error: null }
@@ -132,10 +137,12 @@ describe('getNotifications', () => {
 
     expect(from).toHaveBeenCalledWith('notifications')
     expect(from).toHaveBeenCalledWith('notification_reads')
+    expect(notificationsState.selectColumns).toBe('*')
     expect(notificationsState.orderCalls).toEqual([
       { column: 'published_at', options: { ascending: false } },
       { column: 'created_at', options: { ascending: false } },
     ])
+    expect(readsState.selectColumns).toBe('notification_id, read_at')
     expect(readsState.eqCalls).toEqual([['user_id', USER_ID]])
     expect(readsState.inCalls).toEqual([
       ['notification_id', [NOTIFICATION_ID_1, NOTIFICATION_ID_2]],
@@ -210,6 +217,40 @@ describe('getUnreadCount', () => {
     }
 
     await expect(getUnreadCount(USER_ID)).resolves.toBe(1)
+    expect(notificationsState.selectColumns).toBe('id')
+    expect(notificationsState.orderCalls).toEqual([])
+    expect(readsState.selectColumns).toBe('notification_id')
+    expect(readsState.eqCalls).toEqual([['user_id', USER_ID]])
+    expect(readsState.inCalls).toEqual([
+      ['notification_id', [NOTIFICATION_ID_1, NOTIFICATION_ID_2]],
+    ])
+  })
+
+  it('通知がないときは既読状態を問い合わせず 0 を返す', async () => {
+    notificationsState.result = { data: [], error: null }
+
+    await expect(getUnreadCount(USER_ID)).resolves.toBe(0)
+    expect(notificationsState.selectColumns).toBe('id')
+    expect(from).not.toHaveBeenCalledWith('notification_reads')
+  })
+
+  it('不正な userId は例外を投げる', async () => {
+    await expect(getUnreadCount('not-uuid')).rejects.toThrow(
+      'userId must be a valid UUID',
+    )
+    expect(from).not.toHaveBeenCalled()
+  })
+
+  it('通知 ID 取得の DB エラーを AppError に変換する', async () => {
+    notificationsState.result = {
+      data: null,
+      error: { code: 'DB_ERROR', message: 'rls denied' },
+    }
+
+    await expect(getUnreadCount(USER_ID)).rejects.toMatchObject({
+      name: 'AppError',
+      userMessage: '未読件数の取得に失敗しました',
+    })
   })
 })
 

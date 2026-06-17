@@ -72,6 +72,7 @@ describe('FeedbackDialog', () => {
     await waitFor(() => {
       expect(screen.getByText(/送信しました/)).toBeTruthy()
     })
+    expect(screen.getByRole('status').textContent).toContain('送信しました')
   })
 
   it('submitFeedback が失敗したらエラーを表示し onClose を呼ばない', async () => {
@@ -85,6 +86,7 @@ describe('FeedbackDialog', () => {
     await waitFor(() => {
       expect(screen.getByText('permission denied')).toBeTruthy()
     })
+    expect(screen.getByRole('alert').textContent).toContain('permission denied')
     expect(onClose).not.toHaveBeenCalled()
   })
 
@@ -98,6 +100,7 @@ describe('FeedbackDialog', () => {
     await waitFor(() => {
       expect(screen.getByText('送信にはログインが必要です')).toBeTruthy()
     })
+    expect(screen.getByRole('alert').textContent).toContain('送信にはログインが必要です')
     expect(submitFeedbackMock).not.toHaveBeenCalled()
   })
 
@@ -124,6 +127,7 @@ describe('FeedbackDialog', () => {
     await waitFor(() => {
       expect(screen.getByText(/画像ファイルではありません/)).toBeTruthy()
     })
+    expect(screen.getByRole('alert').textContent).toContain('画像ファイルではありません')
   })
 
   it('画像を追加するとプレビューが表示され削除ボタンで除去できる', async () => {

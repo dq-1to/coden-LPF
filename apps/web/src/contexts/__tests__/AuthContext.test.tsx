@@ -20,6 +20,8 @@ vi.mock('../../lib/supabaseClient', () => {
         onAuthStateChange: vi.fn(),
         signInWithPassword: vi.fn(),
         signUp: vi.fn(),
+        resetPasswordForEmail: vi.fn(),
+        updateUser: vi.fn(),
         signOut: vi.fn(),
       },
       from,
@@ -32,6 +34,8 @@ const mockGetSession = vi.mocked(supabase.auth.getSession)
 const mockOnAuthStateChange = vi.mocked(supabase.auth.onAuthStateChange)
 const mockSignInWithPassword = vi.mocked(supabase.auth.signInWithPassword)
 const mockSignUpFn = vi.mocked(supabase.auth.signUp)
+const mockResetPasswordForEmail = vi.mocked(supabase.auth.resetPasswordForEmail)
+const mockUpdateUser = vi.mocked(supabase.auth.updateUser)
 const mockSignOutFn = vi.mocked(supabase.auth.signOut)
 
 // --- Test helpers ---
@@ -42,6 +46,8 @@ interface AuthContextValue {
   isLoadingAuth: boolean
   signIn: (email: string, password: string) => Promise<string | null>
   signUp: (email: string, password: string) => Promise<string | 'CONFIRM_EMAIL' | null>
+  sendPasswordResetEmail: (email: string, redirectTo?: string) => Promise<string | null>
+  updatePassword: (password: string) => Promise<string | null>
   signOut: () => Promise<string | null>
 }
 
@@ -234,6 +240,62 @@ describe('AuthContext', () => {
 
     expect(result).toBeNull()
     expect(mockSignOutFn).toHaveBeenCalled()
+  })
+
+  it('sendPasswordResetEmail が redirectTo 付きでリセットメール送信を呼び出す', async () => {
+    mockResetPasswordForEmail.mockResolvedValue({
+      data: {},
+      error: null,
+    } as never)
+
+    let captured: AuthContextValue | undefined
+
+    await act(async () => {
+      render(
+        <AuthProvider>
+          <TestConsumer onValue={(v) => { captured = v }} />
+        </AuthProvider>,
+      )
+    })
+
+    await waitFor(() => expect(captured!.isLoadingAuth).toBe(false))
+
+    let result: string | null = 'initial'
+    await act(async () => {
+      result = await captured!.sendPasswordResetEmail('user@example.com', 'https://example.com/reset-password')
+    })
+
+    expect(result).toBeNull()
+    expect(mockResetPasswordForEmail).toHaveBeenCalledWith('user@example.com', {
+      redirectTo: 'https://example.com/reset-password',
+    })
+  })
+
+  it('updatePassword が新しいパスワードでユーザー更新を呼び出す', async () => {
+    mockUpdateUser.mockResolvedValue({
+      data: { user: fakeUser },
+      error: null,
+    } as never)
+
+    let captured: AuthContextValue | undefined
+
+    await act(async () => {
+      render(
+        <AuthProvider>
+          <TestConsumer onValue={(v) => { captured = v }} />
+        </AuthProvider>,
+      )
+    })
+
+    await waitFor(() => expect(captured!.isLoadingAuth).toBe(false))
+
+    let result: string | null = 'initial'
+    await act(async () => {
+      result = await captured!.updatePassword('new-password123')
+    })
+
+    expect(result).toBeNull()
+    expect(mockUpdateUser).toHaveBeenCalledWith({ password: 'new-password123' })
   })
 
   it('useAuth が AuthProvider の外で使用されると例外を投げる', () => {

@@ -86,6 +86,8 @@ describe('LearningContext', () => {
       isAdmin: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
+      sendPasswordResetEmail: vi.fn(),
+      updatePassword: vi.fn(),
       signOut: vi.fn(),
     })
 
@@ -129,6 +131,8 @@ describe('LearningContext', () => {
       isAdmin: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
+      sendPasswordResetEmail: vi.fn(),
+      updatePassword: vi.fn(),
       signOut: vi.fn(),
     })
 

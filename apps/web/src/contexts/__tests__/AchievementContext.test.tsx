@@ -56,6 +56,8 @@ describe('AchievementContext', () => {
       isAdmin: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
+      sendPasswordResetEmail: vi.fn(),
+      updatePassword: vi.fn(),
       signOut: vi.fn(),
     })
 
@@ -92,6 +94,8 @@ describe('AchievementContext', () => {
       isAdmin: false,
       signIn: vi.fn(),
       signUp: vi.fn(),
+      sendPasswordResetEmail: vi.fn(),
+      updatePassword: vi.fn(),
       signOut: vi.fn(),
     })
 

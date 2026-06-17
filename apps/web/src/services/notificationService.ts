@@ -104,8 +104,33 @@ export async function getNotifications(
 
 /** 自分宛て通知の未読件数を取得する。 */
 export async function getUnreadCount(userId: string): Promise<number> {
-  const notifications = await getNotifications({ userId })
-  return notifications.filter((notification) => !notification.isRead).length
+  assertUuid(userId, 'userId')
+
+  const { data: notifications, error } = await supabase
+    .from('notifications')
+    .select('id')
+
+  if (error) {
+    throw fromSupabaseError(error, '未読件数の取得に失敗しました')
+  }
+
+  const notificationIds = (notifications ?? []).map((notification) => notification.id)
+  if (notificationIds.length === 0) {
+    return 0
+  }
+
+  const { data: reads, error: readsError } = await supabase
+    .from('notification_reads')
+    .select('notification_id')
+    .eq('user_id', userId)
+    .in('notification_id', notificationIds)
+
+  if (readsError) {
+    throw fromSupabaseError(readsError, 'お知らせの既読状態の取得に失敗しました')
+  }
+
+  const readNotificationIds = new Set((reads ?? []).map((read) => read.notification_id))
+  return notificationIds.filter((id) => !readNotificationIds.has(id)).length
 }
 
 /** 通知を既読にする。既に既読の場合も成功扱いにする。 */

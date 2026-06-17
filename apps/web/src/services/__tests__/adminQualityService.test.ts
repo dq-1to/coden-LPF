@@ -22,13 +22,31 @@ const tableState: Record<TableName, { data: unknown[]; count: number | null; err
   learning_events: { data: [], count: null, error: null },
 }
 
+const learningEventsRanges: Array<[number, number]> = []
+
 const from = vi.fn((table: TableName) => ({
-  select: () =>
-    Promise.resolve({
+  select: () => {
+    if (table === 'learning_events') {
+      return {
+        order: () => ({
+          range: (fromIndex: number, toIndex: number) => {
+            learningEventsRanges.push([fromIndex, toIndex])
+            return Promise.resolve({
+              data: tableState[table].data.slice(fromIndex, toIndex + 1),
+              count: tableState[table].count,
+              error: tableState[table].error,
+            })
+          },
+        }),
+      }
+    }
+
+    return Promise.resolve({
       data: tableState[table].data,
       count: tableState[table].count,
       error: tableState[table].error,
-    }),
+    })
+  },
 }))
 
 vi.mock('../../lib/supabaseClient', () => ({
@@ -39,6 +57,7 @@ vi.mock('../../lib/supabaseClient', () => ({
 
 function resetState() {
   vi.clearAllMocks()
+  learningEventsRanges.length = 0
   for (const table of Object.keys(tableState) as TableName[]) {
     tableState[table] = { data: [], count: table === 'profiles' ? 0 : null, error: null }
   }
@@ -318,6 +337,7 @@ describe('getAdminStepInsights', () => {
 
     expect(from).toHaveBeenCalledWith('learning_events')
     expect(insights.totalEvents).toBe(14)
+    expect(learningEventsRanges).toEqual([[0, 999]])
     expect(insights.observedSteps).toBeGreaterThan(0)
     expect(row).toEqual(
       expect.objectContaining({
@@ -354,5 +374,28 @@ describe('getAdminStepInsights', () => {
       name: 'AppError',
       userMessage: 'Step Insightsのイベントログ取得に失敗しました',
     })
+  })
+
+  it('learning_events をページングして1000件超のイベントも集計する', async () => {
+    tableState.learning_events.data = Array.from({ length: 1001 }, (_, index) => ({
+      id: index + 1,
+      user_id: `u${index}`,
+      event_type: 'step_started',
+      step_id: 'usestate-basic',
+      mode: null,
+      payload: null,
+      created_at: '2026-06-05T00:00:00Z',
+    }))
+
+    const insights = await getAdminStepInsights()
+    const row = insights.rows.find((item) => item.stepId === 'usestate-basic')
+
+    expect(learningEventsRanges).toEqual([
+      [0, 999],
+      [1000, 1999],
+    ])
+    expect(insights.totalEvents).toBe(1001)
+    expect(row?.eventCount).toBe(1001)
+    expect(row?.startedUsers).toBe(1001)
   })
 })

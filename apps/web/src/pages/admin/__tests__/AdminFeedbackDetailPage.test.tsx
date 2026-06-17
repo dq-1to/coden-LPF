@@ -137,6 +137,22 @@ describe('AdminFeedbackDetailPage', () => {
     expect(screen.getByAltText('添付画像 2').getAttribute('src')).toBe('https://example.com/b.jpg')
   })
 
+  it('image_paths に非文字列が混ざっていても文字列だけで signed URL を取得する', async () => {
+    getFeedbackMock.mockResolvedValue({
+      ...baseFeedback,
+      image_paths: ['uid/fid/a.png', 123, null, { path: 'bad' }, false],
+    })
+    getFeedbackImageUrlsMock.mockResolvedValue([
+      { path: 'uid/fid/a.png', url: 'https://example.com/a.png' },
+    ])
+    renderPage()
+
+    await waitFor(() => {
+      expect(getFeedbackImageUrlsMock).toHaveBeenCalledWith(['uid/fid/a.png'])
+    })
+    expect(screen.getByAltText('添付画像 1').getAttribute('src')).toBe('https://example.com/a.png')
+  })
+
   it('サムネイルクリックで Lightbox が開く', async () => {
     getFeedbackMock.mockResolvedValue({
       ...baseFeedback,

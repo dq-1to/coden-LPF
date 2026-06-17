@@ -25,6 +25,12 @@ const DailyChallengePage = lazy(() =>
 )
 const DashboardPage = lazy(() => import('./pages/DashboardPage').then((m) => ({ default: m.DashboardPage })))
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })))
+const ForgotPasswordPage = lazy(() =>
+  import('./pages/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })),
+)
+const ResetPasswordPage = lazy(() =>
+  import('./pages/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })),
+)
 const MiniProjectDetailPage = lazy(() =>
   import('./pages/MiniProjectDetailPage').then((m) => ({ default: m.MiniProjectDetailPage })),
 )
@@ -107,6 +113,24 @@ const router = createBrowserRouter([
           <SignUpPage />
         </Suspense>
       </GuestRoute>
+    ),
+  },
+  {
+    path: '/forgot-password',
+    element: (
+      <GuestRoute>
+        <Suspense fallback={<PageLoading />}>
+          <ForgotPasswordPage />
+        </Suspense>
+      </GuestRoute>
+    ),
+  },
+  {
+    path: '/reset-password',
+    element: (
+      <Suspense fallback={<PageLoading />}>
+        <ResetPasswordPage />
+      </Suspense>
     ),
   },
   {

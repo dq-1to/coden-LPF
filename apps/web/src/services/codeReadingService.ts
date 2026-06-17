@@ -7,6 +7,7 @@ import {
   POINTS_CODE_READING_ADVANCED,
 } from '../shared/constants'
 import { awardPoints } from './pointService'
+import { trackLearningEvent } from './eventService'
 import type {
   CodeReadingProblem,
   CodeReadingProgress,
@@ -113,6 +114,17 @@ export async function submitReading(
 
   if (isNewlyCompleted) {
     await awardPoints(pointsEarned, `コードリーディング完了（${problem.title}）`)
+    trackLearningEvent({
+      userId,
+      eventType: 'code_reading_completed',
+      payload: {
+        problemId: problem.id,
+        difficulty: problem.difficulty,
+        correctCount,
+        totalCount: problem.questions.length,
+        pointsEarned,
+      },
+    })
   }
 
   return { questionResults, allCorrect, correctCount, pointsEarned }
