@@ -6,6 +6,7 @@ export interface PracticeQuestion {
   id: string
   prompt: string
   answer: string
+  answerAliases?: string[]
   hint: string
   explanation?: string
   choices?: string[]
@@ -310,6 +311,28 @@ export function NameInput() {
 
 - \`onChange\` は入力が変わるたびに呼ばれます。
 - 引数の event (\`e\`) オブジェクトを通じて、入力された最新の値 (\`e.target.value\`) を取得し、\`setName\` で状態を更新します。
+
+## フォーム送信のデフォルト動作を止める
+
+\`<form>\` はブラウザ標準の動きとして、送信時にページを再読み込みしようとします。React の SPA では画面全体を再読み込みせず、イベントハンドラの中で処理を続けたいので、\`onSubmit\` に渡した関数の中で \`e.preventDefault()\` を呼びます。
+
+\`\`\`tsx
+export function SearchForm() {
+  function handleSubmit(e) {
+    e.preventDefault();
+    alert('送信しました');
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <button type="submit">送信</button>
+    </form>
+  );
+}
+\`\`\`
+
+- \`onSubmit\` はフォームが送信されたときに呼ばれます。
+- \`e.preventDefault()\` は、ページリロードなどのブラウザ標準動作を止めるメソッドです。
 `,
     practiceQuestions: [
       {
@@ -345,6 +368,7 @@ export function NameInput() {
         id: 'q5',
         prompt: 'フォームの送信などで、ブラウザのデフォルトの動作（ページリロードなど）を防ぐために呼ぶメソッドは何ですか？（e.〇〇〇〇）',
         answer: 'preventDefault',
+        answerAliases: ['e.preventDefault', 'preventDefault()', 'e.preventDefault()'],
         hint: 'デフォルト(default)の動作を、防ぐ(prevent)関数です。',
         explanation: 'SPAではページリロードなしで動作させるため、onSubmitハンドラ内でe.preventDefault()を呼び出します。',
       },
