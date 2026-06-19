@@ -14,6 +14,15 @@ function normalize(value: string) {
   return value.replace(/\s+/g, '').toLowerCase()
 }
 
+function getAcceptedAnswers(question: PracticeQuestion) {
+  return [question.answer, ...(question.answerAliases ?? [])]
+}
+
+function isPracticeAnswerCorrect(question: PracticeQuestion, answer: string) {
+  const normalizedAnswer = normalize(answer)
+  return getAcceptedAnswers(question).some((acceptedAnswer) => normalize(acceptedAnswer) === normalizedAnswer)
+}
+
 export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [hints, setHints] = useState<Record<string, boolean>>({})
@@ -30,7 +39,7 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
     () =>
       questions.every((question) => {
         const answer = answers[question.id] ?? ''
-        return normalize(answer) === normalize(question.answer)
+        return isPracticeAnswerCorrect(question, answer)
       }),
     [answers, questions],
   )
@@ -47,7 +56,7 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
     setIsJudged(true)
     const payloads = questions.filter((question) => {
       const answer = answers[question.id] ?? ''
-      const isCorrect = normalize(answer) === normalize(question.answer)
+      const isCorrect = isPracticeAnswerCorrect(question, answer)
       return isAllCorrect || !isCorrect
     }).map(getReviewPayload)
 
@@ -67,7 +76,7 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
       <h2 className="text-lg font-semibold">Practice</h2>
       {questions.map((question, index) => {
         const answer = answers[question.id] ?? ''
-        const isCorrect = answer.length > 0 && normalize(answer) === normalize(question.answer)
+        const isCorrect = answer.length > 0 && isPracticeAnswerCorrect(question, answer)
         const showExplanation = isJudged && !isCorrect && question.explanation
 
         return (
@@ -79,7 +88,7 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
               <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={`Q${index + 1} 選択肢`}>
                 {question.choices.map((choice) => {
                   const isSelected = answer === choice
-                  const isChoiceCorrect = normalize(choice) === normalize(question.answer)
+                  const isChoiceCorrect = isPracticeAnswerCorrect(question, choice)
                   let btnClass = 'min-h-[44px] rounded-md border px-3 py-2.5 text-sm text-left transition-colors'
                   if (isJudged) {
                     if (isChoiceCorrect) {

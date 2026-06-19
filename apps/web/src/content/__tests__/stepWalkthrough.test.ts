@@ -221,6 +221,17 @@ describe('Step メタ情報', () => {
       }
     }
   })
+
+  it('events: preventDefault を Read で説明し、Practice q5 で自然な回答を許容する', () => {
+    const step = getFundamentalsStep('events')!
+    const question = step.practiceQuestions.find((q) => q.id === 'q5')!
+
+    expect(step.readMarkdown).toContain('onSubmit')
+    expect(step.readMarkdown).toContain('e.preventDefault()')
+    expect(question.answer).toBe('preventDefault')
+    expect(question.answerAliases).toContain('e.preventDefault')
+    expect(question.answerAliases).toContain('e.preventDefault()')
+  })
 })
 
 // ─────────────────────────────────────────

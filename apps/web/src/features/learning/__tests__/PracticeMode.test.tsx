@@ -54,6 +54,17 @@ const choiceQuestions: PracticeQuestion[] = [
   },
 ]
 
+const aliasQuestions: PracticeQuestion[] = [
+  {
+    id: 'q-alias',
+    prompt: 'デフォルト動作を止めるメソッドは？',
+    answer: 'preventDefault',
+    answerAliases: ['e.preventDefault', 'preventDefault()', 'e.preventDefault()'],
+    hint: 'イベントオブジェクトのメソッドです。',
+    explanation: 'フォーム送信時のページリロードを止めます。',
+  },
+]
+
 describe('PracticeMode', () => {
   afterEach(() => {
     cleanup()
@@ -124,6 +135,30 @@ describe('PracticeMode', () => {
       },
     })
     expect(screen.getByRole('status').textContent).toContain('まだ不正解の問題があります')
+  })
+
+  it('短答式問題で answerAliases に含まれる自然な回答を正解として扱う', async () => {
+    const user = userEvent.setup()
+    const onComplete = vi.fn()
+    render(<PracticeMode stepId="step-alias" questions={aliasQuestions} onComplete={onComplete} />)
+
+    await user.type(screen.getByLabelText('Q1 回答欄'), 'e.preventDefault()')
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(onComplete).toHaveBeenCalledTimes(1)
+    expect(trackLearningEvent).toHaveBeenCalledWith({
+      userId: '00000000-0000-0000-0000-000000000001',
+      eventType: 'practice_answer_submitted',
+      stepId: 'step-alias',
+      mode: 'practice',
+      courseId: null,
+      payload: {
+        isCorrect: true,
+        itemCount: 1,
+        questionIds: ['q-alias'],
+      },
+    })
+    expect(screen.getByText('正解です。')).toBeTruthy()
   })
 
   it('stepId が変わると回答・ヒント・判定状態をリセットする', async () => {
