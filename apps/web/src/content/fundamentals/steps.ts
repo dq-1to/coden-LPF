@@ -2,13 +2,25 @@ import { withLearningGoals } from '../stepLearningGoals'
 
 export type LearningMode = 'read' | 'practice' | 'test' | 'challenge'
 
+export type PracticeQuestionLevel = 'basic' | 'applied'
+
+export interface KeywordCondition {
+  id: string
+  label: string
+  requiredKeywords: string[]
+  explanation: string
+}
+
 export interface PracticeQuestion {
   id: string
   prompt: string
   answer: string
   answerAliases?: string[]
+  level?: PracticeQuestionLevel
+  testedConcept?: string
   hint: string
   explanation?: string
+  solutionText?: string
   choices?: string[]
 }
 
@@ -16,7 +28,10 @@ export interface TestTask {
   instruction: string
   starterCode: string
   expectedKeywords: string[]
+  conditions?: KeywordCondition[]
+  hint?: string
   explanation?: string
+  solutionCode?: string
 }
 
 export interface ChallengeMobilePuzzleMultiBlank {
@@ -45,11 +60,14 @@ export interface ChallengePattern {
   anyOf?: string[][]
   /** 部分点での合格閾値（0-100。未指定なら全要件一致。任意） */
   passThreshold?: number
+  conditions?: KeywordCondition[]
   starterCode: string
+  solutionCode?: string
   mobilePuzzle?: ChallengeMobilePuzzle
 }
 
 export interface ChallengeTask {
+  primaryPatternId?: string
   patterns: ChallengePattern[]
 }
 
