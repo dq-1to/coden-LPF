@@ -178,9 +178,24 @@ function getArea(shape: Shape): number {
   return String(value);
 }`,
     expectedKeywords: ['typeof'],
+    conditions: [
+      {
+        id: 'typeof-guard',
+        label: 'typeof で string に絞り込んでいる',
+        requiredKeywords: ['typeof'],
+        explanation: 'typeof value === "string" と書くことで、if ブロック内の value を string として扱えます。',
+      },
+    ],
     explanation: '`typeof value === "string"` で型ガードを適用すると、if ブロック内では value が string 型として扱われ、.toUpperCase() を安全に呼び出せます。',
+    solutionCode: `function processValue(value: string | number): string {
+  if (typeof value === 'string') {
+    return value.toUpperCase();
+  }
+  return String(value);
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'ts-union-narrowing-1',
     patterns: [
       {
         id: 'ts-union-narrowing-1',
@@ -195,17 +210,42 @@ function getArea(shape: Shape): number {
           'switch (res.status) または if (res.status === "success") で分岐できます',
         ],
         expectedKeywords: ['ApiResponse', 'success', 'error', 'handleResponse'],
+        conditions: [
+          {
+            id: 'api-response-union',
+            label: 'ApiResponse 判別共用体を定義している',
+            requiredKeywords: ['ApiResponse', 'success', 'error'],
+            explanation: 'status を共通タグにして success と error の2パターンをユニオン型で表します。',
+          },
+          {
+            id: 'handle-response',
+            label: 'status でレスポンスを分岐している',
+            requiredKeywords: ['handleResponse', 'res.status'],
+            explanation: 'status の値で分岐すると、各ブランチで data/message を安全に参照できます。',
+          },
+          {
+            id: 'return-labels',
+            label: '成功/失敗メッセージを返している',
+            requiredKeywords: ['データ', 'エラー'],
+            explanation: 'success ではデータ、error ではエラーメッセージを文字列にして返します。',
+          },
+        ],
+        solutionCode: `type ApiResponse =
+  | { status: "success"; data: string }
+  | { status: "error"; message: string };
+
+function handleResponse(res: ApiResponse): string {
+  if (res.status === "success") {
+    return "データ: " + res.data;
+  }
+  return "エラー: " + res.message;
+}`,
         starterCode: `// TODO: ApiResponse 型を定義してください
 
 // TODO: handleResponse 関数を実装してください
 function handleResponse(res: ApiResponse): string {
   // TODO: status で分岐して実装
-}
-
-const ok: ApiResponse = { status: "success", data: "ユーザー情報" };
-const ng: ApiResponse = { status: "error", message: "認証エラー" };
-console.log(handleResponse(ok)); // "データ: ユーザー情報"
-console.log(handleResponse(ng)); // "エラー: 認証エラー"`,
+}`,
           mobilePuzzle: {
             type: 'multi',
             codeContext: `____0\n\nfunction handleResponse(res: ApiResponse): string {\n  ____1\n}\n\nconst ok: ApiResponse = { status: "success", data: "ユーザー情報" };\nconst ng: ApiResponse = { status: "error", message: "認証エラー" };\nconsole.log(handleResponse(ok));\nconsole.log(handleResponse(ng));`,

@@ -177,9 +177,24 @@ const tuple: [string, number] = ["x", 1]; // 2要素固定、型が異なる
 const user: User = { id: 1, name: "Alice" };
 // user.id = 2; // これがコンパイルエラーになることを確認`,
     expectedKeywords: ['readonly'],
+    conditions: [
+      {
+        id: 'readonly-id',
+        label: 'id を readonly にしている',
+        requiredKeywords: ['readonly', 'id'],
+        explanation: '一度作成したユーザーIDを変更できないように readonly を付けます。',
+      },
+    ],
     explanation: 'readonlyを付けることで、一度設定したidを後から変更できなくなります。これはデータの不変性を保証するために使われます。',
+    solutionCode: `interface User {
+  readonly id: number;
+  name: string;
+}
+
+const user: User = { id: 1, name: "Alice" };`,
   },
   challengeTask: {
+    primaryPatternId: 'ts-objects-1',
     patterns: [
       {
         id: 'ts-objects-1',
@@ -194,6 +209,42 @@ const user: User = { id: 1, name: "Alice" };
           'オプショナルプロパティは返り値オブジェクトに含めなくてもOKです',
         ],
         expectedKeywords: ['Article', 'readonly', 'id', 'title', 'content', 'tags', 'createDraft'],
+        conditions: [
+          {
+            id: 'article-interface',
+            label: 'Article interface を定義している',
+            requiredKeywords: ['Article', 'readonly', 'id', 'title', 'content', 'tags', 'publishedAt?'],
+            explanation: '記事の固定ID、本文、タグ、任意の公開日時を interface として表します。',
+          },
+          {
+            id: 'create-draft',
+            label: 'createDraft 関数を実装している',
+            requiredKeywords: ['createDraft', 'Date.now', 'tags'],
+            explanation: '下書き作成時に id を生成し、tags を空配列で初期化します。',
+          },
+          {
+            id: 'omit-published-at',
+            label: 'publishedAt を省略可能にしている',
+            requiredKeywords: ['publishedAt?'],
+            explanation: '下書きでは公開日時がないため、publishedAt はオプショナルにします。',
+          },
+        ],
+        solutionCode: `interface Article {
+  readonly id: number;
+  title: string;
+  content: string;
+  tags: string[];
+  publishedAt?: Date;
+}
+
+function createDraft(title: string, content: string): Article {
+  return {
+    id: Date.now(),
+    title,
+    content,
+    tags: [],
+  };
+}`,
         starterCode: `// TODO: Article interface を定義してください
 
 // TODO: createDraft 関数を実装してください

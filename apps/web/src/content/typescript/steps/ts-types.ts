@@ -139,9 +139,27 @@ let userStatus: Status = "active";
   return "Hello, " + name;
 }`,
     expectedKeywords: ['string'],
+    conditions: [
+      {
+        id: 'argument-type',
+        label: '引数 name を string 型にしている',
+        requiredKeywords: ['name: string'],
+        explanation: 'greet は文字列の名前を受け取るため、引数には string 型を指定します。',
+      },
+      {
+        id: 'return-type',
+        label: '戻り値を string 型にしている',
+        requiredKeywords: ['): string'],
+        explanation: '返す値も文字列なので、関数の戻り値型を string と明示します。',
+      },
+    ],
     explanation: '引数 name は string 型、戻り値も string 型です。戻り値型は推論に任せることもできますが、明示することで意図が明確になります。',
+    solutionCode: `function greet(name: string): string {
+  return "Hello, " + name;
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'ts-types-1',
     patterns: [
       {
         id: 'ts-types-1',
@@ -158,6 +176,36 @@ let userStatus: Status = "active";
           'inStock が false の場合の条件分岐を忘れずに',
         ],
         expectedKeywords: ['Product', 'string', 'number', 'boolean', 'formatProduct'],
+        conditions: [
+          {
+            id: 'define-product',
+            label: 'Product 型を定義している',
+            requiredKeywords: ['Product', 'name', 'string', 'price', 'number', 'inStock', 'boolean'],
+            explanation: '商品データの形として name, price, inStock を持つ Product 型を定義します。',
+          },
+          {
+            id: 'format-function',
+            label: 'formatProduct 関数を実装している',
+            requiredKeywords: ['formatProduct', 'product: Product', 'string'],
+            explanation: 'Product を受け取り、表示用の文字列を返す関数にします。',
+          },
+          {
+            id: 'sold-out-label',
+            label: '在庫なしの表示を分岐している',
+            requiredKeywords: ['inStock', '在庫なし'],
+            explanation: 'inStock が false の場合だけ末尾に在庫なし表示を追加します。',
+          },
+        ],
+        solutionCode: `type Product = {
+  name: string;
+  price: number;
+  inStock: boolean;
+};
+
+function formatProduct(product: Product): string {
+  const base = \`商品名: \${product.name}, 価格: ¥\${product.price}\`;
+  return product.inStock ? base : base + " (在庫なし)";
+}`,
         starterCode: `// TODO: Product 型を定義してください
 
 // TODO: formatProduct 関数を実装してください
