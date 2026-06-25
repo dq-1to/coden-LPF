@@ -47,6 +47,40 @@ export interface KeywordJudgeInput {
   passThreshold?: number | undefined
 }
 
+/** 条件単位のキーワード判定入力 */
+export interface KeywordConditionJudgeInput extends KeywordJudgeInput {
+  /** 条件を一意に識別するID */
+  id: string
+  /** 学習者に表示する条件名 */
+  label: string
+  /** 条件が不足したときに表示する説明 */
+  explanation: string
+  /** 条件単位では requiredKeywords を必須にする */
+  requiredKeywords: string[]
+}
+
+/** 条件単位の判定結果 */
+export interface KeywordConditionJudgeResult extends JudgeResult {
+  id: string
+  label: string
+  explanation: string
+  requiredKeywords: string[]
+}
+
+/** 複数条件の判定結果 */
+export interface KeywordConditionsJudgeResult {
+  /** 全条件を満たしたか */
+  passed: boolean
+  /** 条件単位の達成率 0-100 */
+  score: number
+  /** 全条件の判定詳細 */
+  conditions: KeywordConditionJudgeResult[]
+  /** 満たした条件 */
+  satisfiedConditions: KeywordConditionJudgeResult[]
+  /** 不足または違反がある条件 */
+  unsatisfiedConditions: KeywordConditionJudgeResult[]
+}
+
 /**
  * キーワードベースでコードを判定する（大文字小文字を区別しない）。
  *
@@ -87,4 +121,44 @@ export function judgeKeywords(code: string, input: KeywordJudgeInput): JudgeResu
     if (cur.passed !== best.passed) return cur.passed ? cur : best
     return cur.score > best.score ? cur : best
   })
+}
+
+/**
+ * Test / Challenge の正解条件を、表示用ラベルつきで条件単位に判定する。
+ *
+ * `judgeKeywords` の互換挙動を保ったまま、後続UIが「どの条件が不足したか」を
+ * キーワード文字列ではなく日本語ラベル・説明で表示できるようにする。
+ */
+export function judgeKeywordConditions(
+  code: string,
+  conditions: KeywordConditionJudgeInput[],
+): KeywordConditionsJudgeResult {
+  const results = conditions.map((condition): KeywordConditionJudgeResult => {
+    const result = judgeKeywords(code, {
+      requiredKeywords: condition.requiredKeywords,
+      ngKeywords: condition.ngKeywords,
+      anyOf: condition.anyOf,
+      passThreshold: condition.passThreshold,
+    })
+
+    return {
+      ...result,
+      id: condition.id,
+      label: condition.label,
+      explanation: condition.explanation,
+      requiredKeywords: condition.requiredKeywords,
+    }
+  })
+
+  const satisfiedConditions = results.filter((condition) => condition.passed)
+  const unsatisfiedConditions = results.filter((condition) => !condition.passed)
+  const score = results.length === 0 ? 100 : Math.round((satisfiedConditions.length / results.length) * 100)
+
+  return {
+    passed: unsatisfiedConditions.length === 0,
+    score,
+    conditions: results,
+    satisfiedConditions,
+    unsatisfiedConditions,
+  }
 }

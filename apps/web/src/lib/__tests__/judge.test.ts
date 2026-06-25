@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { judgeKeywords } from '../judge'
+import { judgeKeywordConditions, judgeKeywords } from '../judge'
 
 describe('judgeKeywords', () => {
   it('必須キーワードをすべて含めば passed: true / score 100', () => {
@@ -117,5 +117,107 @@ describe('judgeKeywords', () => {
       expect(result.score).toBe(100)
       expect(result.passed).toBe(false)
     })
+  })
+})
+
+describe('judgeKeywordConditions', () => {
+  it('全条件を満たすと passed: true / score 100 を返す', () => {
+    const result = judgeKeywordConditions('setCount(count - 1); onClick={handleClick}', [
+      {
+        id: 'state-update',
+        label: 'state更新',
+        requiredKeywords: ['setCount', 'count - 1'],
+        explanation: 'setCount で count を更新できているか確認しましょう。',
+      },
+      {
+        id: 'event-handler',
+        label: 'イベント接続',
+        requiredKeywords: ['onClick'],
+        explanation: 'ボタンのクリック処理に接続できているか確認しましょう。',
+      },
+    ])
+
+    expect(result.passed).toBe(true)
+    expect(result.score).toBe(100)
+    expect(result.conditions).toHaveLength(2)
+    expect(result.satisfiedConditions.map((condition) => condition.id)).toEqual(['state-update', 'event-handler'])
+    expect(result.unsatisfiedConditions).toHaveLength(0)
+  })
+
+  it('不足条件をラベルと説明つきで返す', () => {
+    const result = judgeKeywordConditions('setCount(count - 1)', [
+      {
+        id: 'state-update',
+        label: 'state更新',
+        requiredKeywords: ['setCount', 'count - 1'],
+        explanation: 'setCount で count を更新できているか確認しましょう。',
+      },
+      {
+        id: 'event-handler',
+        label: 'イベント接続',
+        requiredKeywords: ['onClick'],
+        explanation: 'ボタンのクリック処理に接続できているか確認しましょう。',
+      },
+    ])
+
+    expect(result.passed).toBe(false)
+    expect(result.score).toBe(50)
+    expect(result.satisfiedConditions.map((condition) => condition.id)).toEqual(['state-update'])
+    expect(result.unsatisfiedConditions).toHaveLength(1)
+    expect(result.unsatisfiedConditions[0]).toMatchObject({
+      id: 'event-handler',
+      label: 'イベント接続',
+      explanation: 'ボタンのクリック処理に接続できているか確認しましょう。',
+      missing: ['onClick'],
+    })
+  })
+
+  it('条件ごとの anyOf と passThreshold を既存判定と同じように扱う', () => {
+    const result = judgeKeywordConditions('setCount(prev => prev + 1)', [
+      {
+        id: 'increment',
+        label: '増加処理',
+        requiredKeywords: ['setCount'],
+        anyOf: [['count + 1'], ['prev => prev + 1']],
+        explanation: '現在値をもとに1増やせているか確認しましょう。',
+      },
+      {
+        id: 'partial',
+        label: '部分条件',
+        requiredKeywords: ['setCount', 'onClick'],
+        passThreshold: 50,
+        explanation: '必要な要素を組み合わせられているか確認しましょう。',
+      },
+    ])
+
+    expect(result.passed).toBe(true)
+    expect(result.score).toBe(100)
+    expect(result.satisfiedConditions).toHaveLength(2)
+  })
+
+  it('条件内の ngKeywords 違反を不足条件として扱う', () => {
+    const result = judgeKeywordConditions('var count = 0; setCount(count + 1)', [
+      {
+        id: 'safe-update',
+        label: '安全な更新',
+        requiredKeywords: ['setCount'],
+        ngKeywords: ['var '],
+        explanation: '避けたい書き方を含めずに実装できているか確認しましょう。',
+      },
+    ])
+
+    expect(result.passed).toBe(false)
+    expect(result.score).toBe(0)
+    expect(result.unsatisfiedConditions[0]?.violations).toEqual(['var '])
+  })
+
+  it('条件が空なら互換的に passed: true / score 100 を返す', () => {
+    const result = judgeKeywordConditions('anything', [])
+
+    expect(result.passed).toBe(true)
+    expect(result.score).toBe(100)
+    expect(result.conditions).toEqual([])
+    expect(result.satisfiedConditions).toEqual([])
+    expect(result.unsatisfiedConditions).toEqual([])
   })
 })
