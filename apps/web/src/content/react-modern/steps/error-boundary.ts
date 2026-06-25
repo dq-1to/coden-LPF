@@ -187,9 +187,47 @@ class ErrorBoundary extends React.Component {
   }
 }`,
     expectedKeywords: ['hasError'],
+    conditions: [
+      {
+        id: 'initial-state',
+        label: 'hasError の初期値を false にしている',
+        requiredKeywords: ['hasError', 'false'],
+        explanation: '通常時は子コンポーネントを表示するため、初期 state は hasError: false にします。',
+      },
+      {
+        id: 'derived-state',
+        label: 'エラー時に hasError を true にしている',
+        requiredKeywords: ['getDerivedStateFromError', 'hasError', 'true'],
+        explanation: 'getDerivedStateFromError で hasError: true を返すとフォールバック UI に切り替わります。',
+      },
+      {
+        id: 'fallback-ui',
+        label: 'hasError 時に fallback UI を返している',
+        requiredKeywords: ['this.state.hasError', 'エラーが発生しました'],
+        explanation: 'hasError が true のときは children ではなくエラー表示を返します。',
+      },
+    ],
     explanation: 'constructor で hasError: false の初期 state を設定します。getDerivedStateFromError がエラーを検知すると hasError: true になり、フォールバック UI が表示されます。',
+    solutionCode: `class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <p>エラーが発生しました</p>
+    }
+    return this.props.children
+  }
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'error-boundary-1',
     patterns: [
       {
         id: 'error-boundary-1',
@@ -207,6 +245,62 @@ class ErrorBoundary extends React.Component {
           'handleReset メソッドで state を { hasError: false, error: null } にリセットします',
         ],
         expectedKeywords: ['getDerivedStateFromError', 'componentDidCatch', 'hasError', 'handleReset'],
+        conditions: [
+          {
+            id: 'derived-state-error',
+            label: 'getDerivedStateFromError で error を保存している',
+            requiredKeywords: ['getDerivedStateFromError', 'hasError', 'error'],
+            explanation: 'エラー発生時に hasError と error を state に保存します。',
+          },
+          {
+            id: 'did-catch-log',
+            label: 'componentDidCatch でログ出力している',
+            requiredKeywords: ['componentDidCatch', 'console.error'],
+            explanation: '副作用であるログ送信や出力は componentDidCatch で行います。',
+          },
+          {
+            id: 'reset-state',
+            label: 'handleReset で state をリセットしている',
+            requiredKeywords: ['handleReset', 'setState', 'hasError', 'false'],
+            explanation: '再試行ボタンから hasError と error を初期状態へ戻します。',
+          },
+          {
+            id: 'fallback-reset-button',
+            label: 'fallback UI と再試行ボタンを表示している',
+            requiredKeywords: ['this.state.hasError', 'this.state.error', '再試行'],
+            explanation: 'エラー時は詳細メッセージと回復操作を表示します。',
+          },
+        ],
+        solutionCode: `class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error, info) {
+    console.error(error, info.componentStack)
+  }
+
+  handleReset = () => {
+    this.setState({ hasError: false, error: null })
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div>
+          <p>エラー: {this.state.error?.message}</p>
+          <button onClick={this.handleReset}>再試行</button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}`,
         starterCode: `class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props)
@@ -219,10 +313,6 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, info) {
     // TODO: エラーをコンソール出力
-  }
-
-  handleReset = () => {
-    // TODO: state をリセット
   }
 
   render() {

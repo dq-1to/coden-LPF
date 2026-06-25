@@ -172,11 +172,18 @@ function App({ items, addItem }) {
     },
     {
       id: 'q5',
-      prompt: '`useOptimistic` が対応しているのは React の何番以降？',
-      answer: 'React 19',
-      hint: '比較的新しいフックです。',
-      explanation: 'useOptimistic は React 19 で追加された新しいフックです。Server Actions と組み合わせる場面で特に効果を発揮します。',
-      choices: ['React 19', 'React 18', 'React 17', 'React 16'],
+      prompt: '`useOptimistic(state, updateFn)` の updateFn で守るべきことは？',
+      answer: '現在の state と payload から新しい state を返す純粋関数にする',
+      hint: '副作用や直接変更ではなく、新しい楽観的 state を返します。',
+      explanation: 'updateFn は (currentState, payload) を受け取り、直接 state を変更せずに新しい楽観的 state を返す純粋関数にします。失敗時のロールバックもこの前提で扱いやすくなります。',
+      choices: [
+        '現在の state と payload から新しい state を返す純粋関数にする',
+        'currentState を直接 push して同じ配列を返す',
+        'updateFn の中で fetch を実行する',
+        '必ず React のバージョン番号を返す',
+      ],
+      level: 'applied',
+      testedConcept: 'useOptimistic updateFn とロールバック前提',
     },
   ],
   testTask: {
@@ -208,9 +215,56 @@ function MessageList({ messages, sendMessage }) {
   )
 }`,
     expectedKeywords: ['useOptimistic'],
+    conditions: [
+      {
+        id: 'use-optimistic',
+        label: 'useOptimistic を呼び出している',
+        requiredKeywords: ['useOptimistic'],
+        explanation: '実stateから楽観的stateを作るために useOptimistic を使います。',
+      },
+      {
+        id: 'optimistic-update-fn',
+        label: 'updateFn で送信中メッセージを追加している',
+        requiredKeywords: ['sending: true', 'text: newText'],
+        explanation: 'updateFn は既存stateに sending フラグ付きの一時メッセージを追加します。',
+      },
+      {
+        id: 'call-add-optimistic',
+        label: '送信時に addOptimisticMessage を呼んでいる',
+        requiredKeywords: ['addOptimisticMessage', 'sendMessage'],
+        explanation: 'サーバー送信前に楽観的更新を発火させます。',
+      },
+    ],
     explanation: 'useOptimistic(state, updateFn) でフックを呼び出し、楽観的な状態と更新関数を取得します。',
+    solutionCode: `import { useOptimistic } from 'react'
+
+function MessageList({ messages, sendMessage }) {
+  const [optimisticMessages, addOptimisticMessage] = useOptimistic(
+    messages,
+    (state, newText) => [...state, { id: Date.now(), text: newText, sending: true }]
+  )
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    const text = e.target.message.value
+    e.target.reset()
+    addOptimisticMessage(text)
+    await sendMessage(text)
+  }
+
+  return (
+    <ul>
+      {optimisticMessages.map((msg) => (
+        <li key={msg.id} style={{ opacity: msg.sending ? 0.5 : 1 }}>
+          {msg.text}
+        </li>
+      ))}
+    </ul>
+  )
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'use-optimistic-1',
     patterns: [
       {
         id: 'use-optimistic-1',
@@ -227,6 +281,52 @@ function MessageList({ messages, sendMessage }) {
           'startTransition 内で addOptimisticLike と await toggleLike を呼びます',
         ],
         expectedKeywords: ['useOptimistic', 'addOptimistic'],
+        conditions: [
+          {
+            id: 'optimistic-state',
+            label: 'useOptimistic で post を楽観的に更新している',
+            requiredKeywords: ['useOptimistic', 'optimisticPost', 'addOptimisticLike'],
+            explanation: 'post から optimisticPost と楽観的更新関数を取得します。',
+          },
+          {
+            id: 'update-likes',
+            label: 'updateFn で likes と liked を更新している',
+            requiredKeywords: ['likes', 'state.likes + 1', 'liked', '!state.liked'],
+            explanation: 'いいね数を増やし、liked を反転した楽観的な post を返します。',
+          },
+          {
+            id: 'transition-submit',
+            label: 'startTransition 内で楽観的更新と送信を行っている',
+            requiredKeywords: ['startTransition', 'addOptimisticLike', 'toggleLike'],
+            explanation: '楽観的更新とサーバー送信を transition の中で実行します。',
+          },
+        ],
+        solutionCode: `import { useOptimistic, useTransition } from 'react'
+
+function LikeButton({ post, toggleLike }) {
+  const [isPending, startTransition] = useTransition()
+  const [optimisticPost, addOptimisticLike] = useOptimistic(
+    post,
+    (state) => ({
+      ...state,
+      likes: state.likes + 1,
+      liked: !state.liked,
+    })
+  )
+
+  function handleClick() {
+    startTransition(async () => {
+      addOptimisticLike()
+      await toggleLike(post.id)
+    })
+  }
+
+  return (
+    <button onClick={handleClick} disabled={isPending}>
+      {optimisticPost.liked ? '❤️' : '🤍'} {optimisticPost.likes}
+    </button>
+  )
+}`,
         starterCode: `import { useOptimistic, useTransition } from 'react'
 
 function LikeButton({ post, toggleLike }) {

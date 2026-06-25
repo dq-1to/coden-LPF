@@ -144,6 +144,8 @@ const SlowList = memo(function SlowList({ text }) {
       hint: '「遅延した値が変わらないときはスキップする」仕組みが必要です。',
       explanation: 'useDeferredValue で遅延した値を memo でラップしたコンポーネントに渡すと、値が変わらない間は再レンダリングをスキップできます。両方の組み合わせで最大効果を発揮します。',
       choices: ['memo', 'useCallback', 'useMemo', 'useRef'],
+      level: 'applied',
+      testedConcept: 'useDeferredValue と memo の組み合わせ',
     },
     {
       id: 'q5',
@@ -152,6 +154,8 @@ const SlowList = memo(function SlowList({ text }) {
       hint: '同名の関数を直接 import できます。',
       explanation: 'react パッケージから startTransition を直接インポートして使えます。useTransition フックが使えない場所（Redux ミドルウェアなど）で役立ちます。',
       choices: ['startTransition（react から直接インポート）', 'setTimeout', 'requestIdleCallback', 'flushSync'],
+      level: 'applied',
+      testedConcept: 'React ツリー外での startTransition 利用',
     },
   ],
   testTask: {
@@ -178,9 +182,51 @@ function SearchPage({ searchItems }) {
   )
 }`,
     expectedKeywords: ['startTransition'],
+    conditions: [
+      {
+        id: 'immediate-query',
+        label: 'setQuery は即時更新している',
+        requiredKeywords: ['setQuery', 'e.target.value'],
+        explanation: '入力欄の値はユーザー操作に直結するため、transition の外で即時更新します。',
+      },
+      {
+        id: 'start-transition',
+        label: 'startTransition を呼び出している',
+        requiredKeywords: ['startTransition'],
+        explanation: '重い更新は startTransition で非緊急更新として扱います。',
+      },
+      {
+        id: 'transition-results',
+        label: 'setResults を transition 内で呼んでいる',
+        requiredKeywords: ['setResults', 'searchItems'],
+        explanation: '検索結果の更新を transition 内へ入れることで入力の応答性を保ちます。',
+      },
+    ],
     explanation: 'useTransition から [isPending, startTransition] を取得し、重い更新を startTransition(() => { ... }) でラップします。',
+    solutionCode: `import { useState, useTransition } from 'react'
+
+function SearchPage({ searchItems }) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState([])
+  const [isPending, startTransition] = useTransition()
+
+  function handleChange(e) {
+    setQuery(e.target.value)
+    startTransition(() => {
+      setResults(searchItems(e.target.value))
+    })
+  }
+
+  return (
+    <div>
+      <input value={query} onChange={handleChange} />
+      {isPending ? <p>検索中...</p> : <ul>{results.map(r => <li key={r}>{r}</li>)}</ul>}
+    </div>
+  )
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'concurrent-features-1',
     patterns: [
       {
         id: 'concurrent-features-1',
@@ -197,6 +243,53 @@ function SearchPage({ searchItems }) {
           'isPending を使って検索結果のスタイルを動的に変えます',
         ],
         expectedKeywords: ['useTransition', 'startTransition', 'isPending'],
+        conditions: [
+          {
+            id: 'use-transition',
+            label: 'useTransition で isPending/startTransition を取得している',
+            requiredKeywords: ['useTransition', 'isPending', 'startTransition'],
+            explanation: 'pending 表示と非緊急更新のために useTransition を使います。',
+          },
+          {
+            id: 'split-updates',
+            label: '入力更新と結果更新を分離している',
+            requiredKeywords: ['setQuery', 'startTransition', 'setResults'],
+            explanation: 'setQuery は即時、setResults は transition 内で実行します。',
+          },
+          {
+            id: 'pending-style',
+            label: 'isPending で結果欄の表示を変えている',
+            requiredKeywords: ['isPending', 'opacity-50'],
+            explanation: 'transition 中であることを視覚的に示します。',
+          },
+        ],
+        solutionCode: `import { useState, useTransition } from 'react'
+
+const ITEMS = Array.from({ length: 500 }, (_, i) => ({ id: i, name: 'Item ' + i }))
+
+function SearchApp() {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState(ITEMS)
+  const [isPending, startTransition] = useTransition()
+
+  function handleChange(e) {
+    setQuery(e.target.value)
+    startTransition(() => {
+      setResults(ITEMS.filter((item) => item.name.includes(e.target.value)))
+    })
+  }
+
+  return (
+    <div>
+      <input value={query} onChange={handleChange} placeholder="検索..." />
+      <ul className={isPending ? 'opacity-50' : ''}>
+        {results.map(item => (
+          <li key={item.id}>{item.name}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}`,
         starterCode: `import { useState, useTransition } from 'react'
 
 const ITEMS = Array.from({ length: 500 }, (_, i) => ({ id: i, name: \`Item \${i}\` }))
