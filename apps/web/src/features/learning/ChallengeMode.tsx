@@ -13,7 +13,7 @@ interface ChallengeModeProps {
   stepId: string
   task: ChallengeTask
   onComplete: () => void
-  onSubmitResult?: (result: { code: string; isPassed: boolean; matchedKeywords: string[] }) => Promise<void> | void
+  onSubmitResult?: (result: { code: string; isPassed: boolean; matchedKeywords: string[]; patternId: string }) => Promise<void> | void
 }
 
 function getRandomPattern(task: ChallengeTask): ChallengePattern {
@@ -68,6 +68,7 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
           code,
           isPassed: hasSatisfiedRequirements,
           matchedKeywords,
+          patternId: pattern.id,
         })
       } catch (error) {
         setSubmissionError(error instanceof Error ? error.message : '提出履歴の保存に失敗しました。')

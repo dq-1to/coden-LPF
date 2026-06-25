@@ -4,15 +4,17 @@ import { MAX_CODE_LENGTH } from '../shared/constants'
 import { assertMaxLength } from '../shared/validation'
 import type { Tables, TablesInsert } from '../shared/types/database.types'
 const MAX_SUBMISSION_LIMIT = 100
+const CHALLENGE_SUBMISSION_SELECT =
+  'id, user_id, step_id, pattern_id, code, is_passed, matched_keywords, submitted_at'
 
 export type ChallengeSubmission = Pick<
   Tables<'challenge_submissions'>,
-  'id' | 'user_id' | 'step_id' | 'code' | 'is_passed' | 'matched_keywords' | 'submitted_at'
+  'id' | 'user_id' | 'step_id' | 'pattern_id' | 'code' | 'is_passed' | 'matched_keywords' | 'submitted_at'
 >
 
 export type CreateChallengeSubmissionInput = Pick<
   TablesInsert<'challenge_submissions'>,
-  'user_id' | 'step_id' | 'code' | 'is_passed' | 'matched_keywords'
+  'user_id' | 'step_id' | 'pattern_id' | 'code' | 'is_passed' | 'matched_keywords'
 >
 
 export async function createChallengeSubmission(
@@ -22,7 +24,7 @@ export async function createChallengeSubmission(
   const { data, error } = await supabase
     .from('challenge_submissions')
     .insert(input)
-    .select('id, user_id, step_id, code, is_passed, matched_keywords, submitted_at')
+    .select(CHALLENGE_SUBMISSION_SELECT)
     .single()
 
   if (error) {
@@ -40,7 +42,7 @@ export async function getRecentChallengeSubmissions(
   const safeLimit = Math.min(Math.max(1, limit), MAX_SUBMISSION_LIMIT)
   const { data, error } = await supabase
     .from('challenge_submissions')
-    .select('id, user_id, step_id, code, is_passed, matched_keywords, submitted_at')
+    .select(CHALLENGE_SUBMISSION_SELECT)
     .eq('user_id', userId)
     .eq('step_id', stepId)
     .order('submitted_at', { ascending: false })

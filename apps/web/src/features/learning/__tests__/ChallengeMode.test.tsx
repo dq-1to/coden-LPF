@@ -117,6 +117,7 @@ describe('ChallengeMode', () => {
       code: 'const [count, setCount] = useState(0); <button onClick={() => setCount(count + 1)} />',
       isPassed: true,
       matchedKeywords: ['useState', 'onClick'],
+      patternId: 'pattern-1',
     })
     expect(resolveReviewItem).toHaveBeenCalledWith({
       userId: '00000000-0000-0000-0000-000000000001',
