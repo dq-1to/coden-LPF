@@ -68,6 +68,7 @@ export type Database = {
           id: string
           is_passed: boolean
           matched_keywords: string[]
+          pattern_id: string | null
           step_id: string
           submitted_at: string
           user_id: string
@@ -77,6 +78,7 @@ export type Database = {
           id?: string
           is_passed?: boolean
           matched_keywords?: string[]
+          pattern_id?: string | null
           step_id: string
           submitted_at?: string
           user_id: string
@@ -86,6 +88,7 @@ export type Database = {
           id?: string
           is_passed?: boolean
           matched_keywords?: string[]
+          pattern_id?: string | null
           step_id?: string
           submitted_at?: string
           user_id?: string
