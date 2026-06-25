@@ -141,6 +141,8 @@ function SearchBar({ onSearch, onClear }: SearchProps) {
       hint: 'HTML要素名を文字列で渡します。',
       explanation: "ComponentProps<'div'> のようにHTML要素名を文字列で指定すると、そのネイティブ要素のProps型（className, id, style など）を取得できます。",
       choices: ["'div'", "'Div'", 'div', 'HTMLDivElement'],
+      level: 'applied',
+      testedConcept: 'ComponentProps によるネイティブ要素Propsの継承',
     },
   ],
   testTask: {
@@ -154,9 +156,32 @@ function Button({ label, onClick }: ButtonProps) {
   return <button onClick={onClick}>{label}</button>
 }`,
     expectedKeywords: ['label'],
+    conditions: [
+      {
+        id: 'label-string',
+        label: 'label を string 型にしている',
+        requiredKeywords: ['label', 'string'],
+        explanation: 'ボタンに表示する label は文字列として定義します。',
+      },
+      {
+        id: 'onclick-callback',
+        label: 'onClick をコールバック型にしている',
+        requiredKeywords: ['onClick', '() => void'],
+        explanation: 'クリック時に呼ばれる関数は () => void 型で表します。',
+      },
+    ],
     explanation: 'label は string 型、onClick は () => void 型として定義します。interface で Props を定義することでコンポーネントの入力仕様が明確になります。',
+    solutionCode: `interface ButtonProps {
+  label: string
+  onClick: () => void
+}
+
+function Button({ label, onClick }: ButtonProps) {
+  return <button onClick={onClick}>{label}</button>
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'ts-react-props-1',
     patterns: [
       {
         id: 'ts-react-props-1',
@@ -172,6 +197,43 @@ function Button({ label, onClick }: ButtonProps) {
           '条件付きレンダリングは `{prop && <element />}` パターンが便利です',
         ],
         expectedKeywords: ['CardProps', 'title', 'description', 'children', 'ReactNode'],
+        conditions: [
+          {
+            id: 'card-props',
+            label: 'CardProps interface を定義している',
+            requiredKeywords: ['CardProps', 'title', 'description?', 'children?', 'ReactNode'],
+            explanation: 'title は必須、description と children は省略可能な Props として定義します。',
+          },
+          {
+            id: 'card-component',
+            label: 'CardProps を使って Card を実装している',
+            requiredKeywords: ['function Card', 'CardProps'],
+            explanation: 'Card コンポーネントの引数に CardProps を指定して型安全にします。',
+          },
+          {
+            id: 'conditional-description',
+            label: 'description を条件付きで表示している',
+            requiredKeywords: ['description', '<p>'],
+            explanation: 'description がある場合だけ p 要素を描画します。',
+          },
+        ],
+        solutionCode: `import type { ReactNode } from 'react'
+
+interface CardProps {
+  title: string
+  description?: string
+  children?: ReactNode
+}
+
+function Card({ title, description, children }: CardProps) {
+  return (
+    <div>
+      <h2>{title}</h2>
+      {description && <p>{description}</p>}
+      {children}
+    </div>
+  )
+}`,
         starterCode: `import type { ReactNode } from 'react'
 
 // TODO: CardProps interface を定義してください

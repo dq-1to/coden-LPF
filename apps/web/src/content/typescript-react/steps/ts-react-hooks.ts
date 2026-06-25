@@ -183,6 +183,8 @@ function Form() {
       hint: 'forwardRef は ref 型と Props 型の2つを受け取ります。',
       explanation: 'forwardRef<T, P> の T は ref.current の型（DOM要素型）、P はコンポーネントの Props 型です。',
       choices: ['ref の参照先DOM型 / コンポーネントのProps型', 'Props型 / ref の参照先DOM型', '親コンポーネント型 / 子コンポーネント型', '戻り値型 / 引数型'],
+      level: 'applied',
+      testedConcept: 'forwardRef の型引数順序',
     },
   ],
   testTask: {
@@ -199,9 +201,35 @@ function AutoFocusInput() {
   return <input ref={ref} placeholder="自動フォーカス" />
 }`,
     expectedKeywords: ['HTMLInputElement'],
+    conditions: [
+      {
+        id: 'input-ref-type',
+        label: 'useRef<HTMLInputElement> を使っている',
+        requiredKeywords: ['HTMLInputElement'],
+        explanation: 'input 要素への ref には HTMLInputElement を型引数として渡します。',
+      },
+      {
+        id: 'focus-current',
+        label: 'ref.current?.focus() を呼んでいる',
+        requiredKeywords: ['focus'],
+        explanation: 'current が null の可能性に配慮しながら focus を呼びます。',
+      },
+    ],
     explanation: 'input 要素への ref は useRef<HTMLInputElement>(null) で定義します。useEffect 内で ref.current?.focus() を呼ぶと、マウント時に自動フォーカスされます。',
+    solutionCode: `import { useRef, useEffect } from 'react'
+
+function AutoFocusInput() {
+  const ref = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    ref.current?.focus()
+  }, [])
+
+  return <input ref={ref} placeholder="自動フォーカス" />
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'ts-react-hooks-1',
     patterns: [
       {
         id: 'ts-react-hooks-1',
@@ -218,6 +246,51 @@ function AutoFocusInput() {
           'useState<"light" | "dark"> で theme を管理します',
         ],
         expectedKeywords: ['ThemeContextType', 'createContext', 'useTheme', 'ThemeProvider', 'toggleTheme'],
+        conditions: [
+          {
+            id: 'theme-context-type',
+            label: 'ThemeContextType を定義している',
+            requiredKeywords: ['ThemeContextType', 'theme', 'toggleTheme'],
+            explanation: 'theme と toggleTheme を持つコンテキスト値の型を interface で表します。',
+          },
+          {
+            id: 'create-context',
+            label: 'createContext<ThemeContextType | null> を使っている',
+            requiredKeywords: ['createContext', 'ThemeContextType', 'null'],
+            explanation: 'Provider 外利用を検知できるように null 初期値の型付き Context を作ります。',
+          },
+          {
+            id: 'use-theme-provider',
+            label: 'useTheme と ThemeProvider を実装している',
+            requiredKeywords: ['useTheme', 'ThemeProvider', 'toggleTheme'],
+            explanation: 'null チェック付きのカスタムフックと、値を提供する Provider を実装します。',
+          },
+        ],
+        solutionCode: `import { createContext, useContext, useState } from 'react'
+import type { ReactNode } from 'react'
+
+interface ThemeContextType {
+  theme: 'light' | 'dark'
+  toggleTheme: () => void
+}
+
+const ThemeContext = createContext<ThemeContextType | null>(null)
+
+function useTheme(): ThemeContextType {
+  const ctx = useContext(ThemeContext)
+  if (ctx === null) throw new Error('ThemeProvider の外で useTheme を使っています')
+  return ctx
+}
+
+function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const toggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'))
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  )
+}`,
         starterCode: `import { createContext, useContext, useState } from 'react'
 import type { ReactNode } from 'react'
 

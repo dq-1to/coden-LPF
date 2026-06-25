@@ -145,6 +145,8 @@ getProperty(user, "xyz");  // エラー！user に xyz プロパティはない
       hint: 'obj に存在しないキーを渡したときにコンパイルエラーにできます。',
       explanation: 'K extends keyof T とすることで、key に T のプロパティ名以外を渡すとコンパイルエラーになります。タイポによるバグを防げます。',
       choices: ['存在しないプロパティへのアクセス', 'null参照エラー', '無限ループ', '型の循環参照'],
+      level: 'applied',
+      testedConcept: 'keyof 制約による安全なプロパティアクセス',
     },
   ],
   testTask: {
@@ -153,9 +155,27 @@ getProperty(user, "xyz");  // エラー！user に xyz プロパティはない
   return arr[0];
 }`,
     expectedKeywords: ['T[]', 'T'],
+    conditions: [
+      {
+        id: 'array-argument',
+        label: '引数を T[] 型にしている',
+        requiredKeywords: ['T[]'],
+        explanation: 'getFirst は任意の要素型 T を持つ配列を受け取ります。',
+      },
+      {
+        id: 'return-element',
+        label: '戻り値を T 型にしている',
+        requiredKeywords: ['): T'],
+        explanation: '配列から取り出す1要素は T 型なので、戻り値にも T を指定します。',
+      },
+    ],
     explanation: '引数は T[] 型の配列、戻り値は T 型の要素です。これで getFirst([1,2,3]) の戻り値が number と推論されるようになります。',
+    solutionCode: `function getFirst<T>(arr: T[]): T {
+  return arr[0];
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'ts-generics-1',
     patterns: [
       {
         id: 'ts-generics-1',
@@ -172,6 +192,44 @@ getProperty(user, "xyz");  // エラー！user に xyz プロパティはない
           'ok が true のブランチでは result.value が T 型として使えます',
         ],
         expectedKeywords: ['Result', 'succeed', 'fail', 'unwrap', 'ok'],
+        conditions: [
+          {
+            id: 'result-union',
+            label: 'Result<T> を判別共用体で定義している',
+            requiredKeywords: ['Result', '<T>', 'ok', 'value', 'error'],
+            explanation: '成功時は value、失敗時は error を持つジェネリックな結果型にします。',
+          },
+          {
+            id: 'success-fail-helpers',
+            label: 'succeed/fail を実装している',
+            requiredKeywords: ['succeed', 'fail', 'Result<T>'],
+            explanation: '成功と失敗を作る関数を用意すると、Result<T> を一貫して返せます。',
+          },
+          {
+            id: 'unwrap-result',
+            label: 'unwrap で失敗時に Error を投げている',
+            requiredKeywords: ['unwrap', 'throw', 'Error'],
+            explanation: 'ok が false のときは error を使って例外を投げ、成功時だけ value を返します。',
+          },
+        ],
+        solutionCode: `type Result<T> =
+  | { ok: true; value: T }
+  | { ok: false; error: string };
+
+function succeed<T>(value: T): Result<T> {
+  return { ok: true, value };
+}
+
+function fail<T>(error: string): Result<T> {
+  return { ok: false, error };
+}
+
+function unwrap<T>(result: Result<T>): T {
+  if (!result.ok) {
+    throw new Error(result.error);
+  }
+  return result.value;
+}`,
         starterCode: `// TODO: Result<T> 型を定義してください
 
 // TODO: succeed, fail, unwrap を実装してください

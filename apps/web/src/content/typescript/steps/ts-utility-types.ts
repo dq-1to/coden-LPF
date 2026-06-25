@@ -188,9 +188,25 @@ type StoredUser = Required<Pick<User, "id">> & Partial<Omit<User, "id">>;
 
 type UpdateUser = ____<User>`,
     expectedKeywords: ['Partial'],
+    conditions: [
+      {
+        id: 'use-partial',
+        label: 'Partial<User> を使っている',
+        requiredKeywords: ['Partial', 'User'],
+        explanation: 'User の全プロパティを省略可能にするには Partial<User> を使います。',
+      },
+    ],
     explanation: 'Partial<User>はUserの全プロパティをオプショナル（?付き）にした型を作ります。これでフォーム更新時に一部フィールドだけ渡せるようになります。',
+    solutionCode: `interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+type UpdateUser = Partial<User>`,
   },
   challengeTask: {
+    primaryPatternId: 'ts-utility-types-1',
     patterns: [
       {
         id: 'ts-utility-types-1',
@@ -206,6 +222,40 @@ type UpdateUser = ____<User>`,
           '`const { passwordHash: _, ...rest } = user` でスプレッドを使って除外できます',
         ],
         expectedKeywords: ['UserRecord', 'PublicProfile', 'Omit', 'passwordHash', 'toPublicProfile'],
+        conditions: [
+          {
+            id: 'user-record',
+            label: 'UserRecord を定義している',
+            requiredKeywords: ['UserRecord', 'passwordHash', 'role'],
+            explanation: '公開前の元データとして、passwordHash を含む UserRecord を定義します。',
+          },
+          {
+            id: 'public-profile',
+            label: 'Omit で PublicProfile を定義している',
+            requiredKeywords: ['PublicProfile', 'Omit', 'passwordHash'],
+            explanation: 'Omit<UserRecord, "passwordHash"> で機密情報を除いた公開用型を作ります。',
+          },
+          {
+            id: 'to-public-profile',
+            label: 'passwordHash を除いて返している',
+            requiredKeywords: ['toPublicProfile', 'passwordHash', 'return'],
+            explanation: '分割代入と rest 構文で passwordHash を取り除いたオブジェクトを返します。',
+          },
+        ],
+        solutionCode: `interface UserRecord {
+  id: number;
+  name: string;
+  email: string;
+  passwordHash: string;
+  role: "admin" | "user";
+}
+
+type PublicProfile = Omit<UserRecord, "passwordHash">;
+
+function toPublicProfile(user: UserRecord): PublicProfile {
+  const { passwordHash, ...profile } = user;
+  return profile;
+}`,
         starterCode: `// TODO: UserRecord 型を定義してください
 
 // TODO: Omit を使って PublicProfile 型を定義してください
