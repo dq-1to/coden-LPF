@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChallengeMode } from '../ChallengeMode'
 import type { ChallengeTask } from '../../../content/fundamentals/steps'
+import { buildChallengeDraftKey } from '../../../lib/challengeDraft'
 
 const recordWrongAnswer = vi.fn()
 const resolveReviewItem = vi.fn()
@@ -410,4 +411,51 @@ describe('ChallengeMode モバイルパズル', () => {
     expect(screen.queryByLabelText('challenge-editor')).toBeNull()
   })
 
+})
+
+describe('ChallengeMode draft保存', () => {
+  const userId = '00000000-0000-0000-0000-000000000001'
+
+  afterEach(() => {
+    cleanup()
+    window.localStorage.clear()
+    vi.useRealTimers()
+  })
+
+  it('入力すると userId+stepId+patternId の draft が自動保存される', () => {
+    vi.useFakeTimers()
+    render(<ChallengeMode stepId="step-a" task={firstTask} onComplete={vi.fn()} />)
+
+    const editor = screen.getByLabelText('challenge-editor')
+    fireEvent.change(editor, { target: { value: 'const draft = 1' } })
+    // デバウンス（500ms）経過で保存される
+    vi.advanceTimersByTime(500)
+
+    expect(window.localStorage.getItem(buildChallengeDraftKey(userId, 'step-a', 'pattern-1'))).toBe(
+      'const draft = 1',
+    )
+  })
+
+  it('保存済み draft が初期コードとして復元される', () => {
+    window.localStorage.setItem(buildChallengeDraftKey(userId, 'step-a', 'pattern-1'), '保存されたコード')
+
+    render(<ChallengeMode stepId="step-a" task={firstTask} onComplete={vi.fn()} />)
+
+    expect((screen.getByLabelText('challenge-editor') as HTMLTextAreaElement).value).toBe('保存されたコード')
+  })
+
+  it('正解判定後は draft が削除される', async () => {
+    const user = userEvent.setup()
+    window.localStorage.setItem(buildChallengeDraftKey(userId, 'step-a', 'pattern-1'), '途中コード')
+
+    render(<ChallengeMode stepId="step-a" task={firstTask} onComplete={vi.fn()} />)
+
+    const editor = screen.getByLabelText('challenge-editor')
+    fireEvent.change(editor, {
+      target: { value: 'const [count, setCount] = useState(0); <button onClick={() => setCount(count + 1)} />' },
+    })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(window.localStorage.getItem(buildChallengeDraftKey(userId, 'step-a', 'pattern-1'))).toBeNull()
+  })
 })
