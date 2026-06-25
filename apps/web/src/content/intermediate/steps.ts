@@ -91,9 +91,19 @@ export function Timer() {
             instruction: '初回描画時のみ alert("Hello!") が実行されるように空欄を埋めてください。',
             starterCode: `useEffect(() => {\n  alert('Hello!')\n}, ____)`,
             expectedKeywords: ['[]'],
+            conditions: [
+                {
+                    id: 'empty-deps',
+                    label: '第二引数に空配列 [] を渡している',
+                    requiredKeywords: ['[]'],
+                    explanation: '依存配列に [] を渡すと、初回マウント時にのみ実行されます。',
+                },
+            ],
             explanation: '空の依存配列[]を渡すと初回マウント時にのみ実行されます。[]を省略すると毎回実行されてしまいます。',
+            solutionCode: `useEffect(() => {\n  alert('Hello!')\n}, [])`,
         },
         challengeTask: {
+            primaryPatternId: 'useeffect-timer',
             patterns: [
                 {
                     id: 'useeffect-timer',
@@ -101,6 +111,27 @@ export function Timer() {
                     requirements: ['useEffect を使う', 'setInterval で毎秒ログを出す', 'クリーンアップ関数で clearInterval する', '初回のみセットする依存配列にする'],
                     hints: ['useEffect(() => { const id = setInterval(...); return () => clearInterval(id); }, []);'],
                     expectedKeywords: ['useEffect', 'setInterval', 'clearInterval', 'return ()'],
+                    conditions: [
+                        {
+                            id: 'use-effect',
+                            label: 'useEffect で副作用を扱っている',
+                            requiredKeywords: ['useEffect'],
+                            explanation: 'マウント時の処理は useEffect の中に書きます。',
+                        },
+                        {
+                            id: 'set-interval',
+                            label: 'setInterval でタイマーを設定している',
+                            requiredKeywords: ['setInterval'],
+                            explanation: 'setInterval で毎秒の処理を登録します。',
+                        },
+                        {
+                            id: 'cleanup',
+                            label: 'クリーンアップで clearInterval している',
+                            requiredKeywords: ['clearInterval', 'return ()'],
+                            explanation: 'return でクリーンアップ関数を返し、clearInterval でタイマーを解除します。',
+                        },
+                    ],
+                    solutionCode: `import { useEffect } from 'react';\n\nexport function LogTimer() {\n  useEffect(() => {\n    const id = setInterval(() => console.log('tick'), 1000);\n    return () => clearInterval(id);\n  }, []);\n\n  return <div>Check console for ticks!</div>;\n}`,
                     starterCode: `import { useEffect } from 'react';\n\nexport function LogTimer() {\n  // TODO: useEffectを使って、毎秒 (1000ms間隔) console.log('tick') を実行するようにしてください。\n  // TODO: 第二引数を適切に設定し、初回マウント時だけタイマーが作動するようにしてください。\n  // TODO: クリーンアップ関数を返し、その中で clearInterval(タイマーID) を実行してメモリリークを防いでください。\n\n  return <div>Check console for ticks!</div>;\n}`,
                     mobilePuzzle: {
                         type: 'multi',
@@ -243,9 +274,19 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
             instruction: 'ユーザーの入力が3文字未満の時はボタンを非活性(disabled)にするよう空欄を埋めてください。',
             starterCode: `<button ____={text.length < 3}>送信</button>`,
             expectedKeywords: ['disabled'],
+            conditions: [
+                {
+                    id: 'use-disabled',
+                    label: 'button に disabled を指定している',
+                    requiredKeywords: ['disabled'],
+                    explanation: 'button の disabled に真偽値を渡すと、true のとき押せなくなります。',
+                },
+            ],
             explanation: 'disabled プロパティにboolean式を渡します。text.length < 3 が true のときボタンが押せなくなります。',
+            solutionCode: `<button disabled={text.length < 3}>送信</button>`,
         },
         challengeTask: {
+            primaryPatternId: 'forms-controlled',
             patterns: [
                 {
                     id: 'forms-controlled',
@@ -253,6 +294,27 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
                     requirements: ['制御された input を実装', 'onChange で state を同期', '文字数による disabled 制御'],
                     hints: ['value に state を、onChange で setState にイベント値を渡す'],
                     expectedKeywords: ['useState', 'value=', 'onChange', 'disabled='],
+                    conditions: [
+                        {
+                            id: 'define-state',
+                            label: '入力値の state を定義している',
+                            requiredKeywords: ['useState'],
+                            explanation: 'useState で入力文字列を保持する state を定義します。',
+                        },
+                        {
+                            id: 'controlled-input',
+                            label: 'input を制御している',
+                            requiredKeywords: ['value=', 'onChange'],
+                            explanation: 'input に value と onChange を渡して制御されたコンポーネントにします。',
+                        },
+                        {
+                            id: 'disabled-control',
+                            label: '文字数で disabled を制御している',
+                            requiredKeywords: ['disabled='],
+                            explanation: 'text の長さに応じて button の disabled を切り替えます。',
+                        },
+                    ],
+                    solutionCode: `import { useState } from 'react';\n\nexport function ValidationForm() {\n  const [text, setText] = useState('');\n\n  return (\n    <form>\n      <input\n        placeholder="5文字以上入力"\n        value={text}\n        onChange={(e) => setText(e.target.value)}\n      />\n      <button type="submit" disabled={text.length < 5}>送信</button>\n    </form>\n  );\n}`,
                     starterCode: `import { useState } from 'react';\n\nexport function ValidationForm() {\n  // TODO: 文字列の state (text) を定義してください\n  \n  return (\n    <form>\n      {/* TODO: 制御されたコンポーネントとして input を実装してください */}\n      <input placeholder="5文字以上入力" />\n      {/* TODO: text の長さが 5 文字未満の場合、disabled になるボタンを実装してください */}\n      <button type="submit">送信</button>\n    </form>\n  );\n}`,
                     mobilePuzzle: {
                         type: 'multi',
@@ -403,9 +465,19 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
             instruction: 'ThemeContextから値を取り出し、theme変数に格納するように空欄を埋めてください。',
             starterCode: `const theme = ____(ThemeContext);`,
             expectedKeywords: ['useContext'],
+            conditions: [
+                {
+                    id: 'call-usecontext',
+                    label: 'useContext を呼び出している',
+                    requiredKeywords: ['useContext'],
+                    explanation: 'useContext(ThemeContext) で最も近い Provider の value を取得します。',
+                },
+            ],
             explanation: 'useContext(ThemeContext) と書くことで、最も近い ThemeContext.Provider の value 値を取得できます。',
+            solutionCode: `const theme = useContext(ThemeContext);`,
         },
         challengeTask: {
+            primaryPatternId: 'usecontext-basic',
             patterns: [
                 {
                     id: 'usecontext-basic',
@@ -413,6 +485,27 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
                     requirements: ['useContext を使用する', 'UserContext から値を取り出す', '取得した値を画面に表示する'],
                     hints: ['useContext(UserContext) で Context の値を取得できます', '取得した変数を JSX で描画します'],
                     expectedKeywords: ['useContext', 'UserContext'],
+                    conditions: [
+                        {
+                            id: 'use-usecontext',
+                            label: 'useContext で値を取得している',
+                            requiredKeywords: ['useContext'],
+                            explanation: 'useContext を使って Context の値を取り出します。',
+                        },
+                        {
+                            id: 'from-usercontext',
+                            label: 'UserContext から取り出している',
+                            requiredKeywords: ['UserContext'],
+                            explanation: 'useContext(UserContext) で UserContext の値を取得します。',
+                        },
+                        {
+                            id: 'show-user',
+                            label: '取得した user を表示している',
+                            requiredKeywords: ['{user}'],
+                            explanation: '取得した user を JSX 内に {user} の形で表示します。',
+                        },
+                    ],
+                    solutionCode: `import { createContext, useContext } from 'react';\n\nexport const UserContext = createContext('Guest');\n\nexport function Greeting() {\n  const user = useContext(UserContext);\n\n  return (\n    <div>\n      こんにちは、{user}！\n    </div>\n  );\n}`,
                     starterCode: `import { createContext, useContext } from 'react';\n\nexport const UserContext = createContext('Guest');\n\nexport function Greeting() {\n  // TODO: useContext を使って UserContext から値を取り出し、変数 user に格納してください。\n  \n  return (\n    <div>\n      {/* TODO: user 変数を表示してください */}\n      こんにちは、！\n    </div>\n  );\n}`,
                     mobilePuzzle: {
                         type: 'multi',
@@ -553,9 +646,25 @@ export function CounterApp() {
             instruction: 'ユーザーがリセットボタンを押すと actionの type を "RESET" にして dispatch する空欄を埋めてください。',
             starterCode: `<button onClick={() => ____({ type: 'RESET' })}>Reset</button>`,
             expectedKeywords: ['dispatch'],
+            conditions: [
+                {
+                    id: 'call-dispatch',
+                    label: 'dispatch を呼び出している',
+                    requiredKeywords: ['dispatch'],
+                    explanation: 'dispatch にアクションオブジェクトを渡すと Reducer が実行されます。',
+                },
+                {
+                    id: 'keep-reset-type',
+                    label: 'action の type が "RESET" になっている',
+                    requiredKeywords: ['RESET'],
+                    explanation: "リセット動作のため type: 'RESET' のアクションを送ります。",
+                },
+            ],
             explanation: 'dispatchはuseReducerから返される関数です。dispatchにactionオブジェクトを渡すとReducerが実行されます。',
+            solutionCode: `<button onClick={() => dispatch({ type: 'RESET' })}>Reset</button>`,
         },
         challengeTask: {
+            primaryPatternId: 'usereducer-calc',
             patterns: [
                 {
                     id: 'usereducer-calc',
@@ -563,6 +672,21 @@ export function CounterApp() {
                     requirements: ['switch文に STEP_UP 用の case を追加する', '現在の count に 5 加算して返す'],
                     hints: ['case "STEP_UP": return { count: state.count + 5 };'],
                     expectedKeywords: ['case', 'STEP_UP', 'state.count + 5'],
+                    conditions: [
+                        {
+                            id: 'add-case',
+                            label: 'STEP_UP の case を追加している',
+                            requiredKeywords: ['case', 'STEP_UP'],
+                            explanation: "switch 文に case 'STEP_UP' を追加します。",
+                        },
+                        {
+                            id: 'add-five',
+                            label: '現在値に 5 を加えて返している',
+                            requiredKeywords: ['state.count + 5'],
+                            explanation: 'STEP_UP のとき { count: state.count + 5 } を返します。',
+                        },
+                    ],
+                    solutionCode: `function reducer(state, action) {\n  switch (action.type) {\n    case 'INCREMENT':\n      return { count: state.count + 1 };\n    case 'STEP_UP':\n      return { count: state.count + 5 };\n    default:\n      return state;\n  }\n}`,
                     starterCode: `function reducer(state, action) {\n  switch (action.type) {\n    case 'INCREMENT':\n      return { count: state.count + 1 };\n    // TODO: ここに 'STEP_UP' アクションを受け取った場合、\n    // state.count に 5 を足した新しいオブジェクトを返す case ブロックを追記してください\n\n    default:\n      return state;\n  }\n}`,
                     mobilePuzzle: {
                         type: 'multi',
