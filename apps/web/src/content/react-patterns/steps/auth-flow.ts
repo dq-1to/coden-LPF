@@ -210,6 +210,8 @@ function ProtectedRoute({ children }) {
       hint: 'JavaScript からアクセスできない Cookie の種類です。',
       explanation: 'HttpOnly Cookie は JavaScript の document.cookie からアクセスできないため、XSS でスクリプトが注入されてもトークンを盗めません。localStorage は JavaScript でアクセス可能なため XSS に脆弱です。',
       choices: ['HttpOnly Cookie', 'localStorage', 'sessionStorage', 'メモリ（変数）'],
+      level: 'applied',
+      testedConcept: 'トークン保存場所とXSS耐性',
     },
     {
       id: 'q4',
@@ -240,9 +242,39 @@ function ProtectedRoute({ children }) {
   return <>{children}</>
 }`,
     expectedKeywords: ['isAuthenticated'],
+    conditions: [
+      {
+        id: 'read-auth-state',
+        label: 'isAuthenticated を参照している',
+        requiredKeywords: ['isAuthenticated'],
+        explanation: 'useAuth から認証状態を受け取り、ルート保護の判定に使います。',
+      },
+      {
+        id: 'redirect-login',
+        label: '未認証時に /login へリダイレクトしている',
+        requiredKeywords: ['Navigate', '/login'],
+        explanation: '未認証ならログイン画面へ遷移させます。',
+      },
+      {
+        id: 'render-children',
+        label: '認証済みなら children を返している',
+        requiredKeywords: ['children'],
+        explanation: '認証済みの場合は保護対象の子要素を表示します。',
+      },
+    ],
     explanation: 'isAuthenticated が false のとき <Navigate to="/login" replace /> でリダイレクトします。replace オプションでブラウザ履歴に残さないようにします。',
+    solutionCode: `function ProtectedRoute({ children }) {
+  const { isAuthenticated } = useAuth()
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  return <>{children}</>
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'auth-flow-1',
     patterns: [
       {
         id: 'auth-flow-1',
@@ -260,6 +292,71 @@ function ProtectedRoute({ children }) {
           'useContext が null を返した場合は throw new Error(...) で異常を通知します',
         ],
         expectedKeywords: ['createContext', 'useContext', 'isAuthenticated', 'AuthProvider'],
+        conditions: [
+          {
+            id: 'context-types',
+            label: 'User/AuthContextValue 型と Context を用意している',
+            requiredKeywords: ['User', 'AuthContextValue', 'createContext'],
+            explanation: '認証状態と操作関数の共有形を型として定義し、Context を作ります。',
+          },
+          {
+            id: 'provider-value',
+            label: 'AuthProvider value に認証状態と関数を渡している',
+            requiredKeywords: ['AuthProvider', 'isAuthenticated', 'login', 'logout'],
+            explanation: 'user、isAuthenticated、login、logout を Provider 経由で共有します。',
+          },
+          {
+            id: 'login-logout',
+            label: 'login/logout で user を更新している',
+            requiredKeywords: ['setUser', 'email', 'null'],
+            explanation: 'login でユーザーをセットし、logout で null に戻します。',
+          },
+          {
+            id: 'use-auth-hook',
+            label: 'useAuth hook で null チェックしている',
+            requiredKeywords: ['useContext', 'throw', 'AuthProvider'],
+            explanation: 'Provider 外利用を検出し、正常時は context value を返します。',
+          },
+        ],
+        solutionCode: `import { createContext, useContext, useState } from 'react'
+
+type User = {
+  id: string
+  email: string
+}
+
+type AuthContextValue = {
+  user: User | null
+  isAuthenticated: boolean
+  login: (email: string, password: string) => Promise<void>
+  logout: () => void
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null)
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState<User | null>(null)
+
+  const login = async (email, password) => {
+    setUser({ id: '1', email })
+  }
+
+  const logout = () => {
+    setUser(null)
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider')
+  return ctx
+}`,
         starterCode: `import { createContext, useContext, useState } from 'react'
 
 // TODO: User 型と AuthContextValue 型を定義

@@ -198,6 +198,8 @@ inputRef.current?.focus()  // InputHandle の型で補完が効く
       hint: '`useRef<InputHandle>(null)` のように使います。',
       explanation: 'useImperativeHandle で { focus, clear } などを公開する場合、親側は useRef<InputHandle>(null) とすることで inputRef.current.focus() などに型補完が効きます。',
       choices: ['カスタムハンドルのインターフェース型', 'HTMLInputElement', 'null', 'any'],
+      level: 'applied',
+      testedConcept: 'useImperativeHandle の custom handle 型',
     },
   ],
   testTask: {
@@ -219,9 +221,46 @@ function Form() {
   )
 }`,
     expectedKeywords: ['forwardRef'],
+    conditions: [
+      {
+        id: 'use-forward-ref',
+        label: 'forwardRef でラップしている',
+        requiredKeywords: ['forwardRef'],
+        explanation: '子コンポーネントで親からの ref を受け取るには forwardRef が必要です。',
+      },
+      {
+        id: 'pass-ref',
+        label: 'input に ref を渡している',
+        requiredKeywords: ['ref={ref}'],
+        explanation: 'forwardRef の第2引数 ref を内部 input に転送します。',
+      },
+      {
+        id: 'parent-focus',
+        label: '親側から focus を呼んでいる',
+        requiredKeywords: ['inputRef', 'focus'],
+        explanation: '親の ref.current から input の focus を実行できる構造にします。',
+      },
+    ],
     explanation: 'forwardRef でコンポーネントをラップし、第2引数 ref を input 要素の ref prop に渡します。',
+    solutionCode: `import { forwardRef, useRef } from 'react'
+
+const FancyInput = forwardRef(function FancyInput(props, ref) {
+  return <input ref={ref} className="fancy" {...props} />
+})
+
+function Form() {
+  const inputRef = useRef(null)
+
+  return (
+    <>
+      <FancyInput ref={inputRef} />
+      <button onClick={() => inputRef.current.focus()}>フォーカス</button>
+    </>
+  )
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'forward-ref-1',
     patterns: [
       {
         id: 'forward-ref-1',
@@ -238,6 +277,50 @@ function Form() {
           '送信ハンドラの末尾で inputRef.current?.focus() を呼びます',
         ],
         expectedKeywords: ['forwardRef', 'ref', 'focus'],
+        conditions: [
+          {
+            id: 'forward-ref-wrap',
+            label: 'Input を forwardRef でラップしている',
+            requiredKeywords: ['forwardRef', 'function Input'],
+            explanation: 'Input が親から ref を受け取れるように forwardRef で定義します。',
+          },
+          {
+            id: 'input-ref',
+            label: '内部 input に ref を渡している',
+            requiredKeywords: ['ref={ref}'],
+            explanation: '受け取った ref を実際の input 要素に転送します。',
+          },
+          {
+            id: 'focus-after-submit',
+            label: '送信後に親refから focus を呼んでいる',
+            requiredKeywords: ['inputRef.current', 'focus'],
+            explanation: '親コンポーネント側から送信後に入力欄へフォーカスを戻します。',
+          },
+        ],
+        solutionCode: `import { forwardRef, useRef } from 'react'
+
+const Input = forwardRef(function Input(props, ref) {
+  return <input ref={ref} {...props} />
+})
+
+function SearchForm() {
+  const inputRef = useRef(null)
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    const query = e.target.search.value
+    console.log('検索:', query)
+    e.target.reset()
+    inputRef.current?.focus()
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <Input ref={inputRef} name="search" placeholder="検索..." />
+      <button type="submit">検索</button>
+    </form>
+  )
+}`,
         starterCode: `import { forwardRef, useRef } from 'react'
 
 // TODO: forwardRef を使って Input を実装する（ref を input に転送）
