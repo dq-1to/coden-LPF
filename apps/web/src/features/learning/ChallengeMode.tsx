@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '../../components/Button'
 import { CodeEditor } from '../../components/CodeEditor'
 import { ErrorBanner } from '../../components/ErrorBanner'
@@ -6,6 +6,7 @@ import { useIsMobile } from '../../hooks/useIsMobile'
 import { resolvePrimaryPattern, type ChallengePattern, type ChallengeTask } from '../../content/fundamentals/steps'
 import { JudgmentResult } from './components/JudgmentResult'
 import { useJudgmentAction } from './hooks/useJudgmentAction'
+import { useChallengeDraft } from './hooks/useChallengeDraft'
 import { judgeKeywords } from '../../lib/judge'
 import { ChallengePuzzleMulti } from './ChallengePuzzle/ChallengePuzzleMulti'
 
@@ -19,17 +20,22 @@ interface ChallengeModeProps {
 export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: ChallengeModeProps) {
   const isMobile = useIsMobile()
   const [pattern, setPattern] = useState<ChallengePattern>(() => resolvePrimaryPattern(task))
-  const [code, setCode] = useState(() => pattern.starterCode)
+  const hasMobilePuzzle = isMobile && pattern.mobilePuzzle != null
+  // モバイルパズルは組み立て式のため自由入力 draft の対象外（PC自由入力を主対象とする）
+  const { readDraft, scheduleSave, clearDraft } = useChallengeDraft({ enabled: !hasMobilePuzzle })
+  const [code, setCode] = useState(() => readDraft(stepId, pattern.id) ?? pattern.starterCode)
   const [checked, setChecked] = useState(false)
   const [submissionError, setSubmissionError] = useState<string | null>(null)
   const { handleResult } = useJudgmentAction(stepId, 'challenge', onComplete)
 
-  const hasMobilePuzzle = isMobile && pattern.mobilePuzzle != null
+  // effect 内で最新の readDraft を参照しつつ、依存は [stepId, task] に保つ
+  const readDraftRef = useRef(readDraft)
+  readDraftRef.current = readDraft
 
   useEffect(() => {
     const nextPattern = resolvePrimaryPattern(task)
     setPattern(nextPattern)
-    setCode(nextPattern.starterCode)
+    setCode(readDraftRef.current(stepId, nextPattern.id) ?? nextPattern.starterCode)
     setChecked(false)
     setSubmissionError(null)
   }, [stepId, task])
@@ -55,6 +61,11 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     setChecked(true)
     setSubmissionError(null)
 
+    // 正解した場合は途中コードの draft を削除する
+    if (hasSatisfiedRequirements) {
+      clearDraft(stepId, pattern.id)
+    }
+
     if (onSubmitResult) {
       try {
         await onSubmitResult({
@@ -75,10 +86,14 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     })
   }
 
-  const handleCodeChange = useCallback((nextValue: string) => {
-    setChecked(false)
-    setCode(nextValue)
-  }, [])
+  const handleCodeChange = useCallback(
+    (nextValue: string) => {
+      setChecked(false)
+      setCode(nextValue)
+      scheduleSave(stepId, pattern.id, nextValue)
+    },
+    [scheduleSave, stepId, pattern.id],
+  )
 
   return (
     <section className="mt-4 space-y-4">
