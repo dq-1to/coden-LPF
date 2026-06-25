@@ -189,3 +189,76 @@ describe('PracticeMode', () => {
     expect(screen.getByText('Q1. 次の質問')).toBeTruthy()
   })
 })
+
+describe('PracticeMode フィードバック拡張', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  beforeEach(() => {
+    recordWrongAnswer.mockReset()
+    resolveReviewItem.mockReset()
+    trackLearningEvent.mockReset()
+    recordWrongAnswer.mockResolvedValue(undefined)
+    resolveReviewItem.mockResolvedValue(undefined)
+  })
+
+  it('level に応じて 基本 / 応用 バッジを表示する', () => {
+    const leveledQuestions: PracticeQuestion[] = [
+      { id: 'q-basic', prompt: '基本問題', answer: 'A', hint: 'h', level: 'basic' },
+      { id: 'q-applied', prompt: '応用問題', answer: 'B', hint: 'h', level: 'applied' },
+    ]
+    render(<PracticeMode stepId="step-level" questions={leveledQuestions} onComplete={vi.fn()} />)
+
+    expect(screen.getByText('基本')).toBeTruthy()
+    expect(screen.getByText('応用')).toBeTruthy()
+  })
+
+  it('level 未設定の問題はバッジを表示しない', () => {
+    render(<PracticeMode stepId="step-nolevel" questions={firstQuestions} onComplete={vi.fn()} />)
+
+    expect(screen.queryByText('基本')).toBeNull()
+    expect(screen.queryByText('応用')).toBeNull()
+  })
+
+  it('不正解時に testedConcept（確認すること）を表示する', async () => {
+    const user = userEvent.setup()
+    const conceptQuestions: PracticeQuestion[] = [
+      {
+        id: 'q-concept',
+        prompt: '確認事項つき問題',
+        answer: '正解',
+        hint: 'h',
+        testedConcept: 'setterで状態を更新できているか',
+      },
+    ]
+    render(<PracticeMode stepId="step-concept" questions={conceptQuestions} onComplete={vi.fn()} />)
+
+    await user.type(screen.getByLabelText('Q1 回答欄'), 'ちがう')
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(screen.getByText('確認すること')).toBeTruthy()
+    expect(screen.getByText('setterで状態を更新できているか')).toBeTruthy()
+  })
+
+  it('solutionText がある場合「解答例を見る」で解答例を表示できる', async () => {
+    const user = userEvent.setup()
+    const solutionQuestions: PracticeQuestion[] = [
+      {
+        id: 'q-sol',
+        prompt: '解答例つき問題',
+        answer: '正解',
+        hint: 'h',
+        solutionText: '答えは「正解」です。理由は…',
+      },
+    ]
+    render(<PracticeMode stepId="step-sol" questions={solutionQuestions} onComplete={vi.fn()} />)
+
+    await user.type(screen.getByLabelText('Q1 回答欄'), 'ちがう')
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(screen.queryByText('答えは「正解」です。理由は…')).toBeNull()
+    await user.click(screen.getByRole('button', { name: '解答例を見る' }))
+    expect(screen.getByText('答えは「正解」です。理由は…')).toBeTruthy()
+  })
+})

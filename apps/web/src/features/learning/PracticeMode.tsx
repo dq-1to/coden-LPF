@@ -1,8 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Button } from '../../components/Button'
 import type { PracticeQuestion } from '../../content/fundamentals/steps'
+import { SolutionDisclosure } from './components/SolutionDisclosure'
 import { useJudgmentAction, type ReviewPayload } from './hooks/useJudgmentAction'
 import { useStepReset } from './hooks/useStepReset'
+
+const LEVEL_BADGE: Record<NonNullable<PracticeQuestion['level']>, { label: string; className: string }> = {
+  basic: { label: '基本', className: 'border-slate-300 bg-slate-100 text-slate-600' },
+  applied: { label: '応用', className: 'border-violet-300 bg-violet-100 text-violet-700' },
+}
 
 interface PracticeModeProps {
   stepId: string
@@ -77,12 +83,20 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
       {questions.map((question, index) => {
         const answer = answers[question.id] ?? ''
         const isCorrect = answer.length > 0 && isPracticeAnswerCorrect(question, answer)
-        const showExplanation = isJudged && !isCorrect && question.explanation
+        const showIncorrectFeedback = isJudged && !isCorrect
+        const badge = question.level ? LEVEL_BADGE[question.level] : null
 
         return (
           <article key={question.id} className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3 sm:p-4">
             <p className="text-sm font-medium text-slate-700">
-              Q{index + 1}. {question.prompt}
+              <span className="inline-flex flex-wrap items-center gap-2">
+                {badge ? (
+                  <span className={`inline-block rounded-full border px-2 py-0.5 text-xs font-semibold ${badge.className}`}>
+                    {badge.label}
+                  </span>
+                ) : null}
+                <span>Q{index + 1}. {question.prompt}</span>
+              </span>
             </p>
             {question.choices ? (
               <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={`Q${index + 1} 選択肢`}>
@@ -140,10 +154,23 @@ export function PracticeMode({ stepId, questions, onComplete }: PracticeModeProp
                 {isCorrect ? '正解です。' : '不正解です。もう一度試してください。'}
               </p>
             ) : null}
-            {showExplanation ? (
-              <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2">
-                <p className="text-xs font-semibold text-amber-700">解説</p>
-                <p className="mt-0.5 text-sm text-amber-900">{question.explanation}</p>
+            {showIncorrectFeedback ? (
+              <div className="space-y-2">
+                {question.testedConcept ? (
+                  <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2">
+                    <p className="text-xs font-semibold text-rose-700">確認すること</p>
+                    <p className="mt-0.5 text-sm text-rose-900">{question.testedConcept}</p>
+                  </div>
+                ) : null}
+                {question.explanation ? (
+                  <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2">
+                    <p className="text-xs font-semibold text-amber-700">解説</p>
+                    <p className="mt-0.5 text-sm text-amber-900">{question.explanation}</p>
+                  </div>
+                ) : null}
+                {question.solutionText ? (
+                  <SolutionDisclosure solutionCode={question.solutionText} mono={false} />
+                ) : null}
               </div>
             ) : null}
             <button
