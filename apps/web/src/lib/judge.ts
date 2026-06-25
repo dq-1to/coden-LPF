@@ -82,6 +82,38 @@ export interface KeywordConditionsJudgeResult {
 }
 
 /**
+ * Challenge 判定用に「ユーザーが書いていない文字列」を除去する。
+ *
+ * starterCode には TODO コメントや `import { useState } from 'react'` のような
+ * 雛形が含まれており、これらがキーワード一致して誤合格を生む。判定前に
+ * 以下を除去し、コメント・import 由来のキーワードが matched / violations に
+ * 数えられないようにする（v6roadmap M5-5 の誤合格防止の最低条件）。
+ *
+ * - 行コメント `// ...`
+ * - ブロックコメント `/* ... *\/`
+ * - JSX コメント `{/* ... *\/}`
+ * - import 文（`import ...` の行、`from '...'` までを含む複数行 import も対象）
+ *
+ * 注意: 共有の `judgeKeywords` 自体は変更せず、Challenge 判定経路でのみ
+ * 前処理として適用する（Test / Code Doctor / Mini Project の挙動を変えないため）。
+ */
+export function stripNonAuthoredCode(code: string): string {
+  return (
+    code
+      // JSX コメント {/* ... */}（ブロックコメントより先に処理）
+      .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, ' ')
+      // ブロックコメント /* ... */
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      // 行コメント // ...（行末まで）
+      .replace(/\/\/[^\n]*/g, ' ')
+      // import ... from '...'（単一行・複数行 import を from 句まで除去）
+      .replace(/^\s*import\b[\s\S]*?from\s*['"][^'"]+['"]\s*;?/gm, ' ')
+      // 副作用 import 'module'
+      .replace(/^\s*import\s+['"][^'"]+['"]\s*;?/gm, ' ')
+  )
+}
+
+/**
  * キーワードベースでコードを判定する（大文字小文字を区別しない）。
  *
  * - `matched`: 有効な必須要件のうちコードに含まれるもの

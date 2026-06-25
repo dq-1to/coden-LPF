@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { judgeKeywordConditions, judgeKeywords } from '../judge'
+import { judgeKeywordConditions, judgeKeywords, stripNonAuthoredCode } from '../judge'
 
 describe('judgeKeywords', () => {
   it('必須キーワードをすべて含めば passed: true / score 100', () => {
@@ -219,5 +219,74 @@ describe('judgeKeywordConditions', () => {
     expect(result.conditions).toEqual([])
     expect(result.satisfiedConditions).toEqual([])
     expect(result.unsatisfiedConditions).toEqual([])
+  })
+})
+
+describe('stripNonAuthoredCode', () => {
+  it('行コメントを除去する', () => {
+    const stripped = stripNonAuthoredCode('const x = 1 // useState を使う')
+    expect(stripped).not.toContain('useState')
+    expect(stripped).toContain('const x = 1')
+  })
+
+  it('ブロックコメントを除去する', () => {
+    const stripped = stripNonAuthoredCode('/* TODO: onClick を書く */\nconst x = 1')
+    expect(stripped).not.toContain('onClick')
+    expect(stripped).toContain('const x = 1')
+  })
+
+  it('JSXコメントを除去する', () => {
+    const stripped = stripNonAuthoredCode('<div>{/* setCount を呼ぶ */}</div>')
+    expect(stripped).not.toContain('setCount')
+  })
+
+  it('import 文を除去する（from 句あり）', () => {
+    const stripped = stripNonAuthoredCode("import { useState } from 'react';\nconst x = 1")
+    expect(stripped).not.toContain('useState')
+    expect(stripped).toContain('const x = 1')
+  })
+
+  it('複数行 import を除去する', () => {
+    const code = "import {\n  useState,\n  useEffect,\n} from 'react'\nconst x = 1"
+    const stripped = stripNonAuthoredCode(code)
+    expect(stripped).not.toContain('useState')
+    expect(stripped).not.toContain('useEffect')
+    expect(stripped).toContain('const x = 1')
+  })
+
+  it('副作用 import を除去する', () => {
+    const stripped = stripNonAuthoredCode("import './styles.css'\nconst x = 1")
+    expect(stripped).toContain('const x = 1')
+    expect(stripped).not.toContain('styles.css')
+  })
+
+  it('importData のような語は import 文として誤除去しない', () => {
+    const stripped = stripNonAuthoredCode('const data = importData()')
+    expect(stripped).toContain('importData()')
+  })
+
+  it('サニタイズ後はコメント/import由来のキーワードが matched に数えられない', () => {
+    const starterOnly = `import { useState } from 'react';
+
+export function LikeButton() {
+  // TODO: onClick で setCount を呼ぶ
+  return <button>いいね 0</button>;
+}`
+    const result = judgeKeywords(stripNonAuthoredCode(starterOnly), {
+      requiredKeywords: ['useState', 'setCount', 'onClick'],
+    })
+    expect(result.passed).toBe(false)
+    expect(result.matched).toEqual([])
+    expect(result.missing).toEqual(['useState', 'setCount', 'onClick'])
+  })
+
+  it('コメント内の ng キーワードは違反に数えられない', () => {
+    const code = stripNonAuthoredCode('items.map((item) => <li key={item.id}>{item}</li>) // key={index} は避ける')
+    const result = judgeKeywords(code, {
+      requiredKeywords: ['map', 'key='],
+      ngKeywords: ['key={index}'],
+    })
+    expect(result.violations).toEqual([])
+    expect(result.passed).toBe(true)
   })
 })

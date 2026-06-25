@@ -459,3 +459,99 @@ describe('ChallengeMode draft保存', () => {
     expect(window.localStorage.getItem(buildChallengeDraftKey(userId, 'step-a', 'pattern-1'))).toBeNull()
   })
 })
+
+describe('ChallengeMode 判定補強', () => {
+  afterEach(() => {
+    cleanup()
+    window.localStorage.clear()
+  })
+
+  it('starterCode のコメント・import だけでは合格しない（誤合格防止）', async () => {
+    const user = userEvent.setup()
+    const onComplete = vi.fn()
+    const starterTask: ChallengeTask = {
+      patterns: [
+        {
+          id: 'starter-pattern',
+          prompt: 'いいねボタンを作る',
+          requirements: ['useStateを使う'],
+          hints: ['useStateで状態を定義する'],
+          expectedKeywords: ['useState', 'onClick'],
+          starterCode:
+            "import { useState } from 'react';\n// TODO: button の onClick で setCount を呼ぶ\nexport function LikeButton() {\n  return <button>いいね 0</button>;\n}",
+        },
+      ],
+    }
+
+    render(<ChallengeMode stepId="step-starter" task={starterTask} onComplete={onComplete} />)
+
+    // 入力を変えずにそのまま判定
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(onComplete).not.toHaveBeenCalled()
+    expect(screen.getByRole('status').textContent).toContain('要件を満たしていません。')
+  })
+
+  it('conditions がある場合は不足条件を日本語ラベル・説明で表示する', async () => {
+    const user = userEvent.setup()
+    const conditionTask: ChallengeTask = {
+      patterns: [
+        {
+          id: 'condition-pattern',
+          prompt: '状態管理の課題',
+          requirements: ['useStateを使う'],
+          hints: ['useState'],
+          expectedKeywords: ['useState'],
+          conditions: [
+            {
+              id: 'c-state',
+              label: '状態を定義する',
+              requiredKeywords: ['useState'],
+              explanation: 'useStateで状態を定義しましょう',
+            },
+          ],
+          starterCode: '',
+        },
+      ],
+    }
+
+    render(<ChallengeMode stepId="step-cond" task={conditionTask} onComplete={vi.fn()} />)
+
+    const editor = await screen.findByLabelText('challenge-editor')
+    fireEvent.change(editor, { target: { value: 'const x = 1' } })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(screen.getByText('以下の条件を満たせているか確認しましょう:')).toBeTruthy()
+    expect(screen.getByText('状態を定義する')).toBeTruthy()
+    expect(screen.getByText(/useStateで状態を定義しましょう/)).toBeTruthy()
+  })
+
+  it('solutionCode がある場合は「解答例を見る」で解答例を表示できる', async () => {
+    const user = userEvent.setup()
+    const solutionTask: ChallengeTask = {
+      patterns: [
+        {
+          id: 'solution-pattern',
+          prompt: '解答例つき課題',
+          requirements: ['useStateを使う'],
+          hints: ['useState'],
+          expectedKeywords: ['useState'],
+          solutionCode: 'const [count, setCount] = useState(0)',
+          starterCode: '',
+        },
+      ],
+    }
+
+    render(<ChallengeMode stepId="step-sol" task={solutionTask} onComplete={vi.fn()} />)
+
+    const editor = await screen.findByLabelText('challenge-editor')
+    fireEvent.change(editor, { target: { value: 'const x = 1' } })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    // 解答例は初期状態では隠れている
+    expect(screen.queryByText('const [count, setCount] = useState(0)')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: '解答例を見る' }))
+    expect(screen.getByText('const [count, setCount] = useState(0)')).toBeTruthy()
+  })
+})
