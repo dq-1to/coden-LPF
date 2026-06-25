@@ -195,7 +195,7 @@ function getArea(shape: Shape): number {
 }`,
   },
   challengeTask: {
-    primaryPatternId: 'ts-union-narrowing-1',
+    primaryPatternId: 'ts-union-narrowing-2',
     patterns: [
       {
         id: 'ts-union-narrowing-1',
@@ -210,36 +210,6 @@ function getArea(shape: Shape): number {
           'switch (res.status) または if (res.status === "success") で分岐できます',
         ],
         expectedKeywords: ['ApiResponse', 'success', 'error', 'handleResponse'],
-        conditions: [
-          {
-            id: 'api-response-union',
-            label: 'ApiResponse 判別共用体を定義している',
-            requiredKeywords: ['ApiResponse', 'success', 'error'],
-            explanation: 'status を共通タグにして success と error の2パターンをユニオン型で表します。',
-          },
-          {
-            id: 'handle-response',
-            label: 'status でレスポンスを分岐している',
-            requiredKeywords: ['handleResponse', 'res.status'],
-            explanation: 'status の値で分岐すると、各ブランチで data/message を安全に参照できます。',
-          },
-          {
-            id: 'return-labels',
-            label: '成功/失敗メッセージを返している',
-            requiredKeywords: ['データ', 'エラー'],
-            explanation: 'success ではデータ、error ではエラーメッセージを文字列にして返します。',
-          },
-        ],
-        solutionCode: `type ApiResponse =
-  | { status: "success"; data: string }
-  | { status: "error"; message: string };
-
-function handleResponse(res: ApiResponse): string {
-  if (res.status === "success") {
-    return "データ: " + res.data;
-  }
-  return "エラー: " + res.message;
-}`,
         starterCode: `// TODO: ApiResponse 型を定義してください
 
 // TODO: handleResponse 関数を実装してください
@@ -280,6 +250,44 @@ function handleResponse(res: ApiResponse): string {
           'assertNever の引数に never 型を指定することで、ケース漏れをコンパイル時に検出できます',
         ],
         expectedKeywords: ['Shape', 'circle', 'rectangle', 'getArea', 'assertNever', 'never'],
+        conditions: [
+          {
+            id: 'shape-union',
+            label: 'Shape 判別共用体を定義している',
+            requiredKeywords: ['Shape', 'circle', 'rectangle'],
+            explanation: 'kind を共通タグにして circle と rectangle の2種類をユニオン型で表します。',
+          },
+          {
+            id: 'assert-never',
+            label: 'assertNever で網羅性チェックをしている',
+            requiredKeywords: ['assertNever', 'never'],
+            explanation: 'never 型の assertNever を default に置くことで、ケース漏れをコンパイル時に検出できます。',
+          },
+          {
+            id: 'switch-cases',
+            label: 'switch で各図形の面積を返している',
+            requiredKeywords: ['switch', 'circle', 'rectangle'],
+            explanation: 'shape.kind で分岐し、circle と rectangle それぞれの面積を計算します。',
+          },
+        ],
+        solutionCode: `type Shape =
+  | { kind: "circle"; radius: number }
+  | { kind: "rectangle"; width: number; height: number };
+
+function assertNever(x: never): never {
+  throw new Error(\`Unexpected shape: \${JSON.stringify(x)}\`);
+}
+
+function getArea(shape: Shape): number {
+  switch (shape.kind) {
+    case "circle":
+      return Math.PI * shape.radius ** 2;
+    case "rectangle":
+      return shape.width * shape.height;
+    default:
+      return assertNever(shape);
+  }
+}`,
         starterCode: `// TODO: Shape 型を定義してください
 
 // TODO: assertNever 関数を実装してください
@@ -294,10 +302,7 @@ function getArea(shape: Shape): number {
     default:
       return assertNever(shape);
   }
-}
-
-console.log(getArea({ kind: "circle", radius: 5 }));               // ~78.54
-console.log(getArea({ kind: "rectangle", width: 4, height: 6 }));  // 24`,
+}`,
           mobilePuzzle: {
             type: 'multi',
             codeContext: `____0\n\n____1\n\nfunction getArea(shape: Shape): number {\n  switch (shape.kind) {\n    ____2\n    default:\n      return assertNever(shape);\n  }\n}\n\nconsole.log(getArea({ kind: "circle", radius: 5 }));\nconsole.log(getArea({ kind: "rectangle", width: 4, height: 6 }));`,
