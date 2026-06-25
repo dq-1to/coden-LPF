@@ -208,9 +208,27 @@ return <article><h1>{data.title}</h1></article>;
   void fetchData();
 }, []);`,
       expectedKeywords: ['finally'],
+      conditions: [
+        {
+          id: 'use-finally',
+          label: 'finally ブロックを使っている',
+          requiredKeywords: ['finally'],
+          explanation: 'ローディング解除は成功・失敗のどちらでも実行される finally に書きます。',
+        },
+      ],
       explanation: 'try-catch-finallyのfinallyブロックは成功・失敗に関わらず必ず実行されます。ローディング解除はここに書くのが定石です。',
+      solutionCode: `try {
+  const res = await fetch('https://jsonplaceholder.typicode.com/posts/1');
+  const json = await res.json();
+  setData(json);
+} catch (err) {
+  setError((err as Error).message);
+} finally {
+  setIsLoading(false);
+}`,
     },
     challengeTask: {
+      primaryPatternId: 'api-fetch-1',
       patterns: [
         {
           id: 'api-fetch-1',
@@ -228,6 +246,63 @@ return <article><h1>{data.title}</h1></article>;
             "(err as Error).name !== 'AbortError' でAbortErrorを除外する",
           ],
           expectedKeywords: ['useFetch', 'useEffect', 'AbortController', 'controller.abort', 'isLoading'],
+          conditions: [
+            {
+              id: 'define-hook',
+              label: 'useFetch カスタムHookを定義している',
+              requiredKeywords: ['useFetch'],
+              explanation: 'データ取得ロジックを useFetch Hook として切り出します。',
+            },
+            {
+              id: 'abortable-fetch',
+              label: 'AbortController と signal を使っている',
+              requiredKeywords: ['AbortController', 'signal'],
+              explanation: 'AbortController の signal を fetch に渡すと、アンマウント時に通信を中断できます。',
+            },
+            {
+              id: 'cleanup-abort',
+              label: 'cleanup で controller.abort を呼んでいる',
+              requiredKeywords: ['controller.abort'],
+              explanation: 'useEffect の cleanup で controller.abort() を呼び、古いリクエストを中断します。',
+            },
+            {
+              id: 'loading-state',
+              label: 'isLoading を返している',
+              requiredKeywords: ['isLoading'],
+              explanation: '呼び出し側がローディングUIを出せるように isLoading を返します。',
+            },
+          ],
+          solutionCode: `import { useEffect, useState } from 'react';
+
+function useFetch<T>(url: string) {
+  const [data, setData] = useState<T | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function fetchData() {
+      setIsLoading(true);
+      try {
+        const res = await fetch(url, { signal: controller.signal });
+        const json = await res.json() as T;
+        setData(json);
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          setError((err as Error).message);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    void fetchData();
+    return () => controller.abort();
+  }, [url]);
+
+  return { data, isLoading, error };
+}`,
           starterCode: `import { useState, useEffect } from 'react';
 
 // TODO: useFetch カスタムHookを実装してください

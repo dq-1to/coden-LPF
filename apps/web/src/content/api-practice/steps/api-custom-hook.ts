@@ -166,9 +166,19 @@ export function TaskPage() {
   );
 }`,
       expectedKeywords: ['useTasks'],
+      conditions: [
+        {
+          id: 'call-usetasks',
+          label: 'useTasks() を呼び出している',
+          requiredKeywords: ['useTasks'],
+          explanation: 'コンポーネントでは useTasks() を呼び出して、tasks/loading/error を受け取ります。',
+        },
+      ],
       explanation: 'useTasksを呼び出すだけでタスク一覧とローディング・エラー状態が取得できます。コンポーネントはUI表示だけに専念できます。',
+      solutionCode: `const { tasks, loading, error } = useTasks();`,
     },
     challengeTask: {
+      primaryPatternId: 'c1',
       patterns: [
         {
           id: 'c1',
@@ -186,6 +196,87 @@ export function TaskPage() {
             'return 値: { tasks, loading, error, createTask, toggleTask, deleteTask }',
           ],
           expectedKeywords: ['useCallback', 'useEffect', 'useState', 'fetch', 'setTasks', 'return'],
+          conditions: [
+            {
+              id: 'fetch-tasks',
+              label: 'fetchTasks で一覧を取得している',
+              requiredKeywords: ['useCallback', 'fetch', 'setTasks'],
+              explanation: 'fetchTasks を useCallback で定義し、GET /tasks の結果を setTasks に渡します。',
+            },
+            {
+              id: 'create-task',
+              label: 'createTask でPOST追加している',
+              requiredKeywords: ['POST', 'JSON.stringify'],
+              explanation: 'createTask は POST /tasks で新規タスクを作り、レスポンスをリストへ追加します。',
+            },
+            {
+              id: 'toggle-task',
+              label: 'toggleTask でPATCH更新している',
+              requiredKeywords: ['PATCH'],
+              explanation: 'toggleTask は PATCH /tasks/:id で completed を切り替えます。',
+            },
+            {
+              id: 'delete-task',
+              label: 'deleteTask でDELETE削除している',
+              requiredKeywords: ['DELETE', 'filter'],
+              explanation: 'deleteTask は DELETE /tasks/:id を呼び、filter でリストから除外します。',
+            },
+            {
+              id: 'return-shape',
+              label: 'tasks/loading/error と操作関数を返している',
+              requiredKeywords: ['return', 'tasks', 'loading', 'error'],
+              explanation: '呼び出し側がUIを組み立てられるように状態と操作関数をまとめて返します。',
+            },
+          ],
+          solutionCode: `export function useTasks() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchTasks = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/tasks');
+      const data = await res.json();
+      setTasks(data);
+    } catch {
+      setError('取得失敗');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchTasks();
+  }, [fetchTasks]);
+
+  const createTask = useCallback(async (title: string) => {
+    const res = await fetch('/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, completed: false }),
+    });
+    const newTask = await res.json();
+    setTasks((prev) => [...prev, newTask]);
+  }, []);
+
+  const toggleTask = useCallback(async (task: Task) => {
+    const res = await fetch(\`/tasks/\${task.id}\`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed: !task.completed }),
+    });
+    const updated = await res.json();
+    setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+  }, []);
+
+  const deleteTask = useCallback(async (id: string) => {
+    await fetch(\`/tasks/\${id}\`, { method: 'DELETE' });
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  return { tasks, loading, error, fetchTasks, createTask, toggleTask, deleteTask };
+}`,
           starterCode: `import { useCallback, useEffect, useState } from 'react';
 
 interface Task {
@@ -199,31 +290,9 @@ export function useTasks() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // TODO: fetchTasks を useCallback で実装してください
-  const fetchTasks = useCallback(async () => {
-    // GET /tasks
-  }, []);
-
-  useEffect(() => {
-    void fetchTasks();
-  }, [fetchTasks]);
-
-  // TODO: createTask を useCallback で実装してください
-  const createTask = useCallback(async (title: string) => {
-    // POST /tasks
-  }, []);
-
-  // TODO: toggleTask を useCallback で実装してください
-  const toggleTask = useCallback(async (task: Task) => {
-    // PATCH /tasks/:id
-  }, []);
-
-  // TODO: deleteTask を useCallback で実装してください
-  const deleteTask = useCallback(async (id: string) => {
-    // DELETE /tasks/:id
-  }, []);
-
-  return { tasks, loading, error, createTask, toggleTask, deleteTask };
+  // TODO: fetchTasks / createTask / toggleTask / deleteTask を実装してください
+  // TODO: 初回表示時に fetchTasks を呼び出してください
+  // TODO: tasks, loading, error と操作関数を返してください
 }`,
           mobilePuzzle: {
             type: 'multi',

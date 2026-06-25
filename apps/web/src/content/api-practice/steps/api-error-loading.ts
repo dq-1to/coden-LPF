@@ -179,9 +179,19 @@ async function load() {
   }
 }`,
       expectedKeywords: ['dispatch'],
+      conditions: [
+        {
+          id: 'call-dispatch',
+          label: 'dispatch で action を送っている',
+          requiredKeywords: ['dispatch'],
+          explanation: 'useReducer の状態更新は dispatch に action を渡して行います。',
+        },
+      ],
       explanation: 'useReducerとdispatchでFETCH_START/FETCH_SUCCESS/FETCH_ERRORを管理し、statusに応じてloading/error/successのUIを分岐します。',
+      solutionCode: `dispatch({ type: 'FETCH_START' });`,
     },
     challengeTask: {
+      primaryPatternId: 'c1',
       patterns: [
         {
           id: 'c1',
@@ -199,6 +209,61 @@ async function load() {
             'load 関数は useCallback でメモ化すると useEffect の依存配列に安全に追加できる',
           ],
           expectedKeywords: ['useReducer', 'dispatch', 'animate-pulse', 'retry', 'useCallback', 'FETCH_START'],
+          conditions: [
+            {
+              id: 'start-success-error',
+              label: '取得開始・成功・失敗を dispatch している',
+              requiredKeywords: ['dispatch', 'FETCH_START', 'FETCH_SUCCESS', 'FETCH_ERROR'],
+              explanation: '通信の開始・成功・失敗を action として dispatch します。',
+            },
+            {
+              id: 'memoized-load',
+              label: 'load 関数を useCallback で定義している',
+              requiredKeywords: ['useCallback'],
+              explanation: 'useEffect の依存配列に安全に入れられるよう load を useCallback で安定化します。',
+            },
+            {
+              id: 'skeleton-ui',
+              label: 'loading 中にスケルトンUIを表示している',
+              requiredKeywords: ['animate-pulse'],
+              explanation: 'loading 中は animate-pulse などでスケルトンUIを表示します。',
+            },
+            {
+              id: 'retry-ui',
+              label: 'error 時に再試行ボタンを表示している',
+              requiredKeywords: ['retry'],
+              explanation: 'エラー時は retry / 再試行ボタンから load を呼べるようにします。',
+            },
+          ],
+          solutionCode: `const load = useCallback(async () => {
+  dispatch({ type: 'FETCH_START' });
+  try {
+    const res = await fetch('/tasks');
+    const data = await res.json();
+    dispatch({ type: 'FETCH_SUCCESS', payload: data });
+  } catch (e) {
+    dispatch({ type: 'FETCH_ERROR', payload: (e as Error).message });
+  }
+}, []);
+
+if (state.status === 'loading') {
+  return (
+    <ul>
+      {[1, 2, 3].map((i) => (
+        <li key={i} className="animate-pulse bg-gray-200 h-6 rounded mb-2" />
+      ))}
+    </ul>
+  );
+}
+
+if (state.status === 'error') {
+  return (
+    <div>
+      <p>{state.error}</p>
+      <button aria-label="retry" onClick={() => void load()}>再試行</button>
+    </div>
+  );
+}`,
           starterCode: `import { useCallback, useEffect, useReducer } from 'react';
 
 interface Task { id: string; title: string; completed: boolean; }

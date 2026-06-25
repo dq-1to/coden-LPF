@@ -150,9 +150,21 @@ useEffect(() => {
   void load();
 }, []);`,
       expectedKeywords: ['fetch'],
+      conditions: [
+        {
+          id: 'call-fetch',
+          label: 'fetch でHTTPリクエストを送っている',
+          requiredKeywords: ['fetch'],
+          explanation: 'APIからデータを取得するには fetch を呼び出します。',
+        },
+      ],
       explanation: 'useEffect内でfetchを呼びloading/error/dataの3状態を管理するのがReactのGETデータ取得の基本パターンです。',
+      solutionCode: `const res = await fetch('/counter');
+const data = await res.json();
+setValue(data.value);`,
     },
     challengeTask: {
+      primaryPatternId: 'c1',
       patterns: [
         {
           id: 'c1',
@@ -168,6 +180,45 @@ useEffect(() => {
             'useEffect 内でその関数を呼び出す形にするとスッキリします',
           ],
           expectedKeywords: ['fetch', 'useEffect', 'useState', 'onClick', 'setValue'],
+          conditions: [
+            {
+              id: 'fetch-counter',
+              label: 'GET /counter で値を取得している',
+              requiredKeywords: ['fetch', 'setValue'],
+              explanation: 'fetch で取得した data.value を setValue に渡して画面へ反映します。',
+            },
+            {
+              id: 'load-on-mount',
+              label: 'useEffect で初回取得している',
+              requiredKeywords: ['useEffect'],
+              explanation: 'マウント時に loadCounter を呼び、初期値を取得します。',
+            },
+            {
+              id: 'reload-button',
+              label: '再読み込みボタンから再取得できる',
+              requiredKeywords: ['onClick'],
+              explanation: '再読み込みボタンの onClick から同じ取得処理を呼び出します。',
+            },
+          ],
+          solutionCode: `async function loadCounter() {
+  try {
+    setLoading(true);
+    setError(null);
+    const res = await fetch('/counter');
+    const data = await res.json();
+    setValue(data.value);
+  } catch {
+    setError('エラーが発生しました');
+  } finally {
+    setLoading(false);
+  }
+}
+
+useEffect(() => {
+  void loadCounter();
+}, []);
+
+<button onClick={() => void loadCounter()}>再読み込み</button>`,
           starterCode: `import { useEffect, useState } from 'react';
 
 export function CounterDisplay() {

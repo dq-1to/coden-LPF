@@ -101,6 +101,8 @@ async function handleToggle(task: Task) {
         id: 'q4',
         prompt: 'API レスポンスを待たずに先に UI を更新し、失敗時に元に戻す手法を何と呼びますか？',
         answer: '楽観的更新',
+        level: 'applied',
+        testedConcept: '楽観的更新とロールバック',
         hint: '「Optimistic Update」の日本語訳です。',
         explanation: '楽観的更新はAPIのレスポンスを待たずにUIを先に更新します。操作が成功すると仮定して即座に反映し、UXを向上させる手法です。',
         choices: ['楽観的更新', '悲観的ロック', 'ポーリング', 'デバウンス'],
@@ -125,9 +127,19 @@ async function handleToggle(task: Task) {
   setTasks(prev => prev.map(t => t.id === updated.id ? updated : t));
 }`,
       expectedKeywords: ['PATCH'],
+      conditions: [
+        {
+          id: 'use-patch',
+          label: 'method に PATCH を指定している',
+          requiredKeywords: ['PATCH'],
+          explanation: '一部フィールドだけを更新するときは PATCH を使います。',
+        },
+      ],
       explanation: 'PATCH /tasks/:idにcompletedの反転値を送り、レスポンスでsetTasks+mapを使って該当タスクだけを更新します。',
+      solutionCode: `method: 'PATCH',`,
     },
     challengeTask: {
+      primaryPatternId: 'c1',
       patterns: [
         {
           id: 'c1',
@@ -144,6 +156,56 @@ async function handleToggle(task: Task) {
             '更新中のタスク ID を Set で管理すると disabled 制御がしやすい',
           ],
           expectedKeywords: ['PATCH', 'setTasks', 'map', 'try', 'catch', 'disabled'],
+          conditions: [
+            {
+              id: 'optimistic-update',
+              label: 'setTasks と map で先にUIを更新している',
+              requiredKeywords: ['setTasks', 'map'],
+              explanation: 'API完了前に対象タスクの completed を反転してUIへ反映します。',
+            },
+            {
+              id: 'patch-request',
+              label: 'PATCH リクエストを送っている',
+              requiredKeywords: ['PATCH'],
+              explanation: 'PATCH /tasks/:id に completed の反転値を送信します。',
+            },
+            {
+              id: 'rollback-on-error',
+              label: '失敗時に catch でロールバックしている',
+              requiredKeywords: ['try', 'catch'],
+              explanation: '通信に失敗した場合は catch で元の completed に戻します。',
+            },
+            {
+              id: 'disable-updating',
+              label: '更新中の操作を disabled にしている',
+              requiredKeywords: ['disabled'],
+              explanation: '更新中のタスクは disabled にして重複操作を防ぎます。',
+            },
+          ],
+          solutionCode: `async function handleToggle(task: Task) {
+  setUpdatingIds((prev) => new Set(prev).add(task.id));
+  setTasks((prev) =>
+    prev.map((t) => (t.id === task.id ? { ...t, completed: !t.completed } : t))
+  );
+
+  try {
+    await fetch(\`/tasks/\${task.id}\`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed: !task.completed }),
+    });
+  } catch {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, completed: task.completed } : t))
+    );
+  } finally {
+    setUpdatingIds((prev) => {
+      const next = new Set(prev);
+      next.delete(task.id);
+      return next;
+    });
+  }
+}`,
           starterCode: `import { useEffect, useState } from 'react';
 
 interface Task {

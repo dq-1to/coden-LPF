@@ -105,6 +105,7 @@ if (!inputValue.trim()) {
         id: 'q1',
         prompt: 'フォームの submit 時のデフォルト動作（ページリロード）を防ぐために呼ぶメソッドは何ですか？',
         answer: 'e.preventDefault',
+        answerAliases: ['preventDefault', 'e.preventDefault()'],
         hint: 'イベントオブジェクト e のメソッドです。',
         explanation: 'e.preventDefault()を呼ばないとフォーム送信時にページがリロードされます。ReactのSPAではこれを必ず防ぐ必要があります。',
       },
@@ -126,14 +127,17 @@ if (!inputValue.trim()) {
         id: 'q4',
         prompt: 'POST リクエスト後に GET でリストを再取得するパターンと、レスポンスで即時追加するパターンのうち、ネットワーク往復が1回で済むのはどちらですか？',
         answer: 'レスポンスで即時追加',
+        level: 'applied',
+        testedConcept: 'POSTレスポンスを使った即時リスト更新',
         hint: 'POST のレスポンスに作成されたアイテムが含まれています。',
         explanation: 'POSTのレスポンスには作成されたオブジェクト（IDつき）が返ってきます。これをそのままリストに追加すれば再GETが不要です。',
         choices: ['レスポンスで即時追加', 'GETでリストを再取得'],
       },
       {
         id: 'q5',
-        prompt: 'input の value を state で管理する際、onChange に渡す関数の中で何を呼びますか？（e.target.___ を使って）',
+        prompt: 'input の value を state で管理する際、onChange に渡す関数の中で何を呼びますか？（setInputValue と e.target.value を使って）',
         answer: 'setInputValue(e.target.value)',
+        answerAliases: ['e.target.value', 'value'],
         hint: '入力イベントのターゲット要素の現在値を state にセットします。',
         explanation: 'onChange={(e) => setInputValue(e.target.value)}でinputの入力値をリアルタイムにstateと同期させる制御されたコンポーネントのパターンです。',
       },
@@ -149,9 +153,26 @@ const newTask = await res.json();
 setTasks(prev => [...prev, newTask]);
 setInputValue('');`,
       expectedKeywords: ['POST'],
+      conditions: [
+        {
+          id: 'use-post',
+          label: 'method に POST を指定している',
+          requiredKeywords: ['POST'],
+          explanation: '新しいタスクを作成するリクエストでは method: POST を指定します。',
+        },
+      ],
       explanation: 'POST /tasksにタスクを送信し、レスポンスのnewTaskをスプレッド構文でリストに追加します。送信後は入力欄を空にします。',
+      solutionCode: `const res = await fetch('/tasks', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ title: inputValue }),
+});
+const newTask = await res.json();
+setTasks((prev) => [...prev, newTask]);
+setInputValue('');`,
     },
     challengeTask: {
+      primaryPatternId: 'c1',
       patterns: [
         {
           id: 'c1',
@@ -168,6 +189,48 @@ setInputValue('');`,
             'setTasks(prev => [...prev, newTask]) でリストを更新します',
           ],
           expectedKeywords: ['fetch', 'POST', 'JSON.stringify', 'useState', 'useEffect', 'trim', 'setTasks', 'prev'],
+          conditions: [
+            {
+              id: 'validate-input',
+              label: 'trim で空入力を検証している',
+              requiredKeywords: ['trim'],
+              explanation: 'inputValue.trim() で空文字や空白だけの入力を防ぎます。',
+            },
+            {
+              id: 'post-task',
+              label: 'POST でタスクを作成している',
+              requiredKeywords: ['fetch', 'POST', 'JSON.stringify'],
+              explanation: 'タスク名を JSON.stringify して POST /tasks に送信します。',
+            },
+            {
+              id: 'append-task',
+              label: 'レスポンスのタスクを既存リストへ追加している',
+              requiredKeywords: ['setTasks', 'prev'],
+              explanation: 'setTasks(prev => [...prev, newTask]) で既存リストの末尾に追加します。',
+            },
+          ],
+          solutionCode: `async function handleSubmit(e: React.FormEvent) {
+  e.preventDefault();
+  if (!inputValue.trim()) {
+    setError('タスク名を入力してください');
+    return;
+  }
+
+  setSubmitting(true);
+  try {
+    const res = await fetch('/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: inputValue, completed: false }),
+    });
+    const newTask = await res.json();
+    setTasks((prev) => [...prev, newTask]);
+    setInputValue('');
+    setError(null);
+  } finally {
+    setSubmitting(false);
+  }
+}`,
           starterCode: `import { useEffect, useState } from 'react';
 
 interface Task {
