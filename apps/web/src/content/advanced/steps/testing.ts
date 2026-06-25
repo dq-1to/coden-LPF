@@ -168,9 +168,19 @@ it('初期値0が表示される', () => {
   expect(screen.getByText('カウント: 0')).____();
 });`,
       expectedKeywords: ['toBeInTheDocument'],
+      conditions: [
+        {
+          id: 'assert-in-document',
+          label: 'toBeInTheDocument でDOM存在を検証している',
+          requiredKeywords: ['toBeInTheDocument'],
+          explanation: '取得した要素がDOMに存在することは toBeInTheDocument() で検証します。',
+        },
+      ],
       explanation: 'toBeInTheDocument() は要素がDOMに存在することを検証するマッチャーです。screen.getByTextで要素を取得し、expectで検証します。',
+      solutionCode: `expect(screen.getByText('カウント: 0')).toBeInTheDocument();`,
     },
     challengeTask: {
+      primaryPatternId: 'testing-1',
       patterns: [
         {
           id: 'testing-1',
@@ -186,6 +196,53 @@ it('初期値0が表示される', () => {
             'screen.getByLabelText でラベルに関連付けられた入力欄を取得できる',
           ],
           expectedKeywords: ['queryByText', 'vi.fn', 'toHaveBeenCalledWith', 'getByLabelText'],
+          conditions: [
+            {
+              id: 'initial-no-error',
+              label: '初期状態でエラーがないことを検証している',
+              requiredKeywords: ['queryByText'],
+              explanation: '存在しないことの検証には queryByText を使います。',
+            },
+            {
+              id: 'empty-submit-error',
+              label: '空送信でエラー表示を検証している',
+              requiredKeywords: ['getByText', 'toBeInTheDocument'],
+              explanation: '空欄で送信したあと、エラーメッセージが表示されることを確認します。',
+            },
+            {
+              id: 'mock-submit',
+              label: 'onLogin が入力値で呼ばれたことを検証している',
+              requiredKeywords: ['vi.fn', 'getByLabelText', 'toHaveBeenCalledWith'],
+              explanation: 'モック関数を用意し、入力したメールアドレスで呼ばれたことを検証します。',
+            },
+          ],
+          solutionCode: `import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
+import { LoginForm } from './LoginForm';
+
+describe('LoginForm', () => {
+  it('初期状態でエラーメッセージは表示されない', () => {
+    render(<LoginForm onLogin={vi.fn()} />);
+    expect(screen.queryByText('メールアドレスを入力してください')).toBeNull();
+  });
+
+  it('空欄のまま送信するとエラーメッセージが表示される', async () => {
+    const user = userEvent.setup();
+    render(<LoginForm onLogin={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: 'ログイン' }));
+    expect(screen.getByText('メールアドレスを入力してください')).toBeInTheDocument();
+  });
+
+  it('メールを入力して送信するとonLoginが呼ばれる', async () => {
+    const user = userEvent.setup();
+    const mockOnLogin = vi.fn();
+    render(<LoginForm onLogin={mockOnLogin} />);
+    await user.type(screen.getByLabelText('メールアドレス'), 'test@example.com');
+    await user.click(screen.getByRole('button', { name: 'ログイン' }));
+    expect(mockOnLogin).toHaveBeenCalledWith('test@example.com');
+  });
+});`,
           starterCode: `import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
