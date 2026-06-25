@@ -5,10 +5,12 @@ import { useIsMobile } from '../../hooks/useIsMobile'
 import type { TestTask } from '../../content/fundamentals/steps'
 import { CodePuzzle } from './CodePuzzle/CodePuzzle'
 import { JudgmentResult } from './components/JudgmentResult'
+import { SolutionDisclosure } from './components/SolutionDisclosure'
 import { useJudgmentAction } from './hooks/useJudgmentAction'
 import { useStepReset } from './hooks/useStepReset'
 import { previewByStepId } from './testModePreview'
 import { checkAllKeywords } from './utils/keywordMatcher'
+import { judgeKeywordConditions } from '../../lib/judge'
 import { previewComponentByStepId } from './previews'
 
 interface TestModeProps {
@@ -33,6 +35,12 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
     () => blankInput.length > 0 && checkAllKeywords(mergedCode, task.expectedKeywords),
     [blankInput, mergedCode, task.expectedKeywords],
   )
+
+  // 条件メタ情報があれば、不足を日本語ラベルで表示するために条件単位でも判定する（表示専用）
+  const unsatisfiedConditions = useMemo(() => {
+    if (!task.conditions || task.conditions.length === 0) return []
+    return judgeKeywordConditions(mergedCode, task.conditions).unsatisfiedConditions
+  }, [mergedCode, task.conditions])
 
   const getReviewPayload = useCallback((userInput: string) => {
     return {
@@ -108,16 +116,36 @@ export function TestMode({ stepId, task, onComplete }: TestModeProps) {
               <JudgmentResult
                 isPassed={isPassed}
                 passedMessage="テスト合格！ ライブプレビューが解禁されました。"
-                failedMessage="必要キーワードを満たしていません。"
-                failedHint="コードを見直して、もう一度試してください。"
+                failedMessage="もう少しです。条件を確認してみましょう。"
+                failedHint="下記の不足している条件を見直して、もう一度試してください。"
               />
             )}
           </div>
 
-          {isJudged && !isPassed && task.explanation ? (
-            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2">
-              <p className="text-xs font-semibold text-amber-700">解説</p>
-              <p className="mt-0.5 text-sm text-amber-900">{task.explanation}</p>
+          {isJudged && !isPassed ? (
+            <div className="space-y-2">
+              {unsatisfiedConditions.length > 0 ? (
+                <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2" role="alert">
+                  <p className="text-sm font-semibold text-rose-800">以下の条件を満たせているか確認しましょう:</p>
+                  <ul className="mt-2 space-y-1.5 text-sm text-rose-700">
+                    {unsatisfiedConditions.map((condition) => (
+                      <li key={condition.id}>
+                        <span className="font-semibold">{condition.label}</span>
+                        <span className="text-rose-600">: {condition.explanation}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {task.explanation ? (
+                <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2">
+                  <p className="text-xs font-semibold text-amber-700">解説</p>
+                  <p className="mt-0.5 text-sm text-amber-900">{task.explanation}</p>
+                </div>
+              ) : null}
+
+              {task.solutionCode ? <SolutionDisclosure solutionCode={task.solutionCode} /> : null}
             </div>
           ) : null}
         </>
