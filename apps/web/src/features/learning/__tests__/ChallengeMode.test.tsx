@@ -273,6 +273,68 @@ describe('ChallengeMode', () => {
     expect(screen.getByRole('alert').textContent).toContain('保存エラーが発生しました')
   })
 
+  it('primaryPatternId 指定時はその代表パターンが出題される', () => {
+    const multiPatternTask: ChallengeTask = {
+      primaryPatternId: 'pattern-second',
+      patterns: [
+        {
+          id: 'pattern-first',
+          prompt: '先頭パターン',
+          requirements: ['要件first'],
+          hints: ['ヒントfirst'],
+          expectedKeywords: ['first'],
+          starterCode: '',
+        },
+        {
+          id: 'pattern-second',
+          prompt: '代表パターン',
+          requirements: ['要件second'],
+          hints: ['ヒントsecond'],
+          expectedKeywords: ['second'],
+          starterCode: '',
+        },
+      ],
+    }
+
+    render(<ChallengeMode stepId="step-multi" task={multiPatternTask} onComplete={vi.fn()} />)
+
+    expect(screen.getByText('代表パターン')).toBeTruthy()
+    expect(screen.queryByText('先頭パターン')).toBeNull()
+  })
+
+  it('再レンダリングしても出題パターンが変わらない（決定論的）', () => {
+    const multiPatternTask: ChallengeTask = {
+      patterns: [
+        {
+          id: 'pattern-1',
+          prompt: '固定される課題',
+          requirements: ['要件1'],
+          hints: ['ヒント1'],
+          expectedKeywords: ['useState'],
+          starterCode: '',
+        },
+        {
+          id: 'pattern-2',
+          prompt: 'もう一方の課題',
+          requirements: ['要件2'],
+          hints: ['ヒント2'],
+          expectedKeywords: ['return'],
+          starterCode: '',
+        },
+      ],
+    }
+
+    const { rerender } = render(
+      <ChallengeMode stepId="step-fixed" task={multiPatternTask} onComplete={vi.fn()} />,
+    )
+    expect(screen.getByText('固定される課題')).toBeTruthy()
+
+    // 同一 stepId / task で再レンダリングしても先頭パターンのまま変わらない
+    rerender(<ChallengeMode stepId="step-fixed" task={multiPatternTask} onComplete={vi.fn()} />)
+    expect(screen.getByText('固定される課題')).toBeTruthy()
+    expect(screen.queryByText('もう一方の課題')).toBeNull()
+  })
+
   it('stepId が変わると入力内容と判定状態をリセットする', async () => {
     const user = userEvent.setup()
     const onComplete = vi.fn()

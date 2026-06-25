@@ -71,6 +71,21 @@ export interface ChallengeTask {
   patterns: ChallengePattern[]
 }
 
+/**
+ * Challenge の代表パターンを決定論的に解決する。
+ * `primaryPatternId` が指定され一致するパターンがあればそれを返し、
+ * 未指定または不一致の場合は先頭パターンへ fallback する（既存互換）。
+ * 出題に `Math.random()` を使わないことで、再マウントやページ離脱で問題が変わらない。
+ */
+export function resolvePrimaryPattern(task: ChallengeTask): ChallengePattern {
+  const primary = task.primaryPatternId
+    ? task.patterns.find((pattern) => pattern.id === task.primaryPatternId)
+    : undefined
+  const pattern = primary ?? task.patterns[0]
+  if (!pattern) throw new Error('ChallengeTask has no patterns')
+  return pattern
+}
+
 export interface LearningStepContent {
   id: string
   order: number

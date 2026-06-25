@@ -3,7 +3,7 @@ import { Button } from '../../components/Button'
 import { CodeEditor } from '../../components/CodeEditor'
 import { ErrorBanner } from '../../components/ErrorBanner'
 import { useIsMobile } from '../../hooks/useIsMobile'
-import type { ChallengePattern, ChallengeTask } from '../../content/fundamentals/steps'
+import { resolvePrimaryPattern, type ChallengePattern, type ChallengeTask } from '../../content/fundamentals/steps'
 import { JudgmentResult } from './components/JudgmentResult'
 import { useJudgmentAction } from './hooks/useJudgmentAction'
 import { judgeKeywords } from '../../lib/judge'
@@ -16,16 +16,9 @@ interface ChallengeModeProps {
   onSubmitResult?: (result: { code: string; isPassed: boolean; matchedKeywords: string[]; patternId: string }) => Promise<void> | void
 }
 
-function getRandomPattern(task: ChallengeTask): ChallengePattern {
-  const randomIndex = Math.floor(Math.random() * task.patterns.length)
-  const pattern = task.patterns[randomIndex]
-  if (!pattern) throw new Error(`No pattern at index ${randomIndex}`)
-  return pattern
-}
-
 export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: ChallengeModeProps) {
   const isMobile = useIsMobile()
-  const [pattern, setPattern] = useState<ChallengePattern>(() => getRandomPattern(task))
+  const [pattern, setPattern] = useState<ChallengePattern>(() => resolvePrimaryPattern(task))
   const [code, setCode] = useState(() => pattern.starterCode)
   const [checked, setChecked] = useState(false)
   const [submissionError, setSubmissionError] = useState<string | null>(null)
@@ -34,7 +27,7 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
   const hasMobilePuzzle = isMobile && pattern.mobilePuzzle != null
 
   useEffect(() => {
-    const nextPattern = getRandomPattern(task)
+    const nextPattern = resolvePrimaryPattern(task)
     setPattern(nextPattern)
     setCode(nextPattern.starterCode)
     setChecked(false)
