@@ -47,7 +47,9 @@ test.describe('S-LEARN 学習フロー（認証済み・complete）', () => {
     await blank.fill('wrong')
     await page.getByRole('button', { name: '判定する' }).click()
 
-    await expect(page.getByText('必要キーワードを満たしていません。')).toBeVisible()
+    await expect(page.getByText('もう少しです。条件を確認してみましょう。')).toBeVisible()
+    await expect(page.getByText('以下の条件を満たせているか確認しましょう:')).toBeVisible()
+    await expect(page.getByText(/現在値から1引いた値を渡している/)).toBeVisible()
     await expect(page.getByText('解説').first()).toBeVisible()
   })
 
