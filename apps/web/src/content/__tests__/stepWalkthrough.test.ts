@@ -38,9 +38,10 @@ import { typescriptSteps, getTypescriptStep } from '../typescript/steps'
 import { typescriptReactSteps, getTypescriptReactStep } from '../typescript-react/steps'
 import { reactModernSteps, getReactModernStep } from '../react-modern/steps'
 import { reactPatternsSteps, getReactPatternsStep } from '../react-patterns/steps'
-import type { LearningStepContent } from '../fundamentals/steps'
+import { resolvePrimaryPattern, type KeywordCondition, type LearningStepContent } from '../fundamentals/steps'
 import { BASE_NOOK_TOPICS } from '../base-nook/topics'
 import { STEP_LEARNING_GOALS } from '../stepLearningGoals'
+import { judgeKeywordConditions, judgeKeywords, stripNonAuthoredCode } from '../../lib/judge'
 
 // 全コンテンツを order 順に結合
 const allContentSteps: LearningStepContent[] = [
@@ -58,6 +59,39 @@ const allContentSteps: LearningStepContent[] = [
 const allCourseSteps = getAllSteps().sort((a, b) => a.order - b.order)
 const reactFundamentalsStepIds = ['usestate-basic', 'events', 'conditional', 'lists']
 const baseNookTopicIds = new Set(BASE_NOOK_TOPICS.map((topic) => topic.id))
+const expectedAppliedPracticeQuestions = [
+  'conditional/q5',
+  'performance/performance-q5',
+  'api-tasks-create/q4',
+  'api-tasks-update/q4',
+  'ts-generics/q5',
+  'ts-react-props/q5',
+  'ts-react-hooks/q5',
+  'ts-react-events/q5',
+  'suspense-lazy/q5',
+  'concurrent-features/q4',
+  'concurrent-features/q5',
+  'use-optimistic/q5',
+  'portals/q5',
+  'forward-ref/q5',
+  'auth-flow/q3',
+]
+
+function expectConditionShape(context: string, conditions: KeywordCondition[] | undefined): void {
+  expect(conditions, `${context}: conditions が未設定`).toBeDefined()
+  expect(conditions!.length, `${context}: conditions が空`).toBeGreaterThan(0)
+
+  const ids = new Set<string>()
+  for (const condition of conditions!) {
+    expect(condition.id, `${context}: condition.id が空`).toBeTruthy()
+    expect(ids.has(condition.id), `${context}: condition.id "${condition.id}" が重複`).toBe(false)
+    ids.add(condition.id)
+    expect(condition.label, `${context}/${condition.id}: label が空`).toBeTruthy()
+    expect(condition.requiredKeywords.length, `${context}/${condition.id}: requiredKeywords が空`).toBeGreaterThan(0)
+    expect(condition.requiredKeywords.every((keyword) => keyword.trim().length > 0), `${context}/${condition.id}: 空の requiredKeyword がある`).toBe(true)
+    expect(condition.explanation, `${context}/${condition.id}: explanation が空`).toBeTruthy()
+  }
+}
 
 // ─────────────────────────────────────────
 // 1. courseData 整合性
@@ -176,6 +210,66 @@ describe('4モードコンテンツ品質検証', () => {
       })
     })
   }
+})
+
+// ─────────────────────────────────────────
+// 3.1. v1.2.0 フィードバックメタ情報ガード
+// ─────────────────────────────────────────
+describe('v1.2.0 フィードバックメタ情報ガード', () => {
+  it('auditで反映したPractice応用ラベルが維持されている', () => {
+    const questionByKey = new Map(
+      allContentSteps.flatMap((step) => step.practiceQuestions.map((question) => [`${step.id}/${question.id}`, question])),
+    )
+
+    for (const key of expectedAppliedPracticeQuestions) {
+      const question = questionByKey.get(key)
+      expect(question, `${key}: Practice question が見つからない`).toBeDefined()
+      expect(question?.level, `${key}: level が applied ではない`).toBe('applied')
+      expect(question?.testedConcept, `${key}: testedConcept が空`).toBeTruthy()
+      expect(question?.explanation, `${key}: explanation が空`).toBeTruthy()
+    }
+  })
+
+  it('全40ステップの Test に条件メタ情報と解答例がある', () => {
+    for (const step of allContentSteps) {
+      expectConditionShape(`${step.id}/testTask`, step.testTask.conditions)
+      expect(step.testTask.solutionCode, `${step.id}/testTask: solutionCode が空`).toBeTruthy()
+    }
+  })
+
+  it('全40ステップの Challenge が代表patternを明示し、そのpatternに条件メタ情報と解答例がある', () => {
+    for (const step of allContentSteps) {
+      const primaryPatternId = step.challengeTask.primaryPatternId
+
+      expect(primaryPatternId, `${step.id}: primaryPatternId が未設定`).toBeTruthy()
+      expect(
+        step.challengeTask.patterns.some((pattern) => pattern.id === primaryPatternId),
+        `${step.id}: primaryPatternId "${primaryPatternId}" が patterns に存在しない`,
+      ).toBe(true)
+
+      const primaryPattern = resolvePrimaryPattern(step.challengeTask)
+      expectConditionShape(`${step.id}/${primaryPattern.id}`, primaryPattern.conditions)
+      expect(primaryPattern.solutionCode, `${step.id}/${primaryPattern.id}: solutionCode が空`).toBeTruthy()
+    }
+  })
+
+  it('代表ChallengeのstarterCodeはコメント/import除去後も合格しない', () => {
+    const unexpectedlyPassing = allContentSteps.flatMap((step) => {
+      const primaryPattern = resolvePrimaryPattern(step.challengeTask)
+      const authoredCode = stripNonAuthoredCode(primaryPattern.starterCode)
+      const keywordResult = judgeKeywords(authoredCode, {
+        requiredKeywords: primaryPattern.expectedKeywords,
+        ngKeywords: primaryPattern.ngKeywords,
+        anyOf: primaryPattern.anyOf,
+        passThreshold: primaryPattern.passThreshold,
+      })
+      const conditionResult = judgeKeywordConditions(authoredCode, primaryPattern.conditions ?? [])
+
+      return keywordResult.passed || conditionResult.passed ? [`${step.id}/${primaryPattern.id}`] : []
+    })
+
+    expect(unexpectedlyPassing).toEqual([])
+  })
 })
 
 // ─────────────────────────────────────────
