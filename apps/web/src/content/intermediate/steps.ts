@@ -146,7 +146,7 @@ export function Timer() {
                             {
                                 id: 'cleanup',
                                 label: 'クリーンアップ',
-                                correctTokens: ['return', '(', ')', '=>', 'clearInterval', '(', 'id', ')', '}', ',', '[', ']', ')'],
+                                correctTokens: ['return ()', '=>', 'clearInterval', '(', 'id', ')', '}', ',', '[', ']', ')'],
                                 distractorTokens: ['removeInterval', 'setTimeout', 'useCallback'],
                             },
                         ],
@@ -329,13 +329,13 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
                             {
                                 id: 'input',
                                 label: '制御input',
-                                correctTokens: ['value', '=', '{', 'text', '}', 'onChange', '=', '{', '(', 'e', ')', '=>', 'setText', '(', 'e.target.value', ')', '}'],
+                                correctTokens: ['value={', 'text', '}', 'onChange={', '(', 'e', ')', '=>', 'setText', '(', 'e.target.value', ')', '}'],
                                 distractorTokens: ['onClick', 'onBlur', 'e.target.name', 'name'],
                             },
                             {
                                 id: 'disabled',
                                 label: 'disabled条件',
-                                correctTokens: ['disabled', '=', '{', 'text.length', '<', '5', '}'],
+                                correctTokens: ['disabled={', 'text.length', '<', '5', '}'],
                                 distractorTokens: ['text.size', '>', '3', 'enabled'],
                             },
                         ],
@@ -361,13 +361,13 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
                             {
                                 id: 'input',
                                 label: 'name入力',
-                                correctTokens: ['value', '=', '{', 'name', '}', 'onChange', '=', '{', '(', 'e', ')', '=>', 'setName', '(', 'e.target.value', ')', '}'],
+                                correctTokens: ['value={', 'name', '}', 'onChange={', '(', 'e', ')', '=>', 'setName', '(', 'e.target.value', ')', '}'],
                                 distractorTokens: ['onClick', 'onBlur', 'email', 'e.target.name'],
                             },
                             {
                                 id: 'disabled',
                                 label: '送信制御',
-                                correctTokens: ['disabled', '=', '{', '!', 'name', '||', '!', 'email', '}'],
+                                correctTokens: ['disabled={', '!', 'name', '||', '!', 'email', '}'],
                                 distractorTokens: ['&&', 'name.length', 'enabled', 'text'],
                             },
                         ],
@@ -540,7 +540,7 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
                             {
                                 id: 'provider',
                                 label: 'Provider設定',
-                                correctTokens: ['<ThemeContext.Provider', 'value', '=', '"dark"', '>', '<ComponentDeepDown', '/>', '</ThemeContext.Provider>'],
+                                correctTokens: ['<ThemeContext.Provider', 'value=', '"dark"', '>', '<ComponentDeepDown', '/>', '</ThemeContext.Provider>'],
                                 distractorTokens: ['Consumer', 'useContext', '"light"', 'createContext', '<ThemeContext.Consumer>'],
                             },
                         ],
@@ -715,7 +715,7 @@ export function CounterApp() {
                             {
                                 id: 'dispatch',
                                 label: 'dispatch呼び出し',
-                                correctTokens: ['onClick', '=', '{', '(', ')', '=>', 'dispatch', '(', '{', 'type', ':', "'DECREMENT'", '}', ')', '}'],
+                                correctTokens: ['onClick', '=', '{', '(', ')', '=>', 'dispatch', '(', '{', 'type:', '"DECREMENT"', '}', ')', '}'],
                                 distractorTokens: ['setState', 'emit', "'INCREMENT'", "'RESET'", 'onChange'],
                             },
                         ],
