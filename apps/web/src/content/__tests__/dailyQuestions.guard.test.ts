@@ -12,4 +12,23 @@ describe('DAILY_QUESTIONS ガード', () => {
       expect(question.answer.trim().length).toBeGreaterThan(0)
     }
   })
+
+  it('prompt / explanation のコード表記に二重括弧 {{ }} が含まれない', () => {
+    const broken = DAILY_QUESTIONS.filter(
+      (q) => /\{\{|\}\}/.test(q.prompt) || /\{\{|\}\}/.test(q.explanation),
+    )
+    expect(broken.map((q) => q.id)).toEqual([])
+  })
+
+  it('prompt のコード行に全角括弧（）が混入していない', () => {
+    // prompt は「説明文\nコード」の形式。\n 以降（コード部分）のみを対象とし、
+    // 説明文中の日本語括弧（誤検知の元）を除外する。
+    const broken = DAILY_QUESTIONS.filter((q) => {
+      const newlineIndex = q.prompt.indexOf('\n')
+      if (newlineIndex === -1) return false
+      const codePart = q.prompt.slice(newlineIndex + 1)
+      return /[（）]/.test(codePart)
+    })
+    expect(broken.map((q) => q.id)).toEqual([])
+  })
 })
