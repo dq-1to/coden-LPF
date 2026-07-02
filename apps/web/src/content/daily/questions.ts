@@ -805,9 +805,9 @@ export const DAILY_QUESTIONS: DailyQuestion[] = [
     id: 'ts-union-narrowing-daily-2',
     stepId: 'ts-union-narrowing',
     type: 'blank',
-    prompt: 'in 演算子でオブジェクトのプロパティを確認して型を絞り込んでください。\nif (____ \'name\' in obj) {\n  // obj は name プロパティを持つ\n}',
-    answer: '',
-    hint: '追加のキーワードは不要です。in の前に何も書きません。',
+    prompt: 'オブジェクトのプロパティを確認して型を絞り込む演算子を書いてください。\nif (\'name\' ____ obj) {\n  // obj は name プロパティを持つ\n}',
+    answer: 'in',
+    hint: 'プロパティの存在確認に使う演算子です。',
     explanation: '"name" in obj で obj に name プロパティが存在するか確認します。TypeScript はこの分岐内でオブジェクトの型を絞り込みます。',
   },
 
