@@ -371,6 +371,7 @@ export type Database = {
           user_id: string
           challenge_id: string
           completed: boolean
+          is_correct: boolean | null
           points_earned: number
           completed_at: string | null
           challenge_date: string
@@ -380,6 +381,7 @@ export type Database = {
           user_id: string
           challenge_id: string
           completed?: boolean
+          is_correct?: boolean | null
           points_earned?: number
           completed_at?: string | null
           challenge_date: string
@@ -389,6 +391,7 @@ export type Database = {
           user_id?: string
           challenge_id?: string
           completed?: boolean
+          is_correct?: boolean | null
           points_earned?: number
           completed_at?: string | null
           challenge_date?: string

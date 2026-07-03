@@ -129,7 +129,7 @@ export async function getTodayChallenge(
   // 今日の完了履歴を確認
   const { data: history, error } = await supabase
     .from('daily_challenge_history')
-    .select('challenge_id, completed, points_earned, completed_at')
+    .select('challenge_id, completed, is_correct, points_earned, completed_at')
     .eq('user_id', userId)
     .eq('challenge_date', dateStr)
     .maybeSingle()
@@ -139,6 +139,10 @@ export async function getTodayChallenge(
   }
 
   if (history?.completed) {
+    // 既存データ互換: is_correct が NULL の行は正解扱いとする
+    const isCorrect = history.is_correct ?? true
+    const historicalQuestion = DAILY_QUESTIONS.find((q) => q.id === history.challenge_id) ?? null
+
     return {
       question: null,
       alreadyCompleted: true,
@@ -147,6 +151,9 @@ export async function getTodayChallenge(
       dateStr,
       reviewReason: null,
       reviewTarget: null,
+      isCorrect,
+      correctAnswer: historicalQuestion?.answer ?? null,
+      explanation: historicalQuestion?.explanation ?? null,
     }
   }
 
@@ -167,20 +174,29 @@ export async function getTodayChallenge(
     dateStr,
     reviewReason: getReviewReason(reviewCandidate, question),
     reviewTarget: getReviewTarget(reviewCandidate, question),
+    isCorrect: false,
+    correctAnswer: null,
+    explanation: null,
   }
 }
 
-/** 指定日時点でのデイリーチャレンジ連続完了日数を返す（today を起点に遡る） */
+/** 正解基準で「達成」とみなせる行か（既存データ互換: is_correct が NULL/未設定の行は正解扱い） */
+function isCorrectDay(row: { completed: boolean; is_correct?: boolean | null }): boolean {
+  return row.completed && row.is_correct !== false
+}
+
+/** 指定日時点でのデイリーチャレンジ連続完了日数を返す（today を起点に遡る）
+ * v6roadmap05 M7-1: 集計基準を「完了」から「正解した日」に変更（既存 NULL 行は互換で正解扱い） */
 async function getDailyConsecutiveStreak(userId: string, today: string): Promise<number> {
   const { data, error } = await supabase
     .from('daily_challenge_history')
-    .select('challenge_date, completed')
+    .select('challenge_date, completed, is_correct')
     .eq('user_id', userId)
 
   if (error) throw fromSupabaseError(error, 'デイリー連続記録の取得に失敗しました')
 
   const completedDates = new Set(
-    (data ?? []).filter((r) => r.completed).map((r) => r.challenge_date as string),
+    (data ?? []).filter(isCorrectDay).map((r) => r.challenge_date as string),
   )
 
   let streak = 0
@@ -215,6 +231,7 @@ export async function submitDailyAnswer(
         user_id: userId,
         challenge_id: question.id,
         completed: true,
+        is_correct: isCorrect,
         points_earned: pointsEarned,
         challenge_date: dateStr,
       },
@@ -302,7 +319,7 @@ export async function getWeeklyStatus(
 
   const { data, error } = await supabase
     .from('daily_challenge_history')
-    .select('challenge_date, completed')
+    .select('challenge_date, completed, is_correct')
     .eq('user_id', userId)
     .gte('challenge_date', from)
     .lte('challenge_date', to)
@@ -311,8 +328,9 @@ export async function getWeeklyStatus(
     throw fromSupabaseError(error, '週間達成状況の取得に失敗しました')
   }
 
+  // v6roadmap05 M7-1: 集計基準を「完了」から「正解した日」に変更（既存 NULL 行は互換で正解扱い）
   const completedDates = new Set(
-    (data ?? []).filter((r) => r.completed).map((r) => r.challenge_date),
+    (data ?? []).filter(isCorrectDay).map((r) => r.challenge_date),
   )
 
   return weekDates.map((date) => ({

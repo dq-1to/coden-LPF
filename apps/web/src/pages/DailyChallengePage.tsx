@@ -57,7 +57,7 @@ export function DailyChallengePage() {
       challenge.dateStr,
       challenge.reviewTarget,
     )
-    // 回答後に状態を更新
+    // 回答後に状態を更新（正誤基準。楽観更新とリロード後の表示を一致させる）
     setChallenge((prev) =>
       prev
         ? {
@@ -66,6 +66,9 @@ export function DailyChallengePage() {
             completedAt: new Date().toISOString(),
             pointsEarned: result.pointsEarned,
             question: null,
+            isCorrect: result.isCorrect,
+            correctAnswer: result.correctAnswer,
+            explanation: result.explanation,
           }
         : prev,
     )
@@ -108,6 +111,9 @@ export function DailyChallengePage() {
                 completedAt={challenge.completedAt}
                 pointsEarned={challenge.pointsEarned}
                 dateStr={challenge.dateStr}
+                isCorrect={challenge.isCorrect}
+                correctAnswer={challenge.correctAnswer}
+                explanation={challenge.explanation}
               />
             ) : challenge?.question ? (
               <DailyChallengeCard
