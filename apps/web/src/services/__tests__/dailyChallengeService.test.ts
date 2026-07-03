@@ -216,6 +216,59 @@ describe('getTodayChallenge', () => {
     expect(result.pointsEarned).toBe(20)
     expect(result.reviewReason).toBeNull()
     expect(result.reviewTarget).toBeNull()
+    // is_correct 未設定（既存データ互換）は正解扱い
+    expect(result.isCorrect).toBe(true)
+  })
+
+  it('完了済みで is_correct: false の場合は isCorrect: false と正解・解説を返す', async () => {
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: {
+                challenge_id: 'usestate-basic-daily-0',
+                completed: true,
+                is_correct: false,
+                points_earned: 0,
+                completed_at: '2026-03-30T10:00:00Z',
+              },
+              error: null,
+            }),
+          }),
+        }),
+      }),
+    } as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await getTodayChallenge(userId, completedStepIds)
+    expect(result.alreadyCompleted).toBe(true)
+    expect(result.isCorrect).toBe(false)
+    expect(result.correctAnswer).toBeTruthy()
+    expect(result.explanation).toBeTruthy()
+  })
+
+  it('完了済みで is_correct: true の場合は isCorrect: true を返す', async () => {
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: {
+                challenge_id: 'usestate-basic-daily-0',
+                completed: true,
+                is_correct: true,
+                points_earned: 20,
+                completed_at: '2026-03-30T10:00:00Z',
+              },
+              error: null,
+            }),
+          }),
+        }),
+      }),
+    } as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await getTodayChallenge(userId, completedStepIds)
+    expect(result.isCorrect).toBe(true)
   })
 
   it('完了済みステップがない場合は question: null を返す', async () => {
@@ -278,7 +331,8 @@ describe('submitDailyAnswer', () => {
   }
 
   // streak クエリで返すデータを各テストで上書き可能
-  let currentStreakData: { challenge_date: string; completed: boolean }[] = []
+  let currentStreakData: { challenge_date: string; completed: boolean; is_correct?: boolean | null }[] = []
+  let upsertMock = vi.fn().mockResolvedValue({ error: null })
 
   function makeStreakData(days: number) {
     return Array.from({ length: days }, (_, i) => {
@@ -291,12 +345,13 @@ describe('submitDailyAnswer', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     currentStreakData = []
+    upsertMock = vi.fn().mockResolvedValue({ error: null })
 
     // upsert（保存）と select（streak取得）を同じオブジェクトで対応
     mockFrom.mockImplementation(() => ({
-      upsert: vi.fn().mockResolvedValue({ error: null }),
+      upsert: upsertMock,
       select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ data: currentStreakData, error: null }),
+        eq: vi.fn().mockImplementation(() => Promise.resolve({ data: currentStreakData, error: null })),
       }),
     } as unknown as ReturnType<typeof supabase.from>))
     mockAwardPoints.mockResolvedValue()
@@ -415,6 +470,61 @@ describe('submitDailyAnswer', () => {
     // from() は upsert の1回のみ呼ばれる（streak query なし）
     expect(mockFrom).toHaveBeenCalledTimes(1)
   })
+
+  it('正解送信時は upsert payload に is_correct: true が含まれる', async () => {
+    await submitDailyAnswer(userId, question, 'setCount', dateStr)
+    expect(upsertMock).toHaveBeenCalledWith(
+      expect.objectContaining({ completed: true, is_correct: true }),
+      { onConflict: 'user_id,challenge_date' },
+    )
+  })
+
+  it('不正解送信時は upsert payload に is_correct: false とポイント0が含まれる', async () => {
+    await submitDailyAnswer(userId, question, 'wrongAnswer', dateStr)
+    expect(upsertMock).toHaveBeenCalledWith(
+      expect.objectContaining({ completed: true, is_correct: false, points_earned: 0 }),
+      { onConflict: 'user_id,challenge_date' },
+    )
+  })
+
+  it('streak集計: is_correct: false の日は連続記録にカウントされない', async () => {
+    // 直近1日前が不正解（is_correct: false）→ 今日正解しても streak は 1（今日のみ）
+    currentStreakData = [
+      { challenge_date: dateStr, completed: true, is_correct: true },
+      {
+        challenge_date: new Date(new Date(dateStr + 'T00:00:00Z').getTime() - 86400000)
+          .toISOString()
+          .slice(0, 10),
+        completed: true,
+        is_correct: false,
+      },
+    ]
+
+    await submitDailyAnswer(userId, question, 'setCount', dateStr)
+
+    expect(mockTrackLearningEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ payload: expect.objectContaining({ streak: 1 }) }),
+    )
+  })
+
+  it('streak集計: is_correct が NULL/未設定の日は互換で正解扱いとしてカウントされる', async () => {
+    currentStreakData = [
+      { challenge_date: dateStr, completed: true, is_correct: true },
+      {
+        challenge_date: new Date(new Date(dateStr + 'T00:00:00Z').getTime() - 86400000)
+          .toISOString()
+          .slice(0, 10),
+        completed: true,
+        is_correct: null,
+      },
+    ]
+
+    await submitDailyAnswer(userId, question, 'setCount', dateStr)
+
+    expect(mockTrackLearningEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ payload: expect.objectContaining({ streak: 2 }) }),
+    )
+  })
 })
 
 describe('getWeeklyStatus', () => {
@@ -439,7 +549,7 @@ describe('getWeeklyStatus', () => {
     expect(result).toHaveLength(7)
   })
 
-  it('完了済みの日付が completed: true になる', async () => {
+  it('完了済み（is_correct 未設定・互換）の日付が completed: true になる', async () => {
     // 2026-03-30 を月曜として固定
     const monday = new Date('2026-03-30T00:00:00Z')
 
@@ -461,5 +571,47 @@ describe('getWeeklyStatus', () => {
     expect(monday_entry?.completed).toBe(true)
     const tuesday_entry = result.find((e) => e.date === '2026-03-31')
     expect(tuesday_entry?.completed).toBe(false)
+  })
+
+  it('is_correct: false の日付は completed: false になる（正解基準）', async () => {
+    const monday = new Date('2026-03-30T00:00:00Z')
+
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          gte: vi.fn().mockReturnValue({
+            lte: vi.fn().mockResolvedValue({
+              data: [{ challenge_date: '2026-03-30', completed: true, is_correct: false }],
+              error: null,
+            }),
+          }),
+        }),
+      }),
+    } as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await getWeeklyStatus(userId, monday)
+    const monday_entry = result.find((e) => e.date === '2026-03-30')
+    expect(monday_entry?.completed).toBe(false)
+  })
+
+  it('is_correct: true の日付は completed: true になる', async () => {
+    const monday = new Date('2026-03-30T00:00:00Z')
+
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          gte: vi.fn().mockReturnValue({
+            lte: vi.fn().mockResolvedValue({
+              data: [{ challenge_date: '2026-03-30', completed: true, is_correct: true }],
+              error: null,
+            }),
+          }),
+        }),
+      }),
+    } as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await getWeeklyStatus(userId, monday)
+    const monday_entry = result.find((e) => e.date === '2026-03-30')
+    expect(monday_entry?.completed).toBe(true)
   })
 })
