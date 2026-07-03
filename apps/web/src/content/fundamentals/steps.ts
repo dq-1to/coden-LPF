@@ -884,7 +884,7 @@ export function List() {
               {
                 id: 'map',
                 label: 'リスト描画',
-                correctTokens: ['{', 'todos.map', '(', '(', 'todo', ')', '=>', '<li', 'key', '=', '{', 'todo.id', '}', '>', '{', 'todo.title', '}', '</li>', ')', '}'],
+                correctTokens: ['{', 'todos.map', '(', '(', 'todo', ')', '=>', '<li', 'key={', 'todo.id', '}', '>', '{', 'todo.title', '}', '</li>', ')', '}'],
                 distractorTokens: ['forEach', 'filter', 'index', 'todo.name', 'reduce'],
               },
             ],
@@ -910,7 +910,7 @@ export function List() {
               {
                 id: 'map',
                 label: 'リスト描画',
-                correctTokens: ['.map', '(', '(', 't', ')', '=>', '<li', 'key', '=', '{', 't.id', '}', '>', '{', 't.title', '}', '</li>', ')'],
+                correctTokens: ['.map', '(', '(', 't', ')', '=>', '<li', 'key={', 't.id', '}', '>', '{', 't.title', '}', '</li>', ')'],
                 distractorTokens: ['index', 't.name', 'forEach', 'reduce'],
               },
             ],

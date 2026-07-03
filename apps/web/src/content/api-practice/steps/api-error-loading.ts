@@ -312,8 +312,8 @@ export function TaskListWithState() {
               {
                 id: 'state-ui',
                 label: '状態別UI',
-                correctTokens: ['if', '(', 'state.status', '===', "'loading'", ')', 'return', '(', '<ul>', '{', '[', '1', ',', '2', ',', '3', ']', '.map', '(', 'i', '=>', '(', '<li', 'key', '=', '{', 'i', '}', 'className', '=', '"animate-pulse bg-gray-200 h-6 rounded mb-2"', '/>', ')', ')', '}', '</ul>', ')', 'if', '(', 'state.status', '===', "'error'", ')', 'return', '(', '<div>', '<p>', '{', 'state.error', '}', '</p>', '<button onClick={() => void load()}>', '再試行', '</button>', '</div>', ')'],
-                distractorTokens: ['state.loading', 'isLoading', "'idle'", 'retry', 'setError', 'console.log'],
+                correctTokens: ['if', '(', 'state.status', '===', "'loading'", ')', 'return', '(', '<ul>', '{', '[', '1', ',', '2', ',', '3', ']', '.map', '(', 'i', '=>', '(', '<li', 'key', '=', '{', 'i', '}', 'className', '=', '"animate-pulse bg-gray-200 h-6 rounded mb-2"', '/>', ')', ')', '}', '</ul>', ')', 'if', '(', 'state.status', '===', "'error'", ')', 'return', '(', '<div>', '<p>', '{', 'state.error', '}', '</p>', '<button aria-label="retry" onClick={() => void load()}>', '再試行', '</button>', '</div>', ')'],
+                distractorTokens: ['state.loading', 'isLoading', "'idle'", 'setError', 'console.log'],
               },
             ],
           },
