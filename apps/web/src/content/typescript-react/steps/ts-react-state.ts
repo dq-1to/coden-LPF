@@ -168,9 +168,28 @@ function UserProfile() {
   return <div>{user ? user.name : '未ログイン'}</div>
 }`,
     expectedKeywords: ['User'],
+    conditions: [
+      {
+        id: 'user-null-state',
+        label: 'useState<User | null> を使っている',
+        requiredKeywords: ['User', 'null'],
+        explanation: '未ログイン状態を表すために User | null のユニオン型を指定します。',
+      },
+    ],
     explanation: '`useState<User | null>(null)` とすることで、ユーザー情報がない状態（null）とある状態（User）を型安全に扱えます。',
+    solutionCode: `interface User {
+  id: number
+  name: string
+}
+
+function UserProfile() {
+  const [user, setUser] = useState<User | null>(null)
+
+  return <div>{user ? user.name : '未ログイン'}</div>
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'ts-react-state-1',
     patterns: [
       {
         id: 'ts-react-state-1',
@@ -187,6 +206,51 @@ function UserProfile() {
           'setUser(userData) でログイン、setUser(null) でログアウトします',
         ],
         expectedKeywords: ['User', 'useState', 'null', 'setUser'],
+        conditions: [
+          {
+            id: 'user-interface',
+            label: 'User interface を定義している',
+            requiredKeywords: ['User', 'id', 'name', 'email'],
+            explanation: 'ログインユーザーの id, name, email を interface で定義します。',
+          },
+          {
+            id: 'nullable-state',
+            label: 'User | null の state を宣言している',
+            requiredKeywords: ['useState', 'User | null', 'null'],
+            explanation: '未ログイン時は null、ログイン後は User を保持できる state にします。',
+          },
+          {
+            id: 'login-logout',
+            label: 'login/logout で setUser を呼んでいる',
+            requiredKeywords: ['setUser', 'null'],
+            explanation: 'ログイン時にユーザーをセットし、ログアウト時に null へ戻します。',
+          },
+        ],
+        solutionCode: `interface User {
+  id: number
+  name: string
+  email: string
+}
+
+function UserProfile() {
+  const [user, setUser] = useState<User | null>(null)
+
+  function handleLogin() {
+    setUser({ id: 1, name: 'Alice', email: 'alice@example.com' })
+  }
+
+  function handleLogout() {
+    setUser(null)
+  }
+
+  return (
+    <div>
+      {user ? <p>{user.name} ({user.email})</p> : <p>ログインしてください</p>}
+      <button onClick={handleLogin}>ログイン</button>
+      <button onClick={handleLogout}>ログアウト</button>
+    </div>
+  )
+}`,
         starterCode: `// TODO: User interface を定義してください
 
 function UserProfile() {

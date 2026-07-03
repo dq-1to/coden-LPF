@@ -142,9 +142,21 @@ if (tasks.length === 0) {
   ))}
 </ul>`,
       expectedKeywords: ['key'],
+      conditions: [
+        {
+          id: 'specify-key',
+          label: 'li に key を指定している',
+          requiredKeywords: ['key'],
+          explanation: 'map で描画する要素には一意な key を指定します。',
+        },
+      ],
       explanation: 'useEffectでGET /tasksを呼び、setTasksでstateを更新してからmapでリストをレンダリングします。keyにはtask.idを使います。',
+      solutionCode: `<li key={task.id}>
+  {task.title}
+</li>`,
     },
     challengeTask: {
+      primaryPatternId: 'c1',
       patterns: [
         {
           id: 'c1',
@@ -160,6 +172,39 @@ if (tasks.length === 0) {
             '再読み込みには fetch を呼ぶ関数を切り出して再利用しましょう',
           ],
           expectedKeywords: ['fetch', 'useEffect', 'useState', 'map', 'key', 'task.id', 'completed'],
+          conditions: [
+            {
+              id: 'fetch-effect',
+              label: 'useEffect でタスク一覧を取得している',
+              requiredKeywords: ['useEffect', 'fetch'],
+              explanation: 'マウント時に GET /tasks を呼び、一覧データを取得します。',
+            },
+            {
+              id: 'render-list',
+              label: 'map と key で一覧を描画している',
+              requiredKeywords: ['map', 'key', 'task.id'],
+              explanation: 'tasks.map で <li> を作り、key には task.id を使います。',
+            },
+            {
+              id: 'completed-style',
+              label: 'completed に応じた表示をしている',
+              requiredKeywords: ['completed'],
+              explanation: '完了済みのタスクは task.completed を見て打ち消し線などで区別します。',
+            },
+          ],
+          solutionCode: `useEffect(() => {
+  fetch('/tasks')
+    .then((res) => res.json())
+    .then((data) => setTasks(data))
+    .catch(() => setError('取得失敗'))
+    .finally(() => setLoading(false));
+}, []);
+
+{tasks.map((task) => (
+  <li key={task.id} style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
+    {task.title}
+  </li>
+))}`,
           starterCode: `import { useEffect, useState } from 'react';
 
 interface Task {

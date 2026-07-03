@@ -178,9 +178,24 @@ function getArea(shape: Shape): number {
   return String(value);
 }`,
     expectedKeywords: ['typeof'],
+    conditions: [
+      {
+        id: 'typeof-guard',
+        label: 'typeof で string に絞り込んでいる',
+        requiredKeywords: ['typeof'],
+        explanation: 'typeof value === "string" と書くことで、if ブロック内の value を string として扱えます。',
+      },
+    ],
     explanation: '`typeof value === "string"` で型ガードを適用すると、if ブロック内では value が string 型として扱われ、.toUpperCase() を安全に呼び出せます。',
+    solutionCode: `function processValue(value: string | number): string {
+  if (typeof value === 'string') {
+    return value.toUpperCase();
+  }
+  return String(value);
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'ts-union-narrowing-2',
     patterns: [
       {
         id: 'ts-union-narrowing-1',
@@ -200,12 +215,7 @@ function getArea(shape: Shape): number {
 // TODO: handleResponse 関数を実装してください
 function handleResponse(res: ApiResponse): string {
   // TODO: status で分岐して実装
-}
-
-const ok: ApiResponse = { status: "success", data: "ユーザー情報" };
-const ng: ApiResponse = { status: "error", message: "認証エラー" };
-console.log(handleResponse(ok)); // "データ: ユーザー情報"
-console.log(handleResponse(ng)); // "エラー: 認証エラー"`,
+}`,
           mobilePuzzle: {
             type: 'multi',
             codeContext: `____0\n\nfunction handleResponse(res: ApiResponse): string {\n  ____1\n}\n\nconst ok: ApiResponse = { status: "success", data: "ユーザー情報" };\nconst ng: ApiResponse = { status: "error", message: "認証エラー" };\nconsole.log(handleResponse(ok));\nconsole.log(handleResponse(ng));`,
@@ -240,6 +250,44 @@ console.log(handleResponse(ng)); // "エラー: 認証エラー"`,
           'assertNever の引数に never 型を指定することで、ケース漏れをコンパイル時に検出できます',
         ],
         expectedKeywords: ['Shape', 'circle', 'rectangle', 'getArea', 'assertNever', 'never'],
+        conditions: [
+          {
+            id: 'shape-union',
+            label: 'Shape 判別共用体を定義している',
+            requiredKeywords: ['Shape', 'circle', 'rectangle'],
+            explanation: 'kind を共通タグにして circle と rectangle の2種類をユニオン型で表します。',
+          },
+          {
+            id: 'assert-never',
+            label: 'assertNever で網羅性チェックをしている',
+            requiredKeywords: ['assertNever', 'never'],
+            explanation: 'never 型の assertNever を default に置くことで、ケース漏れをコンパイル時に検出できます。',
+          },
+          {
+            id: 'switch-cases',
+            label: 'switch で各図形の面積を返している',
+            requiredKeywords: ['switch', 'circle', 'rectangle'],
+            explanation: 'shape.kind で分岐し、circle と rectangle それぞれの面積を計算します。',
+          },
+        ],
+        solutionCode: `type Shape =
+  | { kind: "circle"; radius: number }
+  | { kind: "rectangle"; width: number; height: number };
+
+function assertNever(x: never): never {
+  throw new Error(\`Unexpected shape: \${JSON.stringify(x)}\`);
+}
+
+function getArea(shape: Shape): number {
+  switch (shape.kind) {
+    case "circle":
+      return Math.PI * shape.radius ** 2;
+    case "rectangle":
+      return shape.width * shape.height;
+    default:
+      return assertNever(shape);
+  }
+}`,
         starterCode: `// TODO: Shape 型を定義してください
 
 // TODO: assertNever 関数を実装してください
@@ -254,10 +302,7 @@ function getArea(shape: Shape): number {
     default:
       return assertNever(shape);
   }
-}
-
-console.log(getArea({ kind: "circle", radius: 5 }));               // ~78.54
-console.log(getArea({ kind: "rectangle", width: 4, height: 6 }));  // 24`,
+}`,
           mobilePuzzle: {
             type: 'multi',
             codeContext: `____0\n\n____1\n\nfunction getArea(shape: Shape): number {\n  switch (shape.kind) {\n    ____2\n    default:\n      return assertNever(shape);\n  }\n}\n\nconsole.log(getArea({ kind: "circle", radius: 5 }));\nconsole.log(getArea({ kind: "rectangle", width: 4, height: 6 }));`,

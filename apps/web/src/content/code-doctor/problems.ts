@@ -152,19 +152,19 @@ export const CODE_DOCTOR_PROBLEMS: CodeDoctorProblem[] = [
     category: 'react',
     difficulty: 'beginner',
     title: 'Props の型違い（数値を文字列で渡している）',
-    description: 'コンポーネントが計算を行うが、result が NaN になる。age は数値型を期待しているのに文字列で渡している。',
-    buggyCode: `function AgeCalc({ age }) {
-  const birthYear = 2025 - age
-  return <p>生まれ年: {birthYear}</p>
+    description: '合計ポイントを計算するコンポーネントで、期待した数値の合計（510）にならず、文字列連結（50010）になってしまう。bonus は数値型を期待しているのに文字列で渡している。',
+    buggyCode: `function PointSummary({ count, bonus }) {
+  const total = count + bonus
+  return <p>合計: {total}pt</p>
 }
 
 function App() {
-  return <AgeCalc age="25" />
+  return <PointSummary count={500} bonus="10" />
 }`,
-    hint: 'JSX で数値を Props として渡すには {} が必要です。',
-    requiredKeywords: ['age={25}'],
-    ngKeywords: ['age="25"'],
-    explanation: 'JSX で "25" と書くと文字列になります。数値を渡すには age={25} のように {} を使います。文字列 + 数値の計算は文字列連結になり、NaN ではなく "252025" のような結果になります。',
+    hint: 'JSX で数値を Props として渡すには {} が必要です。+ 演算子は片方が文字列だと文字列連結になります。',
+    requiredKeywords: ['bonus={10}'],
+    ngKeywords: ['bonus="10"'],
+    explanation: 'JSX で "10" と書くと文字列になります。数値を渡すには bonus={10} のように {} を使います。+ 演算子は片方が文字列だと数値同士の加算ではなく文字列連結になるため、bonus="10" のままだと count + bonus は 510 ではなく "50010" になります。bonus={10} と数値で渡せば count + bonus は 510 という正しい数値の合計になります。',
   },
 
   {

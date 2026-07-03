@@ -150,6 +150,8 @@ const handleSubmit: FormEventHandler<HTMLFormElement> = (e) => {
       hint: 'react から import できるハンドラ型エイリアスです。',
       explanation: 'ChangeEventHandler<T> は React.ChangeEventHandler の型エイリアスです。import type { ChangeEventHandler } from "react" で import できます。',
       choices: ['ChangeEventHandler', 'ChangeHandler', 'InputHandler', 'EventHandler'],
+      level: 'applied',
+      testedConcept: 'Reactイベントハンドラ型エイリアス',
     },
   ],
   testTask: {
@@ -166,9 +168,35 @@ function TextInput() {
   return <input value={value} onChange={handleChange} />
 }`,
     expectedKeywords: ['HTMLInputElement'],
+    conditions: [
+      {
+        id: 'change-event-type',
+        label: 'ChangeEvent<HTMLInputElement> を使っている',
+        requiredKeywords: ['HTMLInputElement'],
+        explanation: 'input の onChange では HTMLInputElement を型引数にした ChangeEvent を使います。',
+      },
+      {
+        id: 'target-value',
+        label: 'e.target.value を state に反映している',
+        requiredKeywords: ['target.value'],
+        explanation: '入力値は e.target.value から取得して setValue に渡します。',
+      },
+    ],
     explanation: 'input 要素の onChange ハンドラの引数は React.ChangeEvent<HTMLInputElement> 型です。e.target.value で入力値を取得できます。',
+    solutionCode: `import { useState } from 'react'
+
+function TextInput() {
+  const [value, setValue] = useState('')
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value)
+  }
+
+  return <input value={value} onChange={handleChange} />
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'ts-react-events-1',
     patterns: [
       {
         id: 'ts-react-events-1',
@@ -186,6 +214,55 @@ function TextInput() {
           'e.target.name as keyof FormData でキーの型安全性を確保できます',
         ],
         expectedKeywords: ['FormData', 'ChangeEvent', 'FormEvent', 'preventDefault', 'useState'],
+        conditions: [
+          {
+            id: 'form-data',
+            label: 'FormData interface を定義している',
+            requiredKeywords: ['FormData', 'name', 'email'],
+            explanation: 'フォームで扱う name と email を interface として定義します。',
+          },
+          {
+            id: 'change-handler',
+            label: 'ChangeEvent<HTMLInputElement> の onChange を実装している',
+            requiredKeywords: ['ChangeEvent', 'HTMLInputElement', 'setForm'],
+            explanation: 'input の変更イベントを型付きで受け取り、フォームstateを部分更新します。',
+          },
+          {
+            id: 'submit-handler',
+            label: 'FormEvent<HTMLFormElement> の onSubmit を実装している',
+            requiredKeywords: ['FormEvent', 'HTMLFormElement', 'preventDefault'],
+            explanation: 'フォーム送信イベントを型付きで受け取り、preventDefault でページ遷移を防ぎます。',
+          },
+        ],
+        solutionCode: `import { useState } from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
+
+interface FormData {
+  name: string
+  email: string
+}
+
+function ContactForm() {
+  const [form, setForm] = useState<FormData>({ name: '', email: '' })
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const key = e.target.name as keyof FormData
+    setForm((prev) => ({ ...prev, [key]: e.target.value }))
+  }
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    console.log(form)
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input name="name" value={form.name} onChange={handleChange} />
+      <input name="email" value={form.email} onChange={handleChange} />
+      <button type="submit">送信</button>
+    </form>
+  )
+}`,
         starterCode: `import { useState } from 'react'
 
 // TODO: FormData interface を定義してください

@@ -148,9 +148,22 @@ function formatValue(value: string | number): string {
   return a - b;
 }`,
     expectedKeywords: ['add', 'sub'],
+    conditions: [
+      {
+        id: 'literal-union',
+        label: 'operation を add/sub のユニオン型にしている',
+        requiredKeywords: ['add', 'sub'],
+        explanation: 'operation には "add" または "sub" だけを受け付けるリテラルユニオン型を指定します。',
+      },
+    ],
     explanation: '`"add" | "sub"` というリテラルユニオン型を使います。これで operation に無効な文字列を渡すとコンパイルエラーになります。',
+    solutionCode: `function calculate(a: number, b: number, operation: 'add' | 'sub'): number {
+  if (operation === 'add') return a + b;
+  return a - b;
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'ts-functions-1',
     patterns: [
       {
         id: 'ts-functions-1',
@@ -165,6 +178,29 @@ function formatValue(value: string | number): string {
           'predicate は「条件判定関数」という意味。(item: T) => boolean の型を持ちます',
         ],
         expectedKeywords: ['filterByCondition', 'predicate', 'boolean', 'filter'],
+        conditions: [
+          {
+            id: 'generic-signature',
+            label: 'ジェネリックな関数シグネチャになっている',
+            requiredKeywords: ['filterByCondition', '<T>', 'arr: T[]', ': T[]'],
+            explanation: '配列の要素型を T として受け取り、同じ T[] を返す関数にします。',
+          },
+          {
+            id: 'predicate-type',
+            label: 'predicate の型を定義している',
+            requiredKeywords: ['predicate', '(item: T) => boolean'],
+            explanation: 'predicate は各要素を受け取り true/false を返す条件関数です。',
+          },
+          {
+            id: 'use-filter',
+            label: 'arr.filter(predicate) を返している',
+            requiredKeywords: ['filter', 'predicate'],
+            explanation: '実装本体では標準の filter に predicate を渡して結果を返します。',
+          },
+        ],
+        solutionCode: `function filterByCondition<T>(arr: T[], predicate: (item: T) => boolean): T[] {
+  return arr.filter(predicate);
+}`,
         starterCode: `// TODO: filterByCondition 関数に型注釈を追加して実装してください
 function filterByCondition(arr, predicate) {
   return arr.filter(predicate);

@@ -222,9 +222,27 @@ function ProductList() {
 
 const totalPages = Math.ceil(____ / ITEMS_PER_PAGE)`,
     expectedKeywords: ['totalCount'],
+    conditions: [
+      {
+        id: 'math-ceil',
+        label: 'Math.ceil で切り上げている',
+        requiredKeywords: ['Math.ceil'],
+        explanation: '端数ページを数えるため、総ページ数は Math.ceil で切り上げます。',
+      },
+      {
+        id: 'total-count',
+        label: 'totalCount / ITEMS_PER_PAGE を計算している',
+        requiredKeywords: ['totalCount', 'ITEMS_PER_PAGE'],
+        explanation: '全件数を1ページあたりの件数で割って総ページ数を求めます。',
+      },
+    ],
     explanation: 'Math.ceil(totalCount / ITEMS_PER_PAGE) で端数を切り上げて総ページ数を計算します。',
+    solutionCode: `const ITEMS_PER_PAGE = 10
+
+const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE)`,
   },
   challengeTask: {
+    primaryPatternId: 'pagination-2',
     patterns: [
       {
         id: 'pagination-1',
@@ -308,14 +326,70 @@ function PaginatedList() {
           'Array.from({ length: totalPages }, (_, i) => i + 1) でページ番号配列を生成します',
         ],
         expectedKeywords: ['useSearchParams', 'searchParams', 'setSearchParams'],
+        conditions: [
+          {
+            id: 'read-page-query',
+            label: 'useSearchParams で page を取得している',
+            requiredKeywords: ['useSearchParams', 'searchParams.get', 'page'],
+            explanation: 'URL の ?page=N から現在ページを読み取ります。',
+          },
+          {
+            id: 'page-calculation',
+            label: 'totalPages / currentItems を計算している',
+            requiredKeywords: ['Math.ceil', 'slice', 'ITEMS_PER_PAGE'],
+            explanation: '現在ページに対応する範囲だけを slice で切り出します。',
+          },
+          {
+            id: 'set-search-params',
+            label: 'setSearchParams でページ変更している',
+            requiredKeywords: ['setSearchParams', 'String(page)'],
+            explanation: 'ボタンクリックでURLの page クエリを更新します。',
+          },
+          {
+            id: 'page-buttons',
+            label: 'ページ番号ボタンを並べている',
+            requiredKeywords: ['Array.from', 'totalPages', 'button'],
+            explanation: '1から totalPages までのページ番号を表示します。',
+          },
+        ],
+        solutionCode: `import { useSearchParams } from 'react-router-dom'
+
+const items = Array.from({ length: 30 }, (_, i) => 'アイテム ' + (i + 1))
+const ITEMS_PER_PAGE = 8
+
+function PaginatedList() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const currentPage = Number(searchParams.get('page') ?? '1')
+
+  const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE)
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  const currentItems = items.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+
+  return (
+    <div>
+      <ul>
+        {currentItems.map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
+      </ul>
+      <div>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button key={page} onClick={() => setSearchParams({ page: String(page) })}>
+            {page}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}`,
         starterCode: `import { useSearchParams } from 'react-router-dom'
 
 const items = Array.from({ length: 30 }, (_, i) => \`アイテム \${i + 1}\`)
 const ITEMS_PER_PAGE = 8
 
 function PaginatedList() {
-  const [searchParams, setSearchParams] = useSearchParams()
-  // TODO: currentPage を searchParams から取得（デフォルト1）
+  // TODO: useSearchParams でURLの page を読み書きする
+  // TODO: currentPage をURLから取得（デフォルト1）
 
   // TODO: totalPages と currentItems を計算
 

@@ -266,6 +266,7 @@ describe('StepPage', () => {
           id: 'submission-1',
           user_id: 'user-1',
           step_id: 'usestate-basic',
+          pattern_id: 'pattern-1',
           code: 'const [count, setCount] = useState(0);',
           is_passed: true,
           matched_keywords: ['useState'],

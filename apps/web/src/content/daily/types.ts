@@ -23,6 +23,12 @@ export interface TodayChallengeResult {
   dateStr: string
   reviewReason?: string | null
   reviewTarget?: DailyReviewTarget | null
+  /** alreadyCompleted 時のみ意味を持つ。正解したか（既存データ互換で NULL は true 扱い） */
+  isCorrect: boolean
+  /** alreadyCompleted かつ不正解時に学び直し導線として表示する正解 */
+  correctAnswer: string | null
+  /** alreadyCompleted かつ不正解時に学び直し導線として表示する解説 */
+  explanation: string | null
 }
 
 export interface SubmitResult {

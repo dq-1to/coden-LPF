@@ -135,3 +135,74 @@ describe('TestMode', () => {
     ).toBeTruthy()
   })
 })
+
+describe('TestMode 不正解フィードバック', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
+  beforeEach(() => {
+    recordWrongAnswer.mockReset()
+    resolveReviewItem.mockReset()
+    trackLearningEvent.mockReset()
+    recordWrongAnswer.mockResolvedValue(undefined)
+    resolveReviewItem.mockResolvedValue(undefined)
+  })
+
+  it('conditions がある場合、不正解時に不足条件を日本語ラベル・説明で表示する', async () => {
+    const user = userEvent.setup()
+    const conditionTask: TestTask = {
+      instruction: '条件付き問題',
+      starterCode: 'const x = ____',
+      expectedKeywords: ['setName'],
+      conditions: [
+        {
+          id: 'c-update',
+          label: '状態を更新する',
+          requiredKeywords: ['setName'],
+          explanation: 'setNameで名前を更新しましょう',
+        },
+      ],
+    }
+
+    render(<TestMode stepId="step-cond" task={conditionTask} onComplete={vi.fn()} />)
+
+    await user.type(screen.getByLabelText('コードの空欄を入力'), 'foo')
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(screen.getByText('以下の条件を満たせているか確認しましょう:')).toBeTruthy()
+    expect(screen.getByText('状態を更新する')).toBeTruthy()
+    expect(screen.getByText(/setNameで名前を更新しましょう/)).toBeTruthy()
+  })
+
+  it('solutionCode がある場合、「解答例を見る」で解答例を表示できる', async () => {
+    const user = userEvent.setup()
+    const solutionTask: TestTask = {
+      instruction: '解答例つき問題',
+      starterCode: 'const x = ____',
+      expectedKeywords: ['setName'],
+      solutionCode: 'const [name, setName] = useState("")',
+    }
+
+    render(<TestMode stepId="step-sol" task={solutionTask} onComplete={vi.fn()} />)
+
+    await user.type(screen.getByLabelText('コードの空欄を入力'), 'foo')
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(screen.queryByText('const [name, setName] = useState("")')).toBeNull()
+    await user.click(screen.getByRole('button', { name: '解答例を見る' }))
+    expect(screen.getByText('const [name, setName] = useState("")')).toBeTruthy()
+  })
+
+  it('conditions が無い場合は従来どおり explanation を表示する（後方互換）', async () => {
+    const user = userEvent.setup()
+
+    render(<TestMode stepId="step-a" task={firstTask} onComplete={vi.fn()} />)
+
+    await user.type(screen.getByLabelText('コードの空欄を入力'), 'foo')
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(screen.getByText('解説1')).toBeTruthy()
+    expect(screen.queryByText('以下の条件を満たせているか確認しましょう:')).toBeNull()
+  })
+})

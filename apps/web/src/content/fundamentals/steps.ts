@@ -2,12 +2,25 @@ import { withLearningGoals } from '../stepLearningGoals'
 
 export type LearningMode = 'read' | 'practice' | 'test' | 'challenge'
 
+export type PracticeQuestionLevel = 'basic' | 'applied'
+
+export interface KeywordCondition {
+  id: string
+  label: string
+  requiredKeywords: string[]
+  explanation: string
+}
+
 export interface PracticeQuestion {
   id: string
   prompt: string
   answer: string
+  answerAliases?: string[]
+  level?: PracticeQuestionLevel
+  testedConcept?: string
   hint: string
   explanation?: string
+  solutionText?: string
   choices?: string[]
 }
 
@@ -15,7 +28,10 @@ export interface TestTask {
   instruction: string
   starterCode: string
   expectedKeywords: string[]
+  conditions?: KeywordCondition[]
+  hint?: string
   explanation?: string
+  solutionCode?: string
 }
 
 export interface ChallengeMobilePuzzleMultiBlank {
@@ -44,12 +60,30 @@ export interface ChallengePattern {
   anyOf?: string[][]
   /** 部分点での合格閾値（0-100。未指定なら全要件一致。任意） */
   passThreshold?: number
+  conditions?: KeywordCondition[]
   starterCode: string
+  solutionCode?: string
   mobilePuzzle?: ChallengeMobilePuzzle
 }
 
 export interface ChallengeTask {
+  primaryPatternId?: string
   patterns: ChallengePattern[]
+}
+
+/**
+ * Challenge の代表パターンを決定論的に解決する。
+ * `primaryPatternId` が指定され一致するパターンがあればそれを返し、
+ * 未指定または不一致の場合は先頭パターンへ fallback する（既存互換）。
+ * 出題に `Math.random()` を使わないことで、再マウントやページ離脱で問題が変わらない。
+ */
+export function resolvePrimaryPattern(task: ChallengeTask): ChallengePattern {
+  const primary = task.primaryPatternId
+    ? task.patterns.find((pattern) => pattern.id === task.primaryPatternId)
+    : undefined
+  const pattern = primary ?? task.patterns[0]
+  if (!pattern) throw new Error('ChallengeTask has no patterns')
+  return pattern
 }
 
 export interface LearningStepContent {
@@ -137,6 +171,21 @@ export function Counter() {
 - **\`[count, setCount]\`**: 配列の分割代入です。1つ目が現在の値 (\`state\`)、2つ目が更新用の関数 (\`setter\`) です。
 
 setter関数（\`setCount\`など）を呼び出すことで、Reactはそのコンポーネントの新しい状態を認識し、画面を最新の状態に更新（再レンダリング）します。
+
+## Hookのルール
+
+\`useState\` のような Hook には、呼び出す場所のルールがあります。**Hook は必ずコンポーネントのトップレベルで呼び出します**。\`if\` 文・ループ・ネストした関数の中では呼び出せません。
+
+\`\`\`tsx
+function Counter({ enabled }) {
+  if (enabled) {
+    const [count, setCount] = useState(0); // NG: 条件分岐の中では呼べない
+  }
+  // ...
+}
+\`\`\`
+
+これは、Reactが「何番目に呼ばれた Hook か」で各 state を区別しているためです。呼び出し順が毎回変わると state が正しく対応づけられません。常にトップレベルで、同じ順番で呼び出してください。
 `,
     practiceQuestions: [
       {
@@ -184,9 +233,26 @@ setter関数（\`setCount\`など）を呼び出すことで、Reactはそのコ
       starterCode: `const [count, setCount] = useState(10)
 return <button onClick={() => ____}>-1 ({count})</button>`,
       expectedKeywords: ['setCount', 'count - 1'],
+      conditions: [
+        {
+          id: 'call-setter',
+          label: '更新関数 setCount を呼び出している',
+          requiredKeywords: ['setCount'],
+          explanation: '状態を変えるには更新関数 setCount を呼び出す必要があります。',
+        },
+        {
+          id: 'decrement',
+          label: '現在値から1引いた値を渡している',
+          requiredKeywords: ['count - 1'],
+          explanation: 'setCount に count - 1 を渡すと、現在値より1小さい値がセットされます。',
+        },
+      ],
       explanation: 'setCount に count - 1 を渡します。setCount(count - 1) と書くと、現在値より1小さい値がセットされます。',
+      solutionCode: `const [count, setCount] = useState(10)
+return <button onClick={() => setCount(count - 1)}>-1 ({count})</button>`,
     },
     challengeTask: {
+      primaryPatternId: 'usestate-like',
       patterns: [
         {
           id: 'usestate-like',
@@ -194,6 +260,21 @@ return <button onClick={() => ____}>-1 ({count})</button>`,
           requirements: ['初期値0から開始する', 'クリックで+1される', '現在値を表示する'],
           hints: ['まず state を 1 つ定義する', 'イベントハンドラで setter を呼ぶ'],
           expectedKeywords: ['useState', 'setCount', 'onClick'],
+          conditions: [
+            {
+              id: 'define-state',
+              label: 'state を定義している',
+              requiredKeywords: ['useState'],
+              explanation: 'useState でいいね数の状態（count）と更新関数（setCount）を定義します。',
+            },
+            {
+              id: 'update-on-click',
+              label: 'クリックで更新関数を呼んでいる',
+              requiredKeywords: ['setCount', 'onClick'],
+              explanation: 'button の onClick で setCount を呼び、count を増やします。',
+            },
+          ],
+          solutionCode: `import { useState } from 'react';\n\nexport function LikeButton() {\n  const [count, setCount] = useState(0);\n\n  return (\n    <button onClick={() => setCount(count + 1)}>\n      いいね {count}\n    </button>\n  );\n}`,
           starterCode: `import { useState } from 'react';\n\nexport function LikeButton() {\n  // TODO: useStateを使って、いいね数(count)と更新関数(setCount)を定義してください。\n  // 初期値は 0 にします。\n\n  return (\n    // TODO: buttonのonClickに、クリックされたら count を +1 する処理を書いてください。\n    <button>\n      {/* TODO: ここに現在のいいね数(count)を表示してください */}\n      いいね 0\n    </button>\n  );\n}`,
           mobilePuzzle: {
             type: 'multi',
@@ -310,6 +391,28 @@ export function NameInput() {
 
 - \`onChange\` は入力が変わるたびに呼ばれます。
 - 引数の event (\`e\`) オブジェクトを通じて、入力された最新の値 (\`e.target.value\`) を取得し、\`setName\` で状態を更新します。
+
+## フォーム送信のデフォルト動作を止める
+
+\`<form>\` はブラウザ標準の動きとして、送信時にページを再読み込みしようとします。React の SPA では画面全体を再読み込みせず、イベントハンドラの中で処理を続けたいので、\`onSubmit\` に渡した関数の中で \`e.preventDefault()\` を呼びます。
+
+\`\`\`tsx
+export function SearchForm() {
+  function handleSubmit(e) {
+    e.preventDefault();
+    alert('送信しました');
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <button type="submit">送信</button>
+    </form>
+  );
+}
+\`\`\`
+
+- \`onSubmit\` はフォームが送信されたときに呼ばれます。
+- \`e.preventDefault()\` は、ページリロードなどのブラウザ標準動作を止めるメソッドです。
 `,
     practiceQuestions: [
       {
@@ -345,6 +448,7 @@ export function NameInput() {
         id: 'q5',
         prompt: 'フォームの送信などで、ブラウザのデフォルトの動作（ページリロードなど）を防ぐために呼ぶメソッドは何ですか？（e.〇〇〇〇）',
         answer: 'preventDefault',
+        answerAliases: ['e.preventDefault', 'preventDefault()', 'e.preventDefault()'],
         hint: 'デフォルト(default)の動作を、防ぐ(prevent)関数です。',
         explanation: 'SPAではページリロードなしで動作させるため、onSubmitハンドラ内でe.preventDefault()を呼び出します。',
       },
@@ -353,9 +457,19 @@ export function NameInput() {
       instruction: 'input要素に文字が入力されたときに実行されるイベントプロパティを空欄に埋めてください。',
       starterCode: `<input value={name} ____={(e) => setName(e.target.value)} />`,
       expectedKeywords: ['onChange'],
+      conditions: [
+        {
+          id: 'use-onchange',
+          label: 'input に onChange を指定している',
+          requiredKeywords: ['onChange'],
+          explanation: 'input の値変化を検知するイベントプロパティは onChange です。',
+        },
+      ],
       explanation: 'input要素の値変化を検知するにはonChangeを使います。e.target.valueで入力テキストを取得できます。',
+      solutionCode: `<input value={name} onChange={(e) => setName(e.target.value)} />`,
     },
     challengeTask: {
+      primaryPatternId: 'events-preview',
       patterns: [
         {
           id: 'events-preview',
@@ -363,6 +477,21 @@ export function NameInput() {
           requirements: ['入力欄を1つ置く', '入力値を下に表示する', '表示は即時反映される'],
           hints: ['onChange で値を受け取る', 'useStateで保持する'],
           expectedKeywords: ['onChange', 'target.value', 'useState'],
+          conditions: [
+            {
+              id: 'define-state',
+              label: '入力値を保持する state を定義している',
+              requiredKeywords: ['useState'],
+              explanation: 'useState で入力文字列を保持する state を作ります。',
+            },
+            {
+              id: 'handle-change',
+              label: 'onChange で入力値を取得している',
+              requiredKeywords: ['onChange', 'target.value'],
+              explanation: 'input の onChange で e.target.value を受け取り、state を更新します。',
+            },
+          ],
+          solutionCode: `import { useState } from 'react';\n\nexport function LiveInput() {\n  const [text, setText] = useState('');\n\n  return (\n    <div>\n      <input\n        placeholder="入力してください"\n        value={text}\n        onChange={(e) => setText(e.target.value)}\n      />\n      <p>入力内容: {text}</p>\n    </div>\n  );\n}`,
           starterCode: `import { useState } from 'react';\n\nexport function LiveInput() {\n  // TODO: 入力文字列を保持する text というstateを作成してください。\n  \n  return (\n    <div>\n      {/* TODO: inputにonChangeイベントを設定し、入力値(e.target.value)で text を更新してください */}\n      <input placeholder="入力してください" />\n      <p>入力内容: {/* TODO: text変数をここに表示してください */}</p>\n    </div>\n  );\n}`,
           mobilePuzzle: {
             type: 'multi',
@@ -517,8 +646,10 @@ function Notifications({ unreadCount }) {
         id: 'q5',
         prompt: '`unreadCount > 0 && <p>New Message</p>` というコードにおいて、短絡評価と呼ばれる性質により、左辺が false の場合、右辺はどう評価されますか？',
         answer: '無視される',
+        level: 'applied',
+        testedConcept: '&& の短絡評価（左辺が false なら右辺は評価されない）',
         hint: '左辺がfalseであれば、全体もfalseになることが確定するため、右辺の評価はスキップされます。',
-        explanation: '&& の短絡評価：左辺がfalseなら全体の結果がfalseで確定するため、右辺は評価されず何も表示されません。',
+        explanation: '&& の短絡評価：左辺がfalseなら全体の結果がfalseで確定するため、右辺は評価されず何も表示されません。なお左辺が 0 のような falsy な数値だと、その 0 が画面に表示される落とし穴があるため、左辺は boolean にするのが安全です。',
         choices: ['無視される', '実行される', 'エラーになる', 'nullが返る'],
       },
     ],
@@ -526,9 +657,19 @@ function Notifications({ unreadCount }) {
       instruction: 'isLoggedIn が true の時だけ「Welcome」というパラグラフを表示したいです。最適な演算子を埋めてください。',
       starterCode: `{isLoggedIn ____ <p>Welcome</p>}`,
       expectedKeywords: ['&&'],
+      conditions: [
+        {
+          id: 'use-and',
+          label: '&& 演算子を使っている',
+          requiredKeywords: ['&&'],
+          explanation: 'trueのときだけ表示し、falseなら何も表示しない場合は && を使います。',
+        },
+      ],
       explanation: '「trueのときだけ表示、falseなら何も表示しない」には && を使います。三項演算子では falseのとき に null を返す必要があり冗長になります。',
+      solutionCode: `{isLoggedIn && <p>Welcome</p>}`,
     },
     challengeTask: {
+      primaryPatternId: 'conditional-login',
       patterns: [
         {
           id: 'conditional-login',
@@ -536,6 +677,21 @@ function Notifications({ unreadCount }) {
           requirements: ['trueなら「ようこそ」を描画', 'falseならログインボタンを描画', '三項演算子を使う'],
           hints: ['isLoggedIn ? A : B を使う'],
           expectedKeywords: ['isLoggedIn', '?', ':'],
+          conditions: [
+            {
+              id: 'use-ternary',
+              label: '三項演算子で分岐している',
+              requiredKeywords: ['?', ':'],
+              explanation: '三項演算子 条件 ? A : B を使って表示内容を切り替えます。',
+            },
+            {
+              id: 'branch-on-login',
+              label: 'ログイン状態で切り替えている',
+              requiredKeywords: ['isLoggedIn'],
+              explanation: 'isLoggedIn の真偽で「ようこそ」とログインボタンを切り替えます。',
+            },
+          ],
+          solutionCode: `import { useState } from 'react';\n\nexport function AuthPanel() {\n  const [isLoggedIn, setIsLoggedIn] = useState(false);\n\n  return (\n    <div>\n      {isLoggedIn ? (\n        <p>ようこそ！</p>\n      ) : (\n        <button onClick={() => setIsLoggedIn(true)}>ログイン</button>\n      )}\n    </div>\n  );\n}`,
           starterCode: `import { useState } from 'react';\n\nexport function AuthPanel() {\n  const [isLoggedIn, setIsLoggedIn] = useState(false);\n\n  return (\n    <div>\n      {/* TODO: 以下のコメント部分を三項演算子(?と:)に置き換え、\n          isLoggedInが true なら <p>ようこそ！</p> を、\n          false なら <button onClick={() => setIsLoggedIn(true)}>ログイン</button> を表示してください。 \n      */}\n      {/* ここに三項演算子を書く */}\n    </div>\n  );\n}`,
           mobilePuzzle: {
             type: 'multi',
@@ -623,6 +779,16 @@ export function List() {
 **keyの選び方**
 - **データのIDを使う:** データベースのレコードIDなど、安定した一意の値が最適です。
 - **indexを避ける:** 配列のインデックス（\`0\`, \`1\`, \`2\`...）を \`key\` に使用すると、後からアイテムの順序が変わった場合（並び替えや先頭追加など）に React が要素を取り違えてしまい、予期せぬバグの温床になります。
+
+## 絞り込んで描画する（filter().map()）
+
+「条件に合うものだけ表示したい」場合は、\`map()\` の前に \`filter()\` で配列を絞り込みます。\`filter()\` は条件を満たす要素だけの新しい配列を返すので、\`filter().map()\` とつなげると「絞り込み → 変換」が一度に書けます。
+
+\`\`\`tsx
+{todos
+  .filter(todo => todo.isCompleted)
+  .map(todo => <li key={todo.id}>{todo.title}</li>)}
+\`\`\`
 `,
     practiceQuestions: [
       {
@@ -667,9 +833,25 @@ export function List() {
       instruction: 'ユーザーのリスト (users) を描画するため、map() の要素の li タグに最適な属性を書いてください。',
       starterCode: `{users.map(user => <li ____>{user.name}</li>)}`,
       expectedKeywords: ['key={user.id}'],
+      conditions: [
+        {
+          id: 'specify-key',
+          label: 'key プロパティを指定している',
+          requiredKeywords: ['key='],
+          explanation: 'リストの各要素には key を指定する必要があります。',
+        },
+        {
+          id: 'use-id-not-index',
+          label: 'index ではなく user.id を使っている',
+          requiredKeywords: ['user.id'],
+          explanation: 'key には並び替えても変わらない一意の値（user.id）を使います。',
+        },
+      ],
       explanation: 'key={user.id} のようにデータの一意な値を渡します。keyは文字列または数値で、インデックスは推奨されません。',
+      solutionCode: `{users.map(user => <li key={user.id}>{user.name}</li>)}`,
     },
     challengeTask: {
+      primaryPatternId: 'lists-todo',
       patterns: [
         {
           id: 'lists-todo',
@@ -679,6 +861,21 @@ export function List() {
           expectedKeywords: ['map', 'key=', 'todo.id'],
           // 配列インデックスを key にするアンチパターンを抑止する
           ngKeywords: ['key={index}', 'key={i}'],
+          conditions: [
+            {
+              id: 'use-map',
+              label: 'map で配列を描画している',
+              requiredKeywords: ['map'],
+              explanation: 'todos.map((todo) => ...) で各要素を <li> に変換します。',
+            },
+            {
+              id: 'unique-key',
+              label: '一意な key を指定している',
+              requiredKeywords: ['key=', 'todo.id'],
+              explanation: '各 <li> に key={todo.id} を渡して一意に識別します。',
+            },
+          ],
+          solutionCode: `export function TodoList() {\n  const todos = [\n    { id: 1, title: 'Reactを学ぶ' },\n    { id: 2, title: 'TypeScriptを学ぶ' },\n  ];\n\n  return (\n    <ul>\n      {todos.map((todo) => (\n        <li key={todo.id}>{todo.title}</li>\n      ))}\n    </ul>\n  );\n}`,
           starterCode: `export function TodoList() {\n  const todos = [\n    { id: 1, title: 'Reactを学ぶ' },\n    { id: 2, title: 'TypeScriptを学ぶ' },\n  ];\n\n  return (\n    <ul>\n      {/* TODO: todos を map し、それぞれ <li> タグとして描画してください。\n          <li> には必ず key に todo.id を指定し、中身に todo.title を表示してください。 \n      */}\n      \n    </ul>\n  );\n}`,
           mobilePuzzle: {
             type: 'multi',
@@ -687,7 +884,7 @@ export function List() {
               {
                 id: 'map',
                 label: 'リスト描画',
-                correctTokens: ['{', 'todos.map', '(', '(', 'todo', ')', '=>', '<li', 'key', '=', '{', 'todo.id', '}', '>', '{', 'todo.title', '}', '</li>', ')', '}'],
+                correctTokens: ['{', 'todos.map', '(', '(', 'todo', ')', '=>', '<li', 'key={', 'todo.id', '}', '>', '{', 'todo.title', '}', '</li>', ')', '}'],
                 distractorTokens: ['forEach', 'filter', 'index', 'todo.name', 'reduce'],
               },
             ],
@@ -713,7 +910,7 @@ export function List() {
               {
                 id: 'map',
                 label: 'リスト描画',
-                correctTokens: ['.map', '(', '(', 't', ')', '=>', '<li', 'key', '=', '{', 't.id', '}', '>', '{', 't.title', '}', '</li>', ')'],
+                correctTokens: ['.map', '(', '(', 't', ')', '=>', '<li', 'key={', 't.id', '}', '>', '{', 't.title', '}', '</li>', ')'],
                 distractorTokens: ['index', 't.name', 'forEach', 'reduce'],
               },
             ],

@@ -160,6 +160,8 @@ function App() {
       hint: 'ネットワークエラーが発生したときのフォールバック UI を提供します。',
       explanation: 'ネットワークエラーなどで lazy コンポーネントの読み込みが失敗した場合、Error Boundary がエラーをキャッチしてフォールバック UI を表示します。Suspense と組み合わせて使うのがベストプラクティスです。',
       choices: ['Error Boundary', 'try/catch', 'useErrorHandler', 'onError prop'],
+      level: 'applied',
+      testedConcept: 'lazy 読み込み失敗時の Error Boundary 連携',
     },
   ],
   testTask: {
@@ -176,9 +178,41 @@ function App() {
   )
 }`,
     expectedKeywords: ['lazy'],
+    conditions: [
+      {
+        id: 'use-lazy',
+        label: 'lazy で遅延読み込みしている',
+        requiredKeywords: ['lazy', 'import'],
+        explanation: 'lazy(() => import(...)) でコンポーネントを別チャンクとして読み込みます。',
+      },
+      {
+        id: 'wrap-suspense',
+        label: 'Suspense でラップしている',
+        requiredKeywords: ['Suspense', 'HeavyComponent'],
+        explanation: 'lazy コンポーネントは Suspense の内側でレンダリングします。',
+      },
+      {
+        id: 'fallback-ui',
+        label: 'fallback に読み込み中UIを渡している',
+        requiredKeywords: ['fallback', '読み込み中'],
+        explanation: '読み込み完了まで表示する fallback UI を指定します。',
+      },
+    ],
     explanation: 'React.lazy（または import した lazy）と動的 import() を組み合わせてコンポーネントを遅延読み込みします。Suspense の fallback にローディング UI を渡します。',
+    solutionCode: `import { Suspense, lazy } from 'react'
+
+const HeavyComponent = lazy(() => import('./HeavyComponent'))
+
+function App() {
+  return (
+    <Suspense fallback={<p>読み込み中...</p>}>
+      <HeavyComponent />
+    </Suspense>
+  )
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'suspense-lazy-1',
     patterns: [
       {
         id: 'suspense-lazy-1',
@@ -195,6 +229,44 @@ function App() {
           'Error Boundary は Suspense の外側に配置します',
         ],
         expectedKeywords: ['lazy', 'Suspense', 'fallback', 'import'],
+        conditions: [
+          {
+            id: 'lazy-pages',
+            label: '3ページを lazy import している',
+            requiredKeywords: ['lazy', 'HomePage', 'AboutPage', 'ContactPage', 'import'],
+            explanation: '各ページを lazy(() => import(...)) で個別に遅延読み込みします。',
+          },
+          {
+            id: 'suspense-fallback',
+            label: 'Suspense fallback で Routes を包んでいる',
+            requiredKeywords: ['Suspense', 'fallback', 'Routes'],
+            explanation: 'Routes 全体を Suspense で包み、ページ読み込み中のUIを表示します。',
+          },
+          {
+            id: 'route-elements',
+            label: '各ルートに lazy ページを割り当てている',
+            requiredKeywords: ['Route', 'HomePage', 'AboutPage', 'ContactPage'],
+            explanation: 'Route の element に遅延読み込みしたページコンポーネントを指定します。',
+          },
+        ],
+        solutionCode: `import { Suspense, lazy } from 'react'
+import { Routes, Route } from 'react-router-dom'
+
+const HomePage = lazy(() => import('./pages/HomePage'))
+const AboutPage = lazy(() => import('./pages/AboutPage'))
+const ContactPage = lazy(() => import('./pages/ContactPage'))
+
+function App() {
+  return (
+    <Suspense fallback={<p>読み込み中...</p>}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+      </Routes>
+    </Suspense>
+  )
+}`,
         starterCode: `import { Suspense, lazy } from 'react'
 import { Routes, Route } from 'react-router-dom'
 

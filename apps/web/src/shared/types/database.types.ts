@@ -68,6 +68,7 @@ export type Database = {
           id: string
           is_passed: boolean
           matched_keywords: string[]
+          pattern_id: string | null
           step_id: string
           submitted_at: string
           user_id: string
@@ -77,6 +78,7 @@ export type Database = {
           id?: string
           is_passed?: boolean
           matched_keywords?: string[]
+          pattern_id?: string | null
           step_id: string
           submitted_at?: string
           user_id: string
@@ -86,6 +88,7 @@ export type Database = {
           id?: string
           is_passed?: boolean
           matched_keywords?: string[]
+          pattern_id?: string | null
           step_id?: string
           submitted_at?: string
           user_id?: string
@@ -368,6 +371,7 @@ export type Database = {
           user_id: string
           challenge_id: string
           completed: boolean
+          is_correct: boolean | null
           points_earned: number
           completed_at: string | null
           challenge_date: string
@@ -377,6 +381,7 @@ export type Database = {
           user_id: string
           challenge_id: string
           completed?: boolean
+          is_correct?: boolean | null
           points_earned?: number
           completed_at?: string | null
           challenge_date: string
@@ -386,6 +391,7 @@ export type Database = {
           user_id?: string
           challenge_id?: string
           completed?: boolean
+          is_correct?: boolean | null
           points_earned?: number
           completed_at?: string | null
           challenge_date?: string

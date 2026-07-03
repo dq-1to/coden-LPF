@@ -129,6 +129,8 @@ function Counter() {
         id: 'performance-q5',
         prompt: 'useCallback と memo をセットで使わないと効果が薄い理由は何ですか？',
         answer: '子コンポーネントが memo されていないと関数参照が安定しても再レンダリングが起きるから',
+        level: 'applied',
+        testedConcept: 'useCallback と memo を組み合わせる理由',
         hint: 'useCallback は関数参照を安定させますが、受け取る子が memo されていないと効果がありません。',
         explanation: 'memoなしの子コンポーネントは親が再レンダーするたびに再レンダーされます。useCallbackだけでは子の再レンダーを防げません。',
       },
@@ -143,9 +145,22 @@ const filtered = ____(
   [items, query]
 );`,
       expectedKeywords: ['useMemo'],
+      conditions: [
+        {
+          id: 'use-usememo',
+          label: 'useMemo を呼び出している',
+          requiredKeywords: ['useMemo'],
+          explanation: 'フィルタ計算をキャッシュするには useMemo を使います。',
+        },
+      ],
       explanation: 'useMemoでフィルタ計算をキャッシュすると、queryやitemsが変わらない限り再計算されません。countの変化による無駄な計算を防げます。',
+      solutionCode: `const filtered = useMemo(
+  () => items.filter(item => item.includes(query)),
+  [items, query]
+);`,
     },
     challengeTask: {
+      primaryPatternId: 'performance-1',
       patterns: [
         {
           id: 'performance-1',
@@ -162,6 +177,54 @@ const filtered = ____(
             '関数内で setCount(c => c + 1) のように関数形式を使うと依存配列が空でも安全',
           ],
           expectedKeywords: ['useCallback', 'memo', 'setCount', 'setTheme'],
+          conditions: [
+            {
+              id: 'memo-child',
+              label: 'ActionButton を memo で包んでいる',
+              requiredKeywords: ['memo'],
+              explanation: '子コンポーネントを memo で包むと、props が変わらないときの再レンダリングを抑えられます。',
+            },
+            {
+              id: 'callback-handlers',
+              label: '増減ハンドラを useCallback で安定化している',
+              requiredKeywords: ['useCallback', 'setCount'],
+              explanation: 'useCallback で onClick に渡す関数参照を安定させます。',
+            },
+            {
+              id: 'theme-toggle',
+              label: 'テーマ切り替え state を持っている',
+              requiredKeywords: ['setTheme'],
+              explanation: 'テーマ切り替えで親が再レンダーされても、ActionButton が不要に再レンダーされない構成にします。',
+            },
+          ],
+          solutionCode: `import { useCallback, memo, useState } from 'react';
+
+interface ActionButtonProps {
+  onClick: () => void;
+  label: string;
+}
+
+const ActionButton = memo(({ onClick, label }: ActionButtonProps) => {
+  return <button onClick={onClick}>{label}</button>;
+});
+
+export function OptimizedCounter() {
+  const [count, setCount] = useState(0);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const handleIncrement = useCallback(() => setCount((c) => c + 1), []);
+  const handleDecrement = useCallback(() => setCount((c) => c - 1), []);
+
+  return (
+    <div>
+      <p>カウント: {count}</p>
+      <ActionButton onClick={handleIncrement} label="増やす" />
+      <ActionButton onClick={handleDecrement} label="減らす" />
+      <button onClick={() => setTheme((t) => t === 'light' ? 'dark' : 'light')}>
+        テーマ切り替え（{theme}）
+      </button>
+    </div>
+  );
+}`,
           starterCode: `import { useState, useCallback, memo } from 'react';
 
 interface ActionButtonProps {

@@ -142,7 +142,7 @@ function useGood() {
       },
       {
         id: 'q2',
-        prompt: 'カスタムHookがコンポーネント間で「共有」するのは、StateそのものではなくなんですA？',
+        prompt: 'カスタムHookがコンポーネント間で「共有」するのは、Stateそのものではなく何ですか？',
         answer: 'ロジック',
         hint: '各コンポーネントでHookを呼ぶたびに、独立したStateが生成されます。',
         explanation: 'カスタムHookを使う各コンポーネントは独立したStateを持ちます。共有されるのはロジック（関数の定義）だけです。',
@@ -182,9 +182,25 @@ function useToggle(initial = false) {
   return { value, toggle };
 }`,
       expectedKeywords: ['setValue', '!'],
+      conditions: [
+        {
+          id: 'call-setvalue',
+          label: 'setValue を呼び出している',
+          requiredKeywords: ['setValue'],
+          explanation: 'toggle 関数では value を更新するために setValue を呼び出します。',
+        },
+        {
+          id: 'invert-value',
+          label: '真偽値を反転している',
+          requiredKeywords: ['!'],
+          explanation: '!value または v => !v のように、現在の真偽値を反転します。',
+        },
+      ],
       explanation: 'toggle関数ではsetValueにコールバック v => !v を渡すか、setValue(!value) で現在値を反転させます。',
+      solutionCode: `const toggle = () => setValue((v) => !v);`,
     },
     challengeTask: {
+      primaryPatternId: 'custom-hooks-1',
       patterns: [
         {
           id: 'custom-hooks-1',
@@ -201,6 +217,41 @@ function useToggle(initial = false) {
             'setValue を呼んだとき localStorage.setItem(key, JSON.stringify(newValue)) を実行する',
           ],
           expectedKeywords: ['useLocalStorage', 'useState', 'localStorage', 'JSON.parse', 'JSON.stringify'],
+          conditions: [
+            {
+              id: 'define-hook',
+              label: 'useLocalStorage カスタムHookを定義している',
+              requiredKeywords: ['useLocalStorage'],
+              explanation: '再利用するロジックは useLocalStorage という Hook として切り出します。',
+            },
+            {
+              id: 'read-storage',
+              label: 'localStorage から初期値を読み込んでいる',
+              requiredKeywords: ['localStorage.getItem', 'JSON.parse'],
+              explanation: '保存済みの値を localStorage.getItem で取得し、JSON.parse で値に戻します。',
+            },
+            {
+              id: 'write-storage',
+              label: '更新時に localStorage へ保存している',
+              requiredKeywords: ['localStorage.setItem', 'JSON.stringify'],
+              explanation: '値を更新するときは JSON.stringify した値を localStorage に保存します。',
+            },
+          ],
+          solutionCode: `import { useState } from 'react';
+
+function useLocalStorage<T>(key: string, initialValue: T) {
+  const [value, setStoredValue] = useState<T>(() => {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) as T : initialValue;
+  });
+
+  const setValue = (nextValue: T) => {
+    setStoredValue(nextValue);
+    localStorage.setItem(key, JSON.stringify(nextValue));
+  };
+
+  return { value, setValue };
+}`,
           starterCode: `import { useState } from 'react';
 
 // TODO: useLocalStorage カスタムHookを実装してください

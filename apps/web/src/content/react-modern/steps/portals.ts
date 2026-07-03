@@ -174,6 +174,8 @@ function PortalWrapper({ children }) {
       hint: 'useEffect のクリーンアップ関数で後片付けします。',
       explanation: 'useEffect 内で document.createElement → document.body.appendChild し、クリーンアップ関数で document.body.removeChild を呼びます。これでメモリリークを防げます。',
       choices: ['作成した DOM 要素を document.body から削除する', '何もしなくてよい（自動クリーンアップされる）', 'createPortal の戻り値に .destroy() を呼ぶ', 'ReactDOM.unmountComponentAtNode を呼ぶ'],
+      level: 'applied',
+      testedConcept: '動的 Portal container の cleanup',
     },
   ],
   testTask: {
@@ -192,9 +194,43 @@ function Modal({ isOpen, onClose }) {
   )
 }`,
     expectedKeywords: ['createPortal'],
+    conditions: [
+      {
+        id: 'use-create-portal',
+        label: 'createPortal を使っている',
+        requiredKeywords: ['createPortal'],
+        explanation: 'Portal 描画には react-dom の createPortal を使います。',
+      },
+      {
+        id: 'body-target',
+        label: '描画先に document.body を指定している',
+        requiredKeywords: ['document.body'],
+        explanation: 'モーダルを body 直下に描画して親DOMの制約を避けます。',
+      },
+      {
+        id: 'closed-null',
+        label: 'isOpen が false のとき null を返している',
+        requiredKeywords: ['isOpen', 'return null'],
+        explanation: '閉じているときは何もレンダリングしません。',
+      },
+    ],
     explanation: 'react-dom から createPortal をインポートし、createPortal(children, document.body) でモーダルを body 直下にレンダリングします。',
+    solutionCode: `import { createPortal } from 'react-dom'
+
+function Modal({ isOpen, onClose }) {
+  if (!isOpen) return null
+
+  return createPortal(
+    <div>
+      <p>モーダルの中身</p>
+      <button onClick={onClose}>閉じる</button>
+    </div>,
+    document.body
+  )
+}`,
   },
   challengeTask: {
+    primaryPatternId: 'portals-1',
     patterns: [
       {
         id: 'portals-1',
@@ -210,6 +246,42 @@ function Modal({ isOpen, onClose }) {
           'createPortal の第2引数は document.body です',
         ],
         expectedKeywords: ['createPortal', 'document.body', 'stopPropagation'],
+        conditions: [
+          {
+            id: 'early-return',
+            label: 'isOpen が false のとき null を返している',
+            requiredKeywords: ['!isOpen', 'return null'],
+            explanation: '閉じている状態では Portal を作らず null を返します。',
+          },
+          {
+            id: 'body-portal',
+            label: 'document.body へ createPortal している',
+            requiredKeywords: ['createPortal', 'document.body'],
+            explanation: 'モーダルを body 直下へ描画します。',
+          },
+          {
+            id: 'stop-propagation',
+            label: 'モーダル内クリックの伝播を止めている',
+            requiredKeywords: ['stopPropagation'],
+            explanation: 'コンテンツ内クリックで overlay の onClose が発火しないようにします。',
+          },
+        ],
+        solutionCode: `import { createPortal } from 'react-dom'
+import { useState } from 'react'
+
+function Modal({ isOpen, onClose, children }) {
+  if (!isOpen) return null
+
+  return createPortal(
+    <div className="overlay" onClick={onClose}>
+      <div className="content" onClick={(e) => e.stopPropagation()}>
+        {children}
+        <button onClick={onClose}>閉じる</button>
+      </div>
+    </div>,
+    document.body
+  )
+}`,
         starterCode: `import { createPortal } from 'react-dom'
 import { useState } from 'react'
 

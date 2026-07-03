@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { judgeKeywords } from '../judge'
+import { judgeKeywordConditions, judgeKeywords, stripNonAuthoredCode } from '../judge'
 
 describe('judgeKeywords', () => {
   it('必須キーワードをすべて含めば passed: true / score 100', () => {
@@ -117,5 +117,176 @@ describe('judgeKeywords', () => {
       expect(result.score).toBe(100)
       expect(result.passed).toBe(false)
     })
+  })
+})
+
+describe('judgeKeywordConditions', () => {
+  it('全条件を満たすと passed: true / score 100 を返す', () => {
+    const result = judgeKeywordConditions('setCount(count - 1); onClick={handleClick}', [
+      {
+        id: 'state-update',
+        label: 'state更新',
+        requiredKeywords: ['setCount', 'count - 1'],
+        explanation: 'setCount で count を更新できているか確認しましょう。',
+      },
+      {
+        id: 'event-handler',
+        label: 'イベント接続',
+        requiredKeywords: ['onClick'],
+        explanation: 'ボタンのクリック処理に接続できているか確認しましょう。',
+      },
+    ])
+
+    expect(result.passed).toBe(true)
+    expect(result.score).toBe(100)
+    expect(result.conditions).toHaveLength(2)
+    expect(result.satisfiedConditions.map((condition) => condition.id)).toEqual(['state-update', 'event-handler'])
+    expect(result.unsatisfiedConditions).toHaveLength(0)
+  })
+
+  it('不足条件をラベルと説明つきで返す', () => {
+    const result = judgeKeywordConditions('setCount(count - 1)', [
+      {
+        id: 'state-update',
+        label: 'state更新',
+        requiredKeywords: ['setCount', 'count - 1'],
+        explanation: 'setCount で count を更新できているか確認しましょう。',
+      },
+      {
+        id: 'event-handler',
+        label: 'イベント接続',
+        requiredKeywords: ['onClick'],
+        explanation: 'ボタンのクリック処理に接続できているか確認しましょう。',
+      },
+    ])
+
+    expect(result.passed).toBe(false)
+    expect(result.score).toBe(50)
+    expect(result.satisfiedConditions.map((condition) => condition.id)).toEqual(['state-update'])
+    expect(result.unsatisfiedConditions).toHaveLength(1)
+    expect(result.unsatisfiedConditions[0]).toMatchObject({
+      id: 'event-handler',
+      label: 'イベント接続',
+      explanation: 'ボタンのクリック処理に接続できているか確認しましょう。',
+      missing: ['onClick'],
+    })
+  })
+
+  it('条件ごとの anyOf と passThreshold を既存判定と同じように扱う', () => {
+    const result = judgeKeywordConditions('setCount(prev => prev + 1)', [
+      {
+        id: 'increment',
+        label: '増加処理',
+        requiredKeywords: ['setCount'],
+        anyOf: [['count + 1'], ['prev => prev + 1']],
+        explanation: '現在値をもとに1増やせているか確認しましょう。',
+      },
+      {
+        id: 'partial',
+        label: '部分条件',
+        requiredKeywords: ['setCount', 'onClick'],
+        passThreshold: 50,
+        explanation: '必要な要素を組み合わせられているか確認しましょう。',
+      },
+    ])
+
+    expect(result.passed).toBe(true)
+    expect(result.score).toBe(100)
+    expect(result.satisfiedConditions).toHaveLength(2)
+  })
+
+  it('条件内の ngKeywords 違反を不足条件として扱う', () => {
+    const result = judgeKeywordConditions('var count = 0; setCount(count + 1)', [
+      {
+        id: 'safe-update',
+        label: '安全な更新',
+        requiredKeywords: ['setCount'],
+        ngKeywords: ['var '],
+        explanation: '避けたい書き方を含めずに実装できているか確認しましょう。',
+      },
+    ])
+
+    expect(result.passed).toBe(false)
+    expect(result.score).toBe(0)
+    expect(result.unsatisfiedConditions[0]?.violations).toEqual(['var '])
+  })
+
+  it('条件が空なら互換的に passed: true / score 100 を返す', () => {
+    const result = judgeKeywordConditions('anything', [])
+
+    expect(result.passed).toBe(true)
+    expect(result.score).toBe(100)
+    expect(result.conditions).toEqual([])
+    expect(result.satisfiedConditions).toEqual([])
+    expect(result.unsatisfiedConditions).toEqual([])
+  })
+})
+
+describe('stripNonAuthoredCode', () => {
+  it('行コメントを除去する', () => {
+    const stripped = stripNonAuthoredCode('const x = 1 // useState を使う')
+    expect(stripped).not.toContain('useState')
+    expect(stripped).toContain('const x = 1')
+  })
+
+  it('ブロックコメントを除去する', () => {
+    const stripped = stripNonAuthoredCode('/* TODO: onClick を書く */\nconst x = 1')
+    expect(stripped).not.toContain('onClick')
+    expect(stripped).toContain('const x = 1')
+  })
+
+  it('JSXコメントを除去する', () => {
+    const stripped = stripNonAuthoredCode('<div>{/* setCount を呼ぶ */}</div>')
+    expect(stripped).not.toContain('setCount')
+  })
+
+  it('import 文を除去する（from 句あり）', () => {
+    const stripped = stripNonAuthoredCode("import { useState } from 'react';\nconst x = 1")
+    expect(stripped).not.toContain('useState')
+    expect(stripped).toContain('const x = 1')
+  })
+
+  it('複数行 import を除去する', () => {
+    const code = "import {\n  useState,\n  useEffect,\n} from 'react'\nconst x = 1"
+    const stripped = stripNonAuthoredCode(code)
+    expect(stripped).not.toContain('useState')
+    expect(stripped).not.toContain('useEffect')
+    expect(stripped).toContain('const x = 1')
+  })
+
+  it('副作用 import を除去する', () => {
+    const stripped = stripNonAuthoredCode("import './styles.css'\nconst x = 1")
+    expect(stripped).toContain('const x = 1')
+    expect(stripped).not.toContain('styles.css')
+  })
+
+  it('importData のような語は import 文として誤除去しない', () => {
+    const stripped = stripNonAuthoredCode('const data = importData()')
+    expect(stripped).toContain('importData()')
+  })
+
+  it('サニタイズ後はコメント/import由来のキーワードが matched に数えられない', () => {
+    const starterOnly = `import { useState } from 'react';
+
+export function LikeButton() {
+  // TODO: onClick で setCount を呼ぶ
+  return <button>いいね 0</button>;
+}`
+    const result = judgeKeywords(stripNonAuthoredCode(starterOnly), {
+      requiredKeywords: ['useState', 'setCount', 'onClick'],
+    })
+    expect(result.passed).toBe(false)
+    expect(result.matched).toEqual([])
+    expect(result.missing).toEqual(['useState', 'setCount', 'onClick'])
+  })
+
+  it('コメント内の ng キーワードは違反に数えられない', () => {
+    const code = stripNonAuthoredCode('items.map((item) => <li key={item.id}>{item}</li>) // key={index} は避ける')
+    const result = judgeKeywords(code, {
+      requiredKeywords: ['map', 'key='],
+      ngKeywords: ['key={index}'],
+    })
+    expect(result.violations).toEqual([])
+    expect(result.passed).toBe(true)
   })
 })

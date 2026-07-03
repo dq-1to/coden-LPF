@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChallengeMode } from '../ChallengeMode'
 import type { ChallengeTask } from '../../../content/fundamentals/steps'
+import { buildChallengeDraftKey } from '../../../lib/challengeDraft'
 
 const recordWrongAnswer = vi.fn()
 const resolveReviewItem = vi.fn()
@@ -117,6 +118,7 @@ describe('ChallengeMode', () => {
       code: 'const [count, setCount] = useState(0); <button onClick={() => setCount(count + 1)} />',
       isPassed: true,
       matchedKeywords: ['useState', 'onClick'],
+      patternId: 'pattern-1',
     })
     expect(resolveReviewItem).toHaveBeenCalledWith({
       userId: '00000000-0000-0000-0000-000000000001',
@@ -272,6 +274,68 @@ describe('ChallengeMode', () => {
     expect(screen.getByRole('alert').textContent).toContain('保存エラーが発生しました')
   })
 
+  it('primaryPatternId 指定時はその代表パターンが出題される', () => {
+    const multiPatternTask: ChallengeTask = {
+      primaryPatternId: 'pattern-second',
+      patterns: [
+        {
+          id: 'pattern-first',
+          prompt: '先頭パターン',
+          requirements: ['要件first'],
+          hints: ['ヒントfirst'],
+          expectedKeywords: ['first'],
+          starterCode: '',
+        },
+        {
+          id: 'pattern-second',
+          prompt: '代表パターン',
+          requirements: ['要件second'],
+          hints: ['ヒントsecond'],
+          expectedKeywords: ['second'],
+          starterCode: '',
+        },
+      ],
+    }
+
+    render(<ChallengeMode stepId="step-multi" task={multiPatternTask} onComplete={vi.fn()} />)
+
+    expect(screen.getByText('代表パターン')).toBeTruthy()
+    expect(screen.queryByText('先頭パターン')).toBeNull()
+  })
+
+  it('再レンダリングしても出題パターンが変わらない（決定論的）', () => {
+    const multiPatternTask: ChallengeTask = {
+      patterns: [
+        {
+          id: 'pattern-1',
+          prompt: '固定される課題',
+          requirements: ['要件1'],
+          hints: ['ヒント1'],
+          expectedKeywords: ['useState'],
+          starterCode: '',
+        },
+        {
+          id: 'pattern-2',
+          prompt: 'もう一方の課題',
+          requirements: ['要件2'],
+          hints: ['ヒント2'],
+          expectedKeywords: ['return'],
+          starterCode: '',
+        },
+      ],
+    }
+
+    const { rerender } = render(
+      <ChallengeMode stepId="step-fixed" task={multiPatternTask} onComplete={vi.fn()} />,
+    )
+    expect(screen.getByText('固定される課題')).toBeTruthy()
+
+    // 同一 stepId / task で再レンダリングしても先頭パターンのまま変わらない
+    rerender(<ChallengeMode stepId="step-fixed" task={multiPatternTask} onComplete={vi.fn()} />)
+    expect(screen.getByText('固定される課題')).toBeTruthy()
+    expect(screen.queryByText('もう一方の課題')).toBeNull()
+  })
+
   it('stepId が変わると入力内容と判定状態をリセットする', async () => {
     const user = userEvent.setup()
     const onComplete = vi.fn()
@@ -347,4 +411,147 @@ describe('ChallengeMode モバイルパズル', () => {
     expect(screen.queryByLabelText('challenge-editor')).toBeNull()
   })
 
+})
+
+describe('ChallengeMode draft保存', () => {
+  const userId = '00000000-0000-0000-0000-000000000001'
+
+  afterEach(() => {
+    cleanup()
+    window.localStorage.clear()
+    vi.useRealTimers()
+  })
+
+  it('入力すると userId+stepId+patternId の draft が自動保存される', () => {
+    vi.useFakeTimers()
+    render(<ChallengeMode stepId="step-a" task={firstTask} onComplete={vi.fn()} />)
+
+    const editor = screen.getByLabelText('challenge-editor')
+    fireEvent.change(editor, { target: { value: 'const draft = 1' } })
+    // デバウンス（500ms）経過で保存される
+    vi.advanceTimersByTime(500)
+
+    expect(window.localStorage.getItem(buildChallengeDraftKey(userId, 'step-a', 'pattern-1'))).toBe(
+      'const draft = 1',
+    )
+  })
+
+  it('保存済み draft が初期コードとして復元される', () => {
+    window.localStorage.setItem(buildChallengeDraftKey(userId, 'step-a', 'pattern-1'), '保存されたコード')
+
+    render(<ChallengeMode stepId="step-a" task={firstTask} onComplete={vi.fn()} />)
+
+    expect((screen.getByLabelText('challenge-editor') as HTMLTextAreaElement).value).toBe('保存されたコード')
+  })
+
+  it('正解判定後は draft が削除される', async () => {
+    const user = userEvent.setup()
+    window.localStorage.setItem(buildChallengeDraftKey(userId, 'step-a', 'pattern-1'), '途中コード')
+
+    render(<ChallengeMode stepId="step-a" task={firstTask} onComplete={vi.fn()} />)
+
+    const editor = screen.getByLabelText('challenge-editor')
+    fireEvent.change(editor, {
+      target: { value: 'const [count, setCount] = useState(0); <button onClick={() => setCount(count + 1)} />' },
+    })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(window.localStorage.getItem(buildChallengeDraftKey(userId, 'step-a', 'pattern-1'))).toBeNull()
+  })
+})
+
+describe('ChallengeMode 判定補強', () => {
+  afterEach(() => {
+    cleanup()
+    window.localStorage.clear()
+  })
+
+  it('starterCode のコメント・import だけでは合格しない（誤合格防止）', async () => {
+    const user = userEvent.setup()
+    const onComplete = vi.fn()
+    const starterTask: ChallengeTask = {
+      patterns: [
+        {
+          id: 'starter-pattern',
+          prompt: 'いいねボタンを作る',
+          requirements: ['useStateを使う'],
+          hints: ['useStateで状態を定義する'],
+          expectedKeywords: ['useState', 'onClick'],
+          starterCode:
+            "import { useState } from 'react';\n// TODO: button の onClick で setCount を呼ぶ\nexport function LikeButton() {\n  return <button>いいね 0</button>;\n}",
+        },
+      ],
+    }
+
+    render(<ChallengeMode stepId="step-starter" task={starterTask} onComplete={onComplete} />)
+
+    // 入力を変えずにそのまま判定
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(onComplete).not.toHaveBeenCalled()
+    expect(screen.getByRole('status').textContent).toContain('要件を満たしていません。')
+  })
+
+  it('conditions がある場合は不足条件を日本語ラベル・説明で表示する', async () => {
+    const user = userEvent.setup()
+    const conditionTask: ChallengeTask = {
+      patterns: [
+        {
+          id: 'condition-pattern',
+          prompt: '状態管理の課題',
+          requirements: ['useStateを使う'],
+          hints: ['useState'],
+          expectedKeywords: ['useState'],
+          conditions: [
+            {
+              id: 'c-state',
+              label: '状態を定義する',
+              requiredKeywords: ['useState'],
+              explanation: 'useStateで状態を定義しましょう',
+            },
+          ],
+          starterCode: '',
+        },
+      ],
+    }
+
+    render(<ChallengeMode stepId="step-cond" task={conditionTask} onComplete={vi.fn()} />)
+
+    const editor = await screen.findByLabelText('challenge-editor')
+    fireEvent.change(editor, { target: { value: 'const x = 1' } })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(screen.getByText('以下の条件を満たせているか確認しましょう:')).toBeTruthy()
+    expect(screen.getByText('状態を定義する')).toBeTruthy()
+    expect(screen.getByText(/useStateで状態を定義しましょう/)).toBeTruthy()
+  })
+
+  it('solutionCode がある場合は「解答例を見る」で解答例を表示できる', async () => {
+    const user = userEvent.setup()
+    const solutionTask: ChallengeTask = {
+      patterns: [
+        {
+          id: 'solution-pattern',
+          prompt: '解答例つき課題',
+          requirements: ['useStateを使う'],
+          hints: ['useState'],
+          expectedKeywords: ['useState'],
+          solutionCode: 'const [count, setCount] = useState(0)',
+          starterCode: '',
+        },
+      ],
+    }
+
+    render(<ChallengeMode stepId="step-sol" task={solutionTask} onComplete={vi.fn()} />)
+
+    const editor = await screen.findByLabelText('challenge-editor')
+    fireEvent.change(editor, { target: { value: 'const x = 1' } })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    // 解答例は初期状態では隠れている
+    expect(screen.queryByText('const [count, setCount] = useState(0)')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: '解答例を見る' }))
+    expect(screen.getByText('const [count, setCount] = useState(0)')).toBeTruthy()
+  })
 })

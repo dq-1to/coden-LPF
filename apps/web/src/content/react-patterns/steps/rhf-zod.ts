@@ -194,9 +194,28 @@ useForm({
   password: z.string().min(8, 'パスワードは8文字以上です'),
 })`,
     expectedKeywords: ['email'],
+    conditions: [
+      {
+        id: 'email-schema',
+        label: 'email に z.string().email() を使っている',
+        requiredKeywords: ['email', 'z.string', '.email'],
+        explanation: 'メールアドレスには z.string().email() で形式チェックを付けます。',
+      },
+      {
+        id: 'password-min',
+        label: 'password に8文字以上の制約を付けている',
+        requiredKeywords: ['password', 'min(8'],
+        explanation: 'password は z.string().min(8, ...) で最小文字数を指定します。',
+      },
+    ],
     explanation: 'z.string().email() でメール形式のバリデーションを追加します。引数にエラーメッセージを渡すことができます。',
+    solutionCode: `const loginSchema = z.object({
+  email: z.string().email('有効なメールアドレスを入力してください'),
+  password: z.string().min(8, 'パスワードは8文字以上です'),
+})`,
   },
   challengeTask: {
+    primaryPatternId: 'rhf-zod-1',
     patterns: [
       {
         id: 'rhf-zod-1',
@@ -214,6 +233,70 @@ useForm({
           'errors.email?.message でエラーメッセージにアクセスします',
         ],
         expectedKeywords: ['zodResolver', 'register', 'handleSubmit', 'errors'],
+        conditions: [
+          {
+            id: 'schema-and-type',
+            label: 'Zod schema と z.infer 型を定義している',
+            requiredKeywords: ['z.object', 'email', 'password', 'z.infer'],
+            explanation: 'Zod の schema からフォームデータ型を一元的に生成します。',
+          },
+          {
+            id: 'resolver',
+            label: 'useForm に zodResolver を設定している',
+            requiredKeywords: ['useForm', 'resolver', 'zodResolver'],
+            explanation: 'RHF のバリデーションとして Zod schema を接続します。',
+          },
+          {
+            id: 'register-submit',
+            label: 'register と handleSubmit を使っている',
+            requiredKeywords: ['register', 'handleSubmit'],
+            explanation: '入力フィールド登録と送信処理を React Hook Form に任せます。',
+          },
+          {
+            id: 'error-display',
+            label: 'errors からメッセージを表示している',
+            requiredKeywords: ['errors.email', 'errors.password'],
+            explanation: 'Zod/RHF が返したエラーをフィールドごとに表示します。',
+          },
+        ],
+        solutionCode: `import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+
+const schema = z.object({
+  email: z.string().email('有効なメールアドレスを入力してください'),
+  password: z.string().min(8, 'パスワードは8文字以上です'),
+})
+
+type FormData = z.infer<typeof schema>
+
+function LoginForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  })
+
+  const onSubmit = (data: FormData) => {
+    console.log('送信:', data)
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <div>
+        <input {...register('email')} placeholder="メールアドレス" />
+        {errors.email && <p>{errors.email.message}</p>}
+      </div>
+      <div>
+        <input {...register('password')} type="password" placeholder="パスワード" />
+        {errors.password && <p>{errors.password.message}</p>}
+      </div>
+      <button type="submit">ログイン</button>
+    </form>
+  )
+}`,
         starterCode: `import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'

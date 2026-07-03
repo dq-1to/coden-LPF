@@ -30,6 +30,7 @@ describe('createChallengeSubmission', () => {
       id: 'submission-1',
       user_id: 'user-1',
       step_id: 'usestate-basic',
+      pattern_id: 'pattern-1',
       code: 'const ok = true',
       is_passed: true,
       matched_keywords: ['useState', 'onClick'],
@@ -40,6 +41,7 @@ describe('createChallengeSubmission', () => {
     const result = await createChallengeSubmission({
       user_id: 'user-1',
       step_id: 'usestate-basic',
+      pattern_id: 'pattern-1',
       code: 'const ok = true',
       is_passed: true,
       matched_keywords: ['useState', 'onClick'],
@@ -49,11 +51,12 @@ describe('createChallengeSubmission', () => {
     expect(insert).toHaveBeenCalledWith({
       user_id: 'user-1',
       step_id: 'usestate-basic',
+      pattern_id: 'pattern-1',
       code: 'const ok = true',
       is_passed: true,
       matched_keywords: ['useState', 'onClick'],
     })
-    expect(select).toHaveBeenCalledWith('id, user_id, step_id, code, is_passed, matched_keywords, submitted_at')
+    expect(select).toHaveBeenCalledWith('id, user_id, step_id, pattern_id, code, is_passed, matched_keywords, submitted_at')
     expect(result).toEqual(savedRow)
   })
 
@@ -67,6 +70,7 @@ describe('createChallengeSubmission', () => {
       createChallengeSubmission({
         user_id: 'user-1',
         step_id: 'usestate-basic',
+        pattern_id: 'pattern-1',
         code: 'const ok = true',
         is_passed: false,
         matched_keywords: [],
@@ -84,6 +88,7 @@ describe('createChallengeSubmission', () => {
         id: 'submission-2',
         user_id: 'user-1',
         step_id: 'usestate-basic',
+        pattern_id: 'pattern-1',
         code: 'latest',
         is_passed: false,
         matched_keywords: [],
@@ -97,6 +102,7 @@ describe('createChallengeSubmission', () => {
     const result = await getRecentChallengeSubmissions('user-1', 'usestate-basic', 3)
 
     expect(from).toHaveBeenCalledWith('challenge_submissions')
+    expect(select).toHaveBeenCalledWith('id, user_id, step_id, pattern_id, code, is_passed, matched_keywords, submitted_at')
     expect(eq).toHaveBeenNthCalledWith(1, 'user_id', 'user-1')
     expect(eq).toHaveBeenNthCalledWith(2, 'step_id', 'usestate-basic')
     expect(order).toHaveBeenCalledWith('submitted_at', { ascending: false })

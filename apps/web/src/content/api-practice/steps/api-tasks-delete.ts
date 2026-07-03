@@ -117,9 +117,19 @@ async function handleDelete(id: string) {
   }
 }`,
       expectedKeywords: ['filter'],
+      conditions: [
+        {
+          id: 'filter-removed-task',
+          label: 'filter で削除対象を除外している',
+          requiredKeywords: ['filter'],
+          explanation: '削除成功後は filter で該当 ID のタスクを配列から取り除きます。',
+        },
+      ],
       explanation: 'DELETE /tasks/:idを呼び、成功後にfilterで該当タスクを除去します。deletingIdで削除中ボタンをdisabledにします。',
+      solutionCode: `setTasks((prev) => prev.filter((t) => t.id !== id));`,
     },
     challengeTask: {
+      primaryPatternId: 'c1',
       patterns: [
         {
           id: 'c1',
@@ -137,6 +147,43 @@ async function handleDelete(id: string) {
             'finally ブロックで deletingId を null に戻すのを忘れずに',
           ],
           expectedKeywords: ['DELETE', 'confirm', 'filter', 'setTasks', 'setDeletingId', 'finally'],
+          conditions: [
+            {
+              id: 'confirm-delete',
+              label: 'confirm で削除確認している',
+              requiredKeywords: ['confirm'],
+              explanation: '削除前に confirm でユーザーへ確認し、キャンセル時は処理を止めます。',
+            },
+            {
+              id: 'delete-request',
+              label: 'DELETE リクエストを送っている',
+              requiredKeywords: ['DELETE'],
+              explanation: 'DELETE /tasks/:id を呼び出して対象タスクを削除します。',
+            },
+            {
+              id: 'remove-from-list',
+              label: 'filter でリストから除外している',
+              requiredKeywords: ['setTasks', 'filter'],
+              explanation: '削除成功後は state から対象タスクを除外します。',
+            },
+            {
+              id: 'reset-deleting',
+              label: 'finally で削除中状態を解除している',
+              requiredKeywords: ['setDeletingId', 'finally'],
+              explanation: '成功・失敗どちらでも finally で deletingId を null に戻します。',
+            },
+          ],
+          solutionCode: `async function handleDelete(task: Task) {
+  if (!confirm('本当に削除しますか？')) return;
+
+  setDeletingId(task.id);
+  try {
+    await fetch(\`/tasks/\${task.id}\`, { method: 'DELETE' });
+    setTasks((prev) => prev.filter((t) => t.id !== task.id));
+  } finally {
+    setDeletingId(null);
+  }
+}`,
           starterCode: `import { useEffect, useState } from 'react';
 
 interface Task {

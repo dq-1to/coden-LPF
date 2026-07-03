@@ -193,9 +193,29 @@ useEffect(() => {
   }
 })`,
     expectedKeywords: ['isIntersecting'],
+    conditions: [
+      {
+        id: 'check-intersecting',
+        label: 'entry.isIntersecting を確認している',
+        requiredKeywords: ['isIntersecting'],
+        explanation: 'センチネルが表示領域に入ったかを isIntersecting で判定します。',
+      },
+      {
+        id: 'call-load-more',
+        label: '表示されたら loadMore を呼んでいる',
+        requiredKeywords: ['loadMore'],
+        explanation: 'センチネルが見えたタイミングで追加データを読み込みます。',
+      },
+    ],
     explanation: 'entries[0].isIntersecting が true のとき、センチネル要素がビューポートに入ったことを意味します。このタイミングで loadMore() を呼び出します。',
+    solutionCode: `const observer = new IntersectionObserver((entries) => {
+  if (entries[0].isIntersecting) {
+    loadMore()
+  }
+})`,
   },
   challengeTask: {
+    primaryPatternId: 'infinite-scroll-1',
     patterns: [
       {
         id: 'infinite-scroll-1',
@@ -213,6 +233,80 @@ useEffect(() => {
           'クリーンアップ: return () => observer.disconnect()',
         ],
         expectedKeywords: ['IntersectionObserver', 'isIntersecting', 'sentinelRef', 'hasMore', 'disconnect'],
+        conditions: [
+          {
+            id: 'observer-setup',
+            label: 'IntersectionObserver を作成している',
+            requiredKeywords: ['IntersectionObserver', 'isIntersecting'],
+            explanation: 'センチネルの表示状態を IntersectionObserver で監視します。',
+          },
+          {
+            id: 'load-more-guard',
+            label: 'isIntersecting かつ hasMore のとき loadMore している',
+            requiredKeywords: ['isIntersecting', 'hasMore', 'loadMore'],
+            explanation: '追加データがある場合だけ読み込みを発火させます。',
+          },
+          {
+            id: 'observe-sentinel',
+            label: 'sentinelRef.current を observe している',
+            requiredKeywords: ['sentinelRef.current', 'observe'],
+            explanation: 'リスト末尾のセンチネル要素を監視対象にします。',
+          },
+          {
+            id: 'cleanup',
+            label: 'cleanup で disconnect している',
+            requiredKeywords: ['disconnect'],
+            explanation: 'effect の再実行やアンマウント時に observer を解除します。',
+          },
+          {
+            id: 'sentinel-render',
+            label: 'hasMore 時にセンチネル要素を表示している',
+            requiredKeywords: ['hasMore', 'ref={sentinelRef}'],
+            explanation: '追加ロード可能な間だけセンチネルを表示します。',
+          },
+        ],
+        solutionCode: `function InfiniteList() {
+  const [items, setItems] = useState(generateItems(1, 10))
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(1)
+  const sentinelRef = useRef(null)
+
+  function generateItems(start, count) {
+    return Array.from({ length: count }, (_, i) => ({
+      id: start + i,
+      name: 'アイテム ' + (start + i),
+    }))
+  }
+
+  const loadMore = () => {
+    const newItems = generateItems(page * 10 + 1, 10)
+    setItems((prev) => [...prev, ...newItems])
+    setPage((p) => p + 1)
+    if (page >= 4) setHasMore(false)
+  }
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore) {
+        loadMore()
+      }
+    })
+    if (sentinelRef.current) observer.observe(sentinelRef.current)
+    return () => observer.disconnect()
+  }, [hasMore, page])
+
+  return (
+    <div style={{ height: '400px', overflowY: 'auto' }}>
+      {items.map((item) => (
+        <div key={item.id} style={{ padding: '12px', borderBottom: '1px solid #eee' }}>
+          {item.name}
+        </div>
+      ))}
+      {hasMore && <div ref={sentinelRef}>読み込み中...</div>}
+      {!hasMore && <p>すべて読み込みました</p>}
+    </div>
+  )
+}`,
         starterCode: `function InfiniteList() {
   const [items, setItems] = useState(generateItems(1, 10))
   const [hasMore, setHasMore] = useState(true)

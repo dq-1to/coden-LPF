@@ -102,7 +102,7 @@ export function StepPage() {
   const saveChallengeSubmission = useChallengeSubmission(stepId)
   const recentChallengeSubmissions = useRecentChallengeSubmissions(stepId)
   const handleChallengeSubmitResult = useCallback(
-    async (result: { code: string; isPassed: boolean; matchedKeywords: string[] }) => {
+    async (result: { code: string; isPassed: boolean; matchedKeywords: string[]; patternId: string }) => {
       await saveChallengeSubmission(result)
       await recentChallengeSubmissions.refresh()
     },
