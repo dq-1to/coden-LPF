@@ -5,7 +5,7 @@ import { defineConfig, devices } from '@playwright/test'
  * - 共有テストアカウント前提のため直列実行（workers: 1 / fullyParallel: false）
  * - 認証は setup プロジェクトで storageState を生成し、各 spec が再利用する
  */
-const PORT = 5173
+const PORT = 5175
 const BASE_URL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`
 
 export default defineConfig({
