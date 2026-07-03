@@ -20,7 +20,8 @@ test.describe('S-REVIEW 復習キュー（認証済み・general）', () => {
       (r) => r.url().includes('review_items') && ['POST', 'PATCH'].includes(r.request().method()),
     )
     await page.getByRole('button', { name: '判定する' }).click()
-    await expect(page.getByText('必要キーワードを満たしていません。')).toBeVisible()
+    await expect(page.getByText('もう少しです。条件を確認してみましょう。')).toBeVisible()
+    await expect(page.getByText('以下の条件を満たせているか確認しましょう:')).toBeVisible()
     await writePromise
 
     // ダッシュボードに復習キューカードが出現

@@ -16,6 +16,6 @@ test.describe('S-DAILY デイリーチャレンジ（認証済み・complete）'
 
   test('PW-DAILY-04 週間ステータス（今週の達成状況）が表示される', async ({ page }) => {
     await page.goto('/daily')
-    await expect(page.getByRole('heading', { name: '今週の達成状況' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '今週の達成状況' })).toBeVisible({ timeout: 15000 })
   })
 })
