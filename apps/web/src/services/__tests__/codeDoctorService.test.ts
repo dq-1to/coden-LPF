@@ -79,6 +79,7 @@ const sampleProblem: CodeDoctorProblem = {
   requiredKeywords: ['key='],
   ngKeywords: [],
   explanation: '解説',
+  solutionCode: '<li key={item.id}>{item}</li>',
 }
 
 describe('getProblemProgressMap', () => {
