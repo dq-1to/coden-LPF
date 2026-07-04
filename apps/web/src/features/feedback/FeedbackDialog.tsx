@@ -6,6 +6,7 @@ import {
   type FeedbackCategory,
 } from '../../services/feedbackService'
 import { FeedbackImagePicker } from './FeedbackImagePicker'
+import { FeedbackSubmittedView } from './FeedbackSubmittedView'
 import { useFeedbackForm } from './useFeedbackForm'
 
 interface FeedbackDialogProps {
@@ -75,17 +76,7 @@ export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
         </div>
 
         {isSubmitted ? (
-          <div role="status" aria-live="polite" className="py-6 text-center">
-            <p className="text-sm font-semibold text-slate-900">送信しました。ありがとうございます！</p>
-            <p className="mt-1 text-xs text-slate-500">いただいた内容は運営が確認いたします。</p>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="mt-4 rounded-lg bg-primary-mint px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-dark"
-            >
-              閉じる
-            </button>
-          </div>
+          <FeedbackSubmittedView onClose={handleClose} />
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
