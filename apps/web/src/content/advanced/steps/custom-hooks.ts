@@ -5,6 +5,7 @@ export const customHooksStep: LearningStepContent = {
     order: 9,
     title: 'カスタムHooks',
     summary: '再利用可能なロジックをカスタムHookとして切り出し、コンポーネントをシンプルに保つ方法を学ぶ。',
+    relatedBaseNook: ['component', 'props-vs-state'],
     readMarkdown: `# カスタムHooks：ロジックの再利用
 
 ## カスタムHookとは？

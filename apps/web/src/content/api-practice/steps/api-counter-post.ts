@@ -5,6 +5,7 @@ export const apiCounterPostStep: LearningStepContent = {
     order: 14,
     title: 'カウンターAPI (POST)',
     summary: 'APIにデータを送信し、サーバーの状態を更新する方法を学びます。',
+    relatedBaseNook: ['http-methods', 'fetch', 'json'],
     readMarkdown: `# カウンターAPI (POST)：データ送信の基本
 
 ## GET と POST の違い

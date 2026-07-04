@@ -5,6 +5,7 @@ export const tsReactHooksStep: LearningStepContent = {
   order: 29,
   title: 'Hooks型定義',
   summary: 'useRef<T>のDOM参照・useContextの型付きコンテキスト・カスタムフックの戻り値型・forwardRefなど、型安全なHooks活用を学ぶ。',
+  relatedBaseNook: ['dom', 'typescript'],
   readMarkdown: `# Hooks型定義
 
 ## useRef<T> — DOM要素参照

@@ -316,6 +316,18 @@ describe('Step メタ情報', () => {
     }
   })
 
+  it('全ステップの relatedBaseNook は存在する Base Nook topic のみを重複なく最大3件参照する', () => {
+    for (const step of allContentSteps) {
+      const topicIds = step.relatedBaseNook ?? []
+
+      expect(topicIds.length, `${step.id}: relatedBaseNook が3件を超えている`).toBeLessThanOrEqual(3)
+      expect(new Set(topicIds).size, `${step.id}: relatedBaseNook に重複がある`).toBe(topicIds.length)
+      for (const topicId of topicIds) {
+        expect(baseNookTopicIds.has(topicId), `${step.id}: ${topicId} が Base Nook に存在しない`).toBe(true)
+      }
+    }
+  })
+
   it('events: preventDefault を Read で説明し、Practice q5 で自然な回答を許容する', () => {
     const step = getFundamentalsStep('events')!
     const question = step.practiceQuestions.find((q) => q.id === 'q5')!

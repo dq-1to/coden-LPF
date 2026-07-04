@@ -5,6 +5,7 @@ export const concurrentFeaturesStep: LearningStepContent = {
   order: 33,
   title: 'Concurrent Features',
   summary: 'useTransition・useDeferredValue・startTransitionを使い、UIの応答性を保ちながら重い更新を非緊急として処理する方法を学ぶ。',
+  relatedBaseNook: ['props-vs-state'],
   readMarkdown: `# Concurrent Features
 
 ## Concurrent モードとは

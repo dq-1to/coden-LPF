@@ -5,6 +5,7 @@ export const infiniteScrollStep: LearningStepContent = {
   order: 39,
   title: '無限スクロール',
   summary: 'Intersection Observer API を使った無限スクロールの実装・useRef によるセンチネル要素の参照・追加データロードパターンを学ぶ。',
+  relatedBaseNook: ['dom', 'api'],
   readMarkdown: `# 無限スクロール
 
 ## Intersection Observer API とは

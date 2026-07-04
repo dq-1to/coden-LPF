@@ -5,6 +5,7 @@ export const paginationStep: LearningStepContent = {
   order: 38,
   title: 'ページネーション',
   summary: 'URL連動ページネーションの実装パターン・ページ計算ロジック・useSearchParams による状態管理を学ぶ。',
+  relatedBaseNook: ['api'],
   readMarkdown: `# ページネーション
 
 ## ページネーションの基本概念

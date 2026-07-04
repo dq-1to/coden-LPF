@@ -5,6 +5,7 @@ export const apiTasksCreateStep: LearningStepContent = {
     order: 16,
     title: 'タスク追加 (POST)',
     summary: 'フォームからデータを送信し、リストに追加する処理を実装します。',
+    relatedBaseNook: ['http-methods', 'json'],
     readMarkdown: `# タスク追加 (POST)：フォームからのデータ送信
 
 ## POST でタスクを作成する

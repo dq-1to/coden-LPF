@@ -5,6 +5,7 @@ export const rhfZodStep: LearningStepContent = {
   order: 37,
   title: 'フォームバリデーション',
   summary: 'React Hook Form + Zod の組み合わせによる型安全なフォームバリデーションパターンを学ぶ。',
+  relatedBaseNook: ['npm', 'typescript'],
   readMarkdown: `# フォームバリデーション（React Hook Form + Zod）
 
 ## React Hook Form とは

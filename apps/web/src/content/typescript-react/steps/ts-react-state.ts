@@ -5,6 +5,7 @@ export const tsReactStateStep: LearningStepContent = {
   order: 28,
   title: 'State型定義',
   summary: 'useState<T>の型注釈・null/undefinedを含む状態・useReducerのAction型定義など、型安全な状態管理を学ぶ。',
+  relatedBaseNook: ['props-vs-state', 'typescript'],
   readMarkdown: `# State型定義
 
 ## useState<T> の型注釈

@@ -7,6 +7,7 @@ export const intermediateSteps: LearningStepContent[] = withLearningGoals([
         order: 5,
         title: 'useEffect',
         summary: '副作用とライフサイクルを理解し、データ取得や購読処理を実装します。',
+        relatedBaseNook: ['async', 'fetch'],
         readMarkdown: `# useEffect: 副作用の管理
 
 Reactコンポーネントは基本的に「Reactの状態(state)からUIを生成する」純粋な関数ですが、外部データの取得（Fetch）、DOMの直接操作、タイマーの設定など、コンポーネントの外部に影響を与える処理も必要になります。これらを**副作用（Side Effects）**と呼びます。
@@ -192,6 +193,7 @@ export function Timer() {
         order: 6,
         title: 'フォーム処理',
         summary: '入力値の管理とバリデーションを実装し、実用的なフォームを作ります。',
+        relatedBaseNook: ['dom', 'props-vs-state'],
         readMarkdown: `# フォーム処理
 
 Reactでフォームを実装する際、入力要素の状態をReact側で管理するかどうかで2つのアプローチがあります。
@@ -381,6 +383,7 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
         order: 7,
         title: 'useContext',
         summary: 'コンテキストAPIでグローバル状態を管理し、prop drillingを解消します。',
+        relatedBaseNook: ['props-vs-state', 'component'],
         readMarkdown: `# useContext: 深いコンポーネントツリーへのデータ受け渡し
 
 通常、Reactではデータを親コンポーネントから子コンポーネントへ **Props（プロパティ）** で渡します。しかし、コンポーネントの階層が深くなると、中間のコンポーネントが自分では使わないデータをバケツリレーのようにただ渡すだけの作業（**Prop Drilling**）が発生し、コードの保守性が低下します。
@@ -554,6 +557,7 @@ SPA (Single Page Application) であるReactではこれを防ぐため、必ず
         order: 8,
         title: 'useReducer',
         summary: '複雑な状態ロジックをreducerパターンで整理します。',
+        relatedBaseNook: ['props-vs-state'],
         readMarkdown: `# useReducer: 複雑な状態管理の整理
 
 コンポーネント内で管理する状態の数が多くなったり、次の状態を計算するロジックが複雑になってきた場合、\`useState\` を多数並べるよりも **\`useReducer\`** を使うとコードが見通しやすくなります。（Reduxの考え方に基づいています）
