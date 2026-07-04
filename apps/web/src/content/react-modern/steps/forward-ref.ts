@@ -5,6 +5,7 @@ export const forwardRefStep: LearningStepContent = {
   order: 36,
   title: 'forwardRef と useImperativeHandle',
   summary: 'forwardRefで親コンポーネントへDOM参照を公開する方法・useImperativeHandleで公開APIをカスタマイズするパターンを学ぶ。',
+  relatedBaseNook: ['dom', 'component'],
   readMarkdown: `# forwardRef と useImperativeHandle
 
 ## forwardRef とは

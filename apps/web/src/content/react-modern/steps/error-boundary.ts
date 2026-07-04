@@ -5,6 +5,7 @@ export const errorBoundaryStep: LearningStepContent = {
   order: 31,
   title: 'Error Boundary',
   summary: 'クラスコンポーネントを使ったError Boundaryの実装パターン・componentDidCatch・エラー回復UIの設計を学ぶ。',
+  relatedBaseNook: ['component'],
   readMarkdown: `# Error Boundary
 
 ## Error Boundary とは

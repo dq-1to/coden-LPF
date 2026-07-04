@@ -5,6 +5,7 @@ export const tsObjectsStep: LearningStepContent = {
   order: 23,
   title: 'オブジェクト型',
   summary: 'interface・type alias・readonly・オプショナルプロパティ・Intersection型・タプル型を学ぶ。',
+  relatedBaseNook: ['typescript', 'json'],
   readMarkdown: `# TypeScriptのオブジェクト型定義
 
 ## interface：オブジェクトの形を定義する

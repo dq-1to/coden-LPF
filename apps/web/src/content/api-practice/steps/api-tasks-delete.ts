@@ -5,6 +5,7 @@ export const apiTasksDeleteStep: LearningStepContent = {
     order: 18,
     title: 'タスク削除 (DELETE)',
     summary: 'APIで削除処理を行い、リストから即時除去するUIを実装します。',
+    relatedBaseNook: ['http-methods', 'fetch'],
     readMarkdown: `# タスク削除 (DELETE)：削除処理の実装
 
 ## DELETE リクエストの基本

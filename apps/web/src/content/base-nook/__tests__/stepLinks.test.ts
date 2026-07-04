@@ -29,7 +29,18 @@ describe('Base Nook step links', () => {
   it('Base Nook topic から関連Stepを order 順に逆引きする', () => {
     const steps = getStepsRelatedToBaseNook('props-vs-state')
 
-    expect(steps.map((step) => step.id)).toEqual(['usestate-basic', 'events'])
+    expect(steps.map((step) => step.id)).toEqual([
+      'usestate-basic',
+      'events',
+      'forms',
+      'usecontext',
+      'usereducer',
+      'custom-hooks',
+      'performance',
+      'ts-react-props',
+      'ts-react-state',
+      'concurrent-features',
+    ])
     expect(steps[0]).toMatchObject({
       order: 1,
       title: 'useState基礎',

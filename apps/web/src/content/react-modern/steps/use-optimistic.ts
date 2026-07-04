@@ -5,6 +5,7 @@ export const useOptimisticStep: LearningStepContent = {
   order: 34,
   title: 'useOptimistic',
   summary: 'useOptimisticを使ってサーバー応答を待たずにUIを先行更新し、非同期処理中も快適な操作感を実現する方法を学ぶ。',
+  relatedBaseNook: ['async', 'api'],
   readMarkdown: `# useOptimistic
 
 ## Optimistic UI とは

@@ -5,6 +5,7 @@ export const apiTasksListStep: LearningStepContent = {
     order: 15,
     title: 'タスク一覧 (GET)',
     summary: 'リストデータを API から取得して一覧表示するパターンを実装します。',
+    relatedBaseNook: ['fetch', 'json'],
     readMarkdown: `# タスク一覧 (GET)：リストデータの取得と表示
 
 ## 配列データを取得する

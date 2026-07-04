@@ -5,6 +5,7 @@ export const apiFetchStep: LearningStepContent = {
     order: 10,
     title: 'API連携',
     summary: 'useEffect と fetch を組み合わせてデータを取得し、ローディング・エラー状態を適切に管理する方法を学ぶ。',
+    relatedBaseNook: ['fetch', 'async', 'api'],
     readMarkdown: `# API連携：useEffect + fetch によるデータ取得
 
 ## データ取得の基本パターン

@@ -5,6 +5,7 @@ export const authFlowStep: LearningStepContent = {
   order: 40,
   title: '認証フロー実装',
   summary: 'ログイン/ログアウト/保護ルートの設計パターン・認証状態の Context 管理・トークン管理の考え方を学ぶ。',
+  relatedBaseNook: ['api', 'async'],
   readMarkdown: `# 認証フロー実装
 
 ## 認証フローの全体像

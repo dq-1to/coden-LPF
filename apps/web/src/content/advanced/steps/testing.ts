@@ -5,6 +5,7 @@ export const testingStep: LearningStepContent = {
     order: 12,
     title: 'テスト入門',
     summary: 'React Testing Library を使ってコンポーネントの動作をテストし、安心してリファクタリングできる基盤を作る方法を学ぶ。',
+    relatedBaseNook: ['dom', 'npm'],
     readMarkdown: `# テスト入門：React Testing Library
 
 ## なぜテストを書くのか
