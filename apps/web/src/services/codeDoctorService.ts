@@ -40,11 +40,12 @@ export function getPointsForDifficulty(difficulty: CodeDoctorProblem['difficulty
  */
 export function judgeCode(
   code: string,
-  problem: Pick<CodeDoctorProblem, 'requiredKeywords' | 'ngKeywords'>,
+  problem: Pick<CodeDoctorProblem, 'requiredKeywords' | 'ngKeywords' | 'anyOf'>,
 ): { passed: boolean; missingKeywords: string[]; foundNgKeywords: string[] } {
   const result = judgeKeywords(code, {
     requiredKeywords: problem.requiredKeywords,
     ngKeywords: problem.ngKeywords,
+    anyOf: problem.anyOf,
   })
   return {
     passed: result.passed,
