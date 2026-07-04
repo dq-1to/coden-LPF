@@ -15,10 +15,17 @@ export interface CodeDoctorProblem {
   requiredKeywords: string[]
   /** 修正後のコードに含まれてはいけないパターン（バグの残骸） */
   ngKeywords: string[]
+  /**
+   * 複数正解パターン（任意）。いずれかの配列を満たせば可とする
+   * （requiredKeywords とは AND）。judge.ts の `judgeKeywords` にそのまま渡す。
+   */
+  anyOf?: string[][]
   /** 正解後に表示する解説 */
   explanation: string
   /** 推定で不十分な場合の手動オーバーライド（1-indexed） */
   buggyLineNumbers?: number[]
+  /** 模範解答コード（ガードテストで判定合格を機械検証する） */
+  solutionCode: string
 }
 
 export interface CodeDoctorProgress {
