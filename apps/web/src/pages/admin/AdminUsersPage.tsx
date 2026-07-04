@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertCircle, Search, Shield, Users } from 'lucide-react'
+import { AlertCircle, Search, Users } from 'lucide-react'
 import { AdminLayout } from '../../features/admin/components/AdminLayout'
+import { AccountTypeBadge } from '../../features/admin/components/AccountTypeBadge'
 import { formatJstDate } from '../../lib/dateFormat'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import { Spinner } from '../../components/Spinner'
@@ -117,15 +118,7 @@ export function AdminUsersPage() {
                     >
                       <span className="flex items-center gap-1.5 font-medium">
                         {u.displayName ?? '(未設定)'}
-                        {u.isAdmin && (
-                          <span
-                            className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700"
-                            title="管理者"
-                          >
-                            <Shield className="h-3 w-3" aria-hidden="true" />
-                            ADMIN
-                          </span>
-                        )}
+                        <AccountTypeBadge isAdmin={u.isAdmin} isTestUser={u.isTestUser} />
                       </span>
                       <span className="text-xs text-slate-500">{u.email ?? '(email 取得不可)'}</span>
                     </Link>
