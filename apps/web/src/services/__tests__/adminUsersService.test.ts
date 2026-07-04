@@ -102,6 +102,7 @@ describe('listUsers', () => {
           email: 'a@example.com',
           display_name: 'Alice',
           is_admin: true,
+          is_test_user: false,
           total_points: 500,
           current_streak: 3,
           max_streak: 7,
@@ -121,6 +122,7 @@ describe('listUsers', () => {
         email: 'a@example.com',
         displayName: 'Alice',
         isAdmin: true,
+        isTestUser: false,
         totalPoints: 500,
         currentStreak: 3,
         maxStreak: 7,
@@ -164,6 +166,7 @@ describe('getUserDetail', () => {
         id: VALID,
         display_name: 'Bob',
         is_admin: false,
+        is_test_user: false,
         created_at: '2026-03-01T00:00:00Z',
       },
       error: null,
@@ -194,6 +197,7 @@ describe('getUserDetail', () => {
       userId: VALID,
       displayName: 'Bob',
       isAdmin: false,
+      isTestUser: false,
       createdAt: '2026-03-01T00:00:00Z',
     })
     expect(result?.stats?.totalPoints).toBe(120)
@@ -204,7 +208,13 @@ describe('getUserDetail', () => {
 
   it('いずれかのテーブルがエラーなら AppError を投げる', async () => {
     state.profiles = {
-      data: { id: VALID, display_name: 'X', is_admin: false, created_at: '2026-03-01T00:00:00Z' },
+      data: {
+        id: VALID,
+        display_name: 'X',
+        is_admin: false,
+        is_test_user: false,
+        created_at: '2026-03-01T00:00:00Z',
+      },
       error: null,
     }
     state.point_history = { data: null, error: { code: 'DB_ERROR', message: 'x' } }
@@ -232,6 +242,7 @@ describe('getUserBasicInfo', () => {
           email: 'a@example.com',
           display_name: 'Alice',
           is_admin: true,
+          is_test_user: false,
           created_at: '2026-03-01T00:00:00Z',
         },
       ],
@@ -245,6 +256,7 @@ describe('getUserBasicInfo', () => {
       email: 'a@example.com',
       displayName: 'Alice',
       isAdmin: true,
+      isTestUser: false,
       createdAt: '2026-03-01T00:00:00Z',
     })
   })
