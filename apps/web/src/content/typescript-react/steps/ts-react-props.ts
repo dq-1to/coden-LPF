@@ -5,6 +5,7 @@ export const tsReactPropsStep: LearningStepContent = {
   order: 27,
   title: 'Props型定義',
   summary: 'interfaceを使ったProps型定義・children型・オプショナルProps・ComponentProps活用など、型安全なコンポーネント設計を学ぶ。',
+  relatedBaseNook: ['props-vs-state', 'typescript'],
   readMarkdown: `# Props型定義
 
 ## interfaceでPropsを定義する

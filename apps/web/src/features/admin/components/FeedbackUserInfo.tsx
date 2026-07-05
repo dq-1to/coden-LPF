@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertCircle, Loader2, Shield } from 'lucide-react'
+import { AlertCircle, Loader2 } from 'lucide-react'
 import { formatJstDateTime } from '../../../lib/dateFormat'
 import { getUserBasicInfo } from '../../../services/adminUsersService'
 import type { AdminUserBasic } from '../../../services/adminUsersService'
+import { AccountTypeBadge } from './AccountTypeBadge'
 
 interface FeedbackUserInfoProps {
   userId: string
@@ -70,12 +71,7 @@ export function FeedbackUserInfo({ userId }: FeedbackUserInfoProps) {
             <dt className="w-32 shrink-0 font-medium text-slate-500">表示名</dt>
             <dd className="flex flex-wrap items-center gap-2 text-slate-800">
               <span>{userBasic.displayName ?? '—'}</span>
-              {userBasic.isAdmin && (
-                <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                  <Shield className="h-3 w-3" aria-hidden="true" />
-                  ADMIN
-                </span>
-              )}
+              <AccountTypeBadge isAdmin={userBasic.isAdmin} isTestUser={userBasic.isTestUser} />
             </dd>
           </div>
           <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-4">
@@ -85,6 +81,10 @@ export function FeedbackUserInfo({ userId }: FeedbackUserInfoProps) {
           <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-4">
             <dt className="w-32 shrink-0 font-medium text-slate-500">管理者</dt>
             <dd className="text-slate-800">{userBasic.isAdmin ? 'はい' : 'いいえ'}</dd>
+          </div>
+          <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-4">
+            <dt className="w-32 shrink-0 font-medium text-slate-500">テストアカウント</dt>
+            <dd className="text-slate-800">{userBasic.isTestUser ? 'はい' : 'いいえ'}</dd>
           </div>
           <div className="flex flex-col gap-0.5 sm:flex-row sm:gap-4">
             <dt className="w-32 shrink-0 font-medium text-slate-500">登録日</dt>

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { AlertCircle, ArrowLeft, Loader2, Shield } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Loader2 } from 'lucide-react'
 import { AdminLayout } from '../../features/admin/components/AdminLayout'
+import { AccountTypeBadge } from '../../features/admin/components/AccountTypeBadge'
 import { formatJstDate, formatJstDateTime } from '../../lib/dateFormat'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import { getUserDetail, type AdminUserDetail } from '../../services/adminUsersService'
@@ -98,12 +99,7 @@ export function AdminUserDetailPage() {
         <div className="flex-1">
           <h1 className="flex items-center gap-2 text-xl font-bold text-slate-900">
             {profile.displayName ?? '(未設定)'}
-            {profile.isAdmin && (
-              <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                <Shield className="h-3 w-3" aria-hidden="true" />
-                ADMIN
-              </span>
-            )}
+            <AccountTypeBadge isAdmin={profile.isAdmin} isTestUser={profile.isTestUser} />
           </h1>
           <p className="mt-1 break-all font-mono text-xs text-slate-500">{profile.userId}</p>
           <p className="mt-0.5 text-xs text-slate-400">登録: {formatJstDateTime(profile.createdAt)}</p>

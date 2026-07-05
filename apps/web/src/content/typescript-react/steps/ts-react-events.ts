@@ -5,6 +5,7 @@ export const tsReactEventsStep: LearningStepContent = {
   order: 30,
   title: 'イベント型定義',
   summary: 'React.ChangeEvent・MouseEvent・FormEvent・KeyboardEventなど、Reactイベントハンドラの型定義を学ぶ。',
+  relatedBaseNook: ['dom', 'typescript'],
   readMarkdown: `# イベント型定義
 
 ## React.ChangeEvent<T>

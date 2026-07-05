@@ -5,6 +5,7 @@ export const tsTypesStep: LearningStepContent = {
   order: 21,
   title: '型の基礎',
   summary: 'TypeScriptの型注釈・プリミティブ型・型推論・リテラル型を学び、型安全なコードの書き方を理解する。',
+  relatedBaseNook: ['typescript', 'javascript'],
   readMarkdown: `# TypeScriptの型システム入門
 
 ## TypeScriptとは？

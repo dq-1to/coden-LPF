@@ -5,6 +5,7 @@ export const tsUnionNarrowingStep: LearningStepContent = {
   order: 24,
   title: 'ユニオン型と型ガード',
   summary: 'ユニオン型・型ガード（typeof/in/instanceof）・判別共用体・never型による網羅性チェックを学ぶ。',
+  relatedBaseNook: ['typescript'],
   readMarkdown: `# ユニオン型と型ガード
 
 ## ユニオン型：複数の型を受け入れる

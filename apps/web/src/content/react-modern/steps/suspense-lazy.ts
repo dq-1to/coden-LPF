@@ -5,6 +5,7 @@ export const suspenseLazyStep: LearningStepContent = {
   order: 32,
   title: 'Suspense と lazy',
   summary: 'React.lazyによるコード分割・Suspenseのfallback・非同期データ読み込みとの連携パターンを学ぶ。',
+  relatedBaseNook: ['async'],
   readMarkdown: `# Suspense と lazy
 
 ## React.lazy とは

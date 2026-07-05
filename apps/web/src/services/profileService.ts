@@ -6,7 +6,13 @@ import type { Tables } from '../shared/types/database.types'
 export type ProfileRecord = Tables<'profiles'>
 export type PointHistoryRecord = Tables<'point_history'>
 
-export async function getProfile(userId: string): Promise<ProfileRecord | null> {
+/** 自分のプロフィール取得用の部分型（is_test_user は管理者向け属性のため含めない） */
+export type OwnProfileRecord = Pick<
+  ProfileRecord,
+  'id' | 'display_name' | 'created_at' | 'is_admin'
+>
+
+export async function getProfile(userId: string): Promise<OwnProfileRecord | null> {
   const { data, error } = await supabase
     .from('profiles')
     .select('id, display_name, created_at, is_admin')

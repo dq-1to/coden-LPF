@@ -22,6 +22,15 @@ export const CODE_DOCTOR_PROBLEMS: CodeDoctorProblem[] = [
     requiredKeywords: ['key='],
     ngKeywords: [],
     explanation: 'Reactはリストの要素を効率よく更新するために key prop を使います。key には要素を一意に識別できる値（IDなど）を設定します。index を key に使うのは順序変更がない場合のみ許容されます。',
+    solutionCode: `function TodoList({ todos }) {
+  return (
+    <ul>
+      {todos.map((todo) => (
+        <li key={todo.id}>{todo.text}</li>
+      ))}
+    </ul>
+  )
+}`,
   },
 
   {
@@ -41,6 +50,13 @@ export const CODE_DOCTOR_PROBLEMS: CodeDoctorProblem[] = [
     requiredKeywords: ['onClick={handleClick}'],
     ngKeywords: ['onClick={handleClick()}'],
     explanation: 'onClick={handleClick()} と書くと、レンダリング時に handleClick() が実行されその戻り値が onClick に渡されます。関数を後で呼ぶには onClick={handleClick} のように参照を渡します。',
+    solutionCode: `function App() {
+  function handleClick() {
+    alert('クリックされました')
+  }
+
+  return <button onClick={handleClick}>クリック</button>
+}`,
   },
 
   {
@@ -60,6 +76,13 @@ export const CODE_DOCTOR_PROBLEMS: CodeDoctorProblem[] = [
     requiredKeywords: ['className='],
     ngKeywords: ['class='],
     explanation: 'JSX では HTML の class 属性を className と書きます。class は JavaScript の予約語のため、React はこの変換を採用しています。',
+    solutionCode: `function Card({ title }) {
+  return (
+    <div className="card">
+      <h2>{title}</h2>
+    </div>
+  )
+}`,
   },
 
   {
@@ -78,6 +101,13 @@ export const CODE_DOCTOR_PROBLEMS: CodeDoctorProblem[] = [
     requiredKeywords: ['return ('],
     ngKeywords: [],
     explanation: 'JavaScript の ASI（自動セミコロン挿入）により、return の直後に改行があると return; として解釈されます。複数行の JSX を返すときは return ( ... ) のように括弧で囲みます。',
+    solutionCode: `function Header() {
+  return (
+    <header>
+      <h1>Coden</h1>
+    </header>
+  )
+}`,
   },
 
   {
@@ -106,6 +136,22 @@ export const CODE_DOCTOR_PROBLEMS: CodeDoctorProblem[] = [
     requiredKeywords: ['() => handleDelete(item.id)'],
     ngKeywords: ['onClick={handleDelete(item.id)}'],
     explanation: 'イベントハンドラーで引数を渡したい場合は onClick={() => handleDelete(item.id)} のようにアロー関数でラップします。こうするとクリック時にのみ実行されます。',
+    solutionCode: `function ItemList({ items }) {
+  function handleDelete(id) {
+    console.log('削除:', id)
+  }
+
+  return (
+    <ul>
+      {items.map((item) => (
+        <li key={item.id}>
+          {item.name}
+          <button onClick={() => handleDelete(item.id)}>削除</button>
+        </li>
+      ))}
+    </ul>
+  )
+}`,
   },
 
   {
@@ -124,6 +170,14 @@ export const CODE_DOCTOR_PROBLEMS: CodeDoctorProblem[] = [
     requiredKeywords: ['<>'],
     ngKeywords: [],
     explanation: 'JSX では常に単一のルート要素を返す必要があります。<div> で囲む方法もありますが、不要なDOM要素を避けるために React.Fragment（<>...</>）を使うのが推奨です。',
+    solutionCode: `function UserInfo({ name, email }) {
+  return (
+    <>
+      <h2>{name}</h2>
+      <p>{email}</p>
+    </>
+  )
+}`,
   },
 
   {
@@ -145,6 +199,13 @@ export const CODE_DOCTOR_PROBLEMS: CodeDoctorProblem[] = [
     requiredKeywords: ['&&'],
     ngKeywords: ['if ('],
     explanation: 'JSX の {} 内では式のみ使えます。if 文は使えません。条件レンダリングには {isLoggedIn && <p>ようこそ！</p>} のような && 演算子か三項演算子を使います。',
+    solutionCode: `function Greeting({ isLoggedIn }) {
+  return (
+    <div>
+      {isLoggedIn && <p>ようこそ！</p>}
+    </div>
+  )
+}`,
   },
 
   {
@@ -165,6 +226,14 @@ function App() {
     requiredKeywords: ['bonus={10}'],
     ngKeywords: ['bonus="10"'],
     explanation: 'JSX で "10" と書くと文字列になります。数値を渡すには bonus={10} のように {} を使います。+ 演算子は片方が文字列だと数値同士の加算ではなく文字列連結になるため、bonus="10" のままだと count + bonus は 510 ではなく "50010" になります。bonus={10} と数値で渡せば count + bonus は 510 という正しい数値の合計になります。',
+    solutionCode: `function PointSummary({ count, bonus }) {
+  const total = count + bonus
+  return <p>合計: {total}pt</p>
+}
+
+function App() {
+  return <PointSummary count={500} bonus={10} />
+}`,
   },
 
   {
@@ -185,6 +254,14 @@ function App() {
     requiredKeywords: ['<input', '/>'],
     ngKeywords: ['<input type="text" placeholder="名前">'],
     explanation: 'JSX では HTML と異なり、すべての要素は閉じる必要があります。<input> のように子要素を持たないタグは <input /> のように自己閉じ形式で書きます。',
+    solutionCode: `function Form() {
+  return (
+    <form>
+      <input type="text" placeholder="名前" />
+      <button type="submit">送信</button>
+    </form>
+  )
+}`,
   },
 
   {
@@ -209,6 +286,18 @@ function Counter() {
     requiredKeywords: ['useState(0)'],
     ngKeywords: ['useState()'],
     explanation: 'useState() の引数を省略すると初期値が undefined になります。+1 すると NaN になります。useState(0) のように初期値を明示しましょう。',
+    solutionCode: `import { useState } from 'react'
+
+function Counter() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div>
+      <p>カウント: {count}</p>
+      <button onClick={() => setCount(count + 1)}>+1</button>
+    </div>
+  )
+}`,
   },
 
   // ─── 中級: useEffect依存配列・状態更新 ──────────────────────
@@ -242,6 +331,25 @@ function Counter() {
     requiredKeywords: ['[count]'],
     ngKeywords: [', []'],
     explanation: '空の依存配列 [] を指定すると、useEffect はマウント時の count の値（0）をクロージャとしてキャプチャします。count が変化しても古い値を参照し続けます。依存配列に count を追加すると、count が変わるたびにエフェクトが再実行されます。',
+    solutionCode: `import { useState, useEffect } from 'react'
+
+function Counter() {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      console.log('現在のカウント:', count)
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [count])
+
+  return (
+    <div>
+      <p>{count}</p>
+      <button onClick={() => setCount(count + 1)}>+1</button>
+    </div>
+  )
+}`,
   },
 
   {
@@ -271,6 +379,22 @@ function TodoApp() {
     requiredKeywords: ['setTodos([...todos,'],
     ngKeywords: ['todos.push('],
     explanation: 'todos.push() は既存の配列を直接変更します（ミュータブル操作）。React は参照が変わったかどうかで再レンダリングを判断するため、同じ参照では変化を検知できません。setTodos([...todos, "新しいタスク"]) のように新しい配列を作成して渡す必要があります。',
+    solutionCode: `import { useState } from 'react'
+
+function TodoApp() {
+  const [todos, setTodos] = useState(['タスク1', 'タスク2'])
+
+  function addTodo() {
+    setTodos([...todos, '新しいタスク'])
+  }
+
+  return (
+    <div>
+      <ul>{todos.map((t, i) => <li key={i}>{t}</li>)}</ul>
+      <button onClick={addTodo}>追加</button>
+    </div>
+  )
+}`,
   },
 
   {
@@ -293,9 +417,26 @@ function UserProfile({ userId }) {
   return <div>{user?.name}</div>
 }`,
     hint: 'useEffect のコールバックは async にできません。内部で async 関数を定義して呼び出します。',
-    requiredKeywords: ['async function', 'void '],
+    requiredKeywords: [],
     ngKeywords: ['useEffect(async'],
-    explanation: 'useEffect のコールバックは副作用のクリーンアップ関数か undefined を返す必要があります。async 関数は Promise を返すため直接渡せません。内部で async 関数を定義し呼び出す形にします。',
+    anyOf: [['async function'], ['async (', ')'], ['async(']],
+    explanation: 'useEffect のコールバックは副作用のクリーンアップ関数か undefined を返す必要があります。async 関数は Promise を返すため直接渡せません。内部で async 関数を定義し呼び出す形にします（function 宣言でもアロー関数でも構いません）。',
+    solutionCode: `import { useState, useEffect } from 'react'
+
+function UserProfile({ userId }) {
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    async function loadUser() {
+      const res = await fetch(\`/api/users/\${userId}\`)
+      const data = await res.json()
+      setUser(data)
+    }
+    loadUser()
+  }, [userId])
+
+  return <div>{user?.name}</div>
+}`,
   },
 
   {
@@ -322,6 +463,21 @@ function WindowSize() {
     requiredKeywords: ['return () =>', 'removeEventListener'],
     ngKeywords: [],
     explanation: 'useEffect でイベントリスナーを追加したら、return でクリーンアップ関数を返してリスナーを削除します。これを怠るとコンポーネントのアンマウント後もリスナーが残り続け、メモリリークや stale なコールバックが動作する問題が起きます。',
+    solutionCode: `import { useState, useEffect } from 'react'
+
+function WindowSize() {
+  const [width, setWidth] = useState(window.innerWidth)
+
+  useEffect(() => {
+    function handleResize() {
+      setWidth(window.innerWidth)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  return <p>幅: {width}px</p>
+}`,
   },
 
   {
@@ -348,6 +504,20 @@ function AutoCounter() {
     requiredKeywords: ['setCount((prev) =>'],
     ngKeywords: ['setCount(count +'],
     explanation: '空の依存配列 [] のため useEffect はマウント時の count（0）をキャプチャします。setCount(count + 1) は常に 0 + 1 = 1 になります。setCount(prev => prev + 1) のように関数型更新を使うと、常に最新の値を参照して更新できます。',
+    solutionCode: `import { useState, useEffect } from 'react'
+
+function AutoCounter() {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCount((prev) => prev + 1)
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  return <p>{count}</p>
+}`,
   },
 
   {
@@ -375,9 +545,26 @@ function App() {
 }`,
     hint: '毎レンダリングで新しいオブジェクトが生成されています。プリミティブ値を依存配列に入れましょう。',
     requiredKeywords: ['filters.query'],
-    ngKeywords: ['], [filters]'],
+    ngKeywords: [', [filters])'],
     buggyLineNumbers: [10, 16],
     explanation: 'App が毎レンダリングで { query: "React" } という新しいオブジェクトを生成するため、依存配列の filters は毎回「変化した」と判断され無限ループになります。依存配列には filters.query のようなプリミティブ値を入れます。',
+    solutionCode: `import { useState, useEffect } from 'react'
+
+function Search({ filters }) {
+  const [results, setResults] = useState([])
+
+  useEffect(() => {
+    fetch(\`/api/search?q=\${filters.query}\`)
+      .then((r) => r.json())
+      .then((data) => setResults(data))
+  }, [filters.query])
+
+  return <ul>{results.map((r) => <li key={r.id}>{r.name}</li>)}</ul>
+}
+
+function App() {
+  return <Search filters={{ query: 'React' }} />
+}`,
   },
 
   {
@@ -408,6 +595,24 @@ function ProfileForm() {
     requiredKeywords: ['...form,'],
     ngKeywords: ['setForm({ name:', 'setForm({ email:'],
     explanation: 'setForm({ name: value }) と書くと form の既存プロパティ（email など）が失われます。オブジェクト状態を部分更新するには setForm({ ...form, name: value }) のようにスプレッド演算子で既存プロパティを展開します。',
+    solutionCode: `import { useState } from 'react'
+
+function ProfileForm() {
+  const [form, setForm] = useState({ name: '', email: '' })
+
+  return (
+    <div>
+      <input
+        value={form.name}
+        onChange={(e) => setForm({ ...form, name: e.target.value })}
+      />
+      <input
+        value={form.email}
+        onChange={(e) => setForm({ ...form, email: e.target.value })}
+      />
+    </div>
+  )
+}`,
   },
 
   {
@@ -437,6 +642,23 @@ function DataLoader({ userId }) {
     requiredKeywords: ['useCallback'],
     ngKeywords: [],
     explanation: 'fetchData はレンダリングのたびに新しい関数として生成されます。依存配列に fetchData を入れると、毎レンダリングで「変化した」と判断され無限ループになります。useCallback で fetchData をメモ化するか、useEffect 内に直接処理を書きます。',
+    solutionCode: `import { useState, useEffect, useCallback } from 'react'
+
+function DataLoader({ userId }) {
+  const [data, setData] = useState(null)
+
+  const fetchData = useCallback(() => {
+    fetch(\`/api/users/\${userId}\`)
+      .then((r) => r.json())
+      .then((d) => setData(d))
+  }, [userId])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  return <div>{data?.name}</div>
+}`,
   },
 
   {
@@ -462,6 +684,20 @@ function Timer({ seconds }) {
     requiredKeywords: ['return () =>', 'clearTimeout'],
     ngKeywords: [],
     explanation: 'コンポーネントがアンマウントされた後でもタイムアウトコールバックが実行されると setState が呼ばれ、メモリリークの警告が出ます。クリーンアップ関数で clearTimeout(id) を呼び、タイマーをキャンセルします。',
+    solutionCode: `import { useState, useEffect } from 'react'
+
+function Timer({ seconds }) {
+  const [remaining, setRemaining] = useState(seconds)
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setRemaining(0)
+    }, seconds * 1000)
+    return () => clearTimeout(id)
+  }, [seconds])
+
+  return <p>残り: {remaining}秒</p>
+}`,
   },
 
   {
@@ -487,8 +723,24 @@ function Dashboard({ isLoggedIn }) {
 }`,
     hint: 'Hooks はコンポーネントのトップレベルでのみ呼び出せます。早期 return の前に移動しましょう。',
     requiredKeywords: ['useState(null)', 'useEffect('],
-    ngKeywords: [],
+    ngKeywords: ['}) {\n  if (!isLoggedIn) {\n    return'],
     explanation: 'Hooks のルール（Rules of Hooks）により、条件文や早期 return の後に Hook を呼ぶことはできません。useState と useEffect をコンポーネントのトップレベル（早期 return より前）に移動します。',
+    solutionCode: `import { useState, useEffect } from 'react'
+
+function Dashboard({ isLoggedIn }) {
+  const [data, setData] = useState(null)
+
+  useEffect(() => {
+    if (!isLoggedIn) return
+    fetch('/api/dashboard').then((r) => r.json()).then(setData)
+  }, [isLoggedIn])
+
+  if (!isLoggedIn) {
+    return <p>ログインしてください</p>
+  }
+
+  return <div>{data?.summary}</div>
+}`,
   },
 
   // ─── 上級: メモ化漏れ・レースコンディション ──────────────────
@@ -519,6 +771,22 @@ function FilteredList({ items }) {
     requiredKeywords: ['[filter, items]'],
     ngKeywords: ['[filter]'],
     explanation: 'useMemo の依存配列に items が含まれていないため、items が変化しても再計算されません。コールバック内で参照しているすべての変数（items と filter）を依存配列に含めます。',
+    solutionCode: `import { useState, useMemo } from 'react'
+
+function FilteredList({ items }) {
+  const [filter, setFilter] = useState('')
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => item.includes(filter))
+  }, [filter, items])
+
+  return (
+    <div>
+      <input value={filter} onChange={(e) => setFilter(e.target.value)} />
+      <ul>{filteredItems.map((item) => <li key={item}>{item}</li>)}</ul>
+    </div>
+  )
+}`,
   },
 
   {
@@ -545,9 +813,25 @@ function Form() {
 }`,
     hint: 'useCallback のコールバック内で参照している変数は依存配列に含める必要があります。',
     requiredKeywords: ['[name]'],
-    ngKeywords: ['useCallback(() => {', '], [])'],
+    ngKeywords: ['], [])'],
     buggyLineNumbers: [6, 8],
     explanation: '空の依存配列 [] のため handleSubmit は初回レンダリング時の name（空文字）をキャプチャします。name が変化しても handleSubmit は再生成されないため、常に古い値で動作します。依存配列に name を追加します。',
+    solutionCode: `import { useState, useCallback } from 'react'
+
+function Form() {
+  const [name, setName] = useState('')
+
+  const handleSubmit = useCallback(() => {
+    console.log('送信:', name)
+  }, [name])
+
+  return (
+    <div>
+      <input value={name} onChange={(e) => setName(e.target.value)} />
+      <button onClick={handleSubmit}>送信</button>
+    </div>
+  )
+}`,
   },
 
   {
@@ -570,6 +854,17 @@ function Parent() {
     requiredKeywords: ['useMemo'],
     ngKeywords: ['style={{ color:'],
     explanation: 'React.memo は Props の浅い比較を行います。style={{ color: "red" }} はレンダリングのたびに新しいオブジェクトを生成するため、参照が変わり React.memo の最適化が無効になります。useMemo で style をメモ化するか、定数として外に出します。',
+    solutionCode: `import { memo, useMemo } from 'react'
+
+const Child = memo(function Child({ style }) {
+  console.log('Child レンダリング')
+  return <div style={style}>子要素</div>
+})
+
+function Parent() {
+  const style = useMemo(() => ({ color: 'red' }), [])
+  return <Child style={style} />
+}`,
   },
 
   {
@@ -595,6 +890,27 @@ function UserProfile({ userId }) {
     requiredKeywords: ['let cancelled', 'if (!cancelled)', 'return () =>'],
     ngKeywords: [],
     explanation: 'userId が変わると新しいリクエストが始まりますが、古いリクエストがキャンセルされないため後から届いた結果が表示されます。let cancelled = false フラグを使い、クリーンアップで cancelled = true にして古い結果の setState を無視します。AbortController を使う方法も有効です。',
+    solutionCode: `import { useState, useEffect } from 'react'
+
+function UserProfile({ userId }) {
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(\`/api/users/\${userId}\`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled) {
+          setUser(data)
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [userId])
+
+  return <div>{user?.name}</div>
+}`,
   },
 
   {
@@ -632,6 +948,29 @@ function List() {
     requiredKeywords: ['return { ...state,', 'items: ['],
     ngKeywords: ['state.items.push', 'state.items ='],
     explanation: 'reducer は純粋関数でなければならず、引数の state を変更してはいけません。state.items.push() は既存の配列を直接変更するため React が変化を検知できません。return { ...state, items: [...state.items, action.payload] } のように新しいオブジェクトを返します。',
+    solutionCode: `import { useReducer } from 'react'
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'ADD':
+      return { ...state, items: [...state.items, action.payload] }
+    case 'CLEAR':
+      return { ...state, items: [] }
+    default:
+      return state
+  }
+}
+
+function List() {
+  const [state, dispatch] = useReducer(reducer, { items: [] })
+
+  return (
+    <div>
+      <button onClick={() => dispatch({ type: 'ADD', payload: 'item' })}>追加</button>
+      <ul>{state.items.map((item, i) => <li key={i}>{item}</li>)}</ul>
+    </div>
+  )
+}`,
   },
 
   {
@@ -670,6 +1009,35 @@ function ThemeToggle() {
     requiredKeywords: ['CountContext', 'ThemeContext'],
     ngKeywords: [],
     explanation: '単一の Context に count と theme を入れると、count が変化するだけで theme しか使わない ThemeToggle も再レンダリングされます。CountContext と ThemeContext に分割することで、それぞれの変化時に関係するコンポーネントだけが再レンダリングされます。',
+    solutionCode: `import { createContext, useContext, useState } from 'react'
+
+const CountContext = createContext(null)
+const ThemeContext = createContext(null)
+
+function App() {
+  const [count, setCount] = useState(0)
+  const [theme, setTheme] = useState('light')
+
+  return (
+    <CountContext.Provider value={{ count, setCount }}>
+      <ThemeContext.Provider value={{ theme, setTheme }}>
+        <Counter />
+        <ThemeToggle />
+      </ThemeContext.Provider>
+    </CountContext.Provider>
+  )
+}
+
+function Counter() {
+  const { count, setCount } = useContext(CountContext)
+  return <button onClick={() => setCount(count + 1)}>{count}</button>
+}
+
+function ThemeToggle() {
+  const { theme, setTheme } = useContext(ThemeContext)
+  console.log('ThemeToggle re-render')
+  return <button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')}>{theme}</button>
+}`,
   },
 
   {
@@ -699,6 +1067,23 @@ function App() {
     requiredKeywords: ['<Form />'],
     ngKeywords: ['key={Math.random()}'],
     explanation: 'key={Math.random()} は毎レンダリングで異なる値になるため、React は毎回 Form をアンマウントして再マウントします。これにより内部状態がリセットされます。意図しない再マウントを防ぐには key を安定した値にするか、key を取り除きます。',
+    solutionCode: `import { useState } from 'react'
+
+function Form() {
+  const [value, setValue] = useState('')
+  return <input value={value} onChange={(e) => setValue(e.target.value)} />
+}
+
+function App() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div>
+      <button onClick={() => setCount(count + 1)}>カウント: {count}</button>
+      <Form />
+    </div>
+  )
+}`,
   },
 
   {
@@ -724,6 +1109,24 @@ function ArticleDetail({ articleId }) {
     requiredKeywords: ['AbortController', 'abort()', 'signal'],
     ngKeywords: [],
     explanation: 'コンポーネントのアンマウント後に fetch が完了すると setState が呼ばれます。AbortController を使い、クリーンアップで controller.abort() を呼ぶことでリクエストをキャンセルできます。fetch の第2引数に { signal: controller.signal } を渡します。',
+    solutionCode: `import { useState, useEffect } from 'react'
+
+function ArticleDetail({ articleId }) {
+  const [article, setArticle] = useState(null)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch(\`/api/articles/\${articleId}\`, { signal: controller.signal })
+      .then((r) => r.json())
+      .then((data) => setArticle(data))
+      .catch((err) => {
+        if (err.name !== 'AbortError') throw err
+      })
+    return () => controller.abort()
+  }, [articleId])
+
+  return <div>{article?.title}</div>
+}`,
   },
 
   {
@@ -756,6 +1159,26 @@ function Form() {
     requiredKeywords: ['forwardRef', 'ref={ref}'],
     ngKeywords: [],
     explanation: '通常のコンポーネントは ref を props として受け取れません。forwardRef でラップし、第2引数の ref を内部の DOM 要素に渡す必要があります: const Input = forwardRef((props, ref) => <input ref={ref} {...props} />)',
+    solutionCode: `import { useRef, forwardRef } from 'react'
+
+const Input = forwardRef(function Input({ placeholder }, ref) {
+  return <input ref={ref} placeholder={placeholder} />
+})
+
+function Form() {
+  const inputRef = useRef(null)
+
+  function focusInput() {
+    inputRef.current?.focus()
+  }
+
+  return (
+    <div>
+      <Input ref={inputRef} placeholder="名前" />
+      <button onClick={focusInput}>フォーカス</button>
+    </div>
+  )
+}`,
   },
 
   {
@@ -785,5 +1208,22 @@ function ClickCounter() {
     requiredKeywords: ['useState'],
     ngKeywords: ['useRef(0)'],
     explanation: 'useRef は再レンダリングをトリガーしません。レンダリングに反映させたい値は useState を使います。useRef はタイマーIDやDOM要素の参照など、レンダリングに直接影響しない値の保持に適しています。',
+    solutionCode: `import { useState } from 'react'
+
+function ClickCounter() {
+  const [count, setCount] = useState(0)
+
+  function handleClick() {
+    setCount((prev) => prev + 1)
+    console.log('クリック数:', count + 1)
+  }
+
+  return (
+    <div>
+      <p>クリック数: {count}</p>
+      <button onClick={handleClick}>クリック</button>
+    </div>
+  )
+}`,
   },
 ]

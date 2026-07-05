@@ -5,6 +5,7 @@ export const apiCounterGetStep: LearningStepContent = {
     order: 13,
     title: 'カウンターAPI (GET)',
     summary: 'APIからデータを取得し、画面に表示する基本パターンを学びます。',
+    relatedBaseNook: ['api', 'fetch', 'http-methods'],
     readMarkdown: `# カウンターAPI (GET)：データ取得の基本
 
 ## fetch API とは？

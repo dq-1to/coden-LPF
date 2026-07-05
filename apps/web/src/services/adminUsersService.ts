@@ -18,6 +18,7 @@ export interface AdminUserSummary {
   email: string | null
   displayName: string | null
   isAdmin: boolean
+  isTestUser: boolean
   totalPoints: number
   currentStreak: number
   maxStreak: number
@@ -31,6 +32,7 @@ export interface AdminUserBasic {
   email: string | null
   displayName: string | null
   isAdmin: boolean
+  isTestUser: boolean
   createdAt: string
 }
 
@@ -39,6 +41,7 @@ export interface AdminUserDetail {
     userId: string
     displayName: string | null
     isAdmin: boolean
+    isTestUser: boolean
     createdAt: string
   }
   stats: {
@@ -82,6 +85,7 @@ export async function getUserBasicInfo(
     email: row.email,
     displayName: row.display_name,
     isAdmin: row.is_admin,
+    isTestUser: row.is_test_user,
     createdAt: row.created_at,
   }
 }
@@ -97,6 +101,7 @@ export async function listUsers(): Promise<AdminUserSummary[]> {
     email: row.email,
     displayName: row.display_name,
     isAdmin: row.is_admin,
+    isTestUser: row.is_test_user,
     totalPoints: row.total_points,
     currentStreak: row.current_streak,
     maxStreak: row.max_streak,
@@ -186,6 +191,7 @@ export async function getUserDetail(userId: string): Promise<AdminUserDetail | n
       userId: profileRes.data.id,
       displayName: profileRes.data.display_name,
       isAdmin: profileRes.data.is_admin,
+      isTestUser: profileRes.data.is_test_user,
       createdAt: profileRes.data.created_at,
     },
     stats: statsRes.data

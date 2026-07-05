@@ -8,59 +8,7 @@ import {
 
 const rpc = vi.fn()
 
-// PostgREST の head:true / count / select / eq をモックするための状態
-const tableState = {
-  profilesCount: 0 as number | null,
-  pointHistoryRows: [] as Array<{ amount: number }>,
-  pointHistoryError: null as unknown,
-  profilesError: null as unknown,
-  feedbackTotalCount: 0 as number | null,
-  feedbackTotalError: null as unknown,
-  feedbackNewCount: 0 as number | null,
-  feedbackNewError: null as unknown,
-}
-
-function createProfilesBuilder() {
-  return {
-    select: () =>
-      Promise.resolve({ count: tableState.profilesCount, error: tableState.profilesError }),
-  }
-}
-
-function createPointHistoryBuilder() {
-  return {
-    select: () =>
-      Promise.resolve({ data: tableState.pointHistoryRows, error: tableState.pointHistoryError }),
-  }
-}
-
-function createUserFeedbackBuilder() {
-  // select() は thenable を返し、eq() を呼ぶと status=new のカウントに切り替わる
-  return {
-    select: () => {
-      const chain = {
-        eq() {
-          return Promise.resolve({
-            count: tableState.feedbackNewCount,
-            error: tableState.feedbackNewError,
-          })
-        },
-        then(resolve: (v: unknown) => unknown, reject: (r: unknown) => unknown) {
-          return Promise.resolve({
-            count: tableState.feedbackTotalCount,
-            error: tableState.feedbackTotalError,
-          }).then(resolve, reject)
-        },
-      }
-      return chain
-    },
-  }
-}
-
 const from = vi.fn((table: string) => {
-  if (table === 'profiles') return createProfilesBuilder()
-  if (table === 'point_history') return createPointHistoryBuilder()
-  if (table === 'user_feedback') return createUserFeedbackBuilder()
   throw new Error(`unexpected table: ${table}`)
 })
 
@@ -73,14 +21,6 @@ vi.mock('../../lib/supabaseClient', () => ({
 
 function resetState() {
   vi.clearAllMocks()
-  tableState.profilesCount = 0
-  tableState.pointHistoryRows = []
-  tableState.pointHistoryError = null
-  tableState.profilesError = null
-  tableState.feedbackTotalCount = 0
-  tableState.feedbackTotalError = null
-  tableState.feedbackNewCount = 0
-  tableState.feedbackNewError = null
 }
 
 describe('getDauLast30Days', () => {
@@ -193,17 +133,23 @@ describe('getTopMissedQuestions', () => {
 describe('getGlobalStatsSummary', () => {
   beforeEach(resetState)
 
-  it('4 つのクエリを並列呼びし集計結果を返す', async () => {
-    tableState.profilesCount = 42
-    tableState.pointHistoryRows = [{ amount: 10 }, { amount: 20 }, { amount: 5 }]
-    tableState.feedbackTotalCount = 8
-    tableState.feedbackNewCount = 3
+  it('admin_get_global_stats_summary RPC を呼び GlobalStatsSummary に変換する', async () => {
+    rpc.mockResolvedValue({
+      data: [
+        {
+          total_users: 42,
+          total_points_distributed: 35,
+          total_feedback: 8,
+          new_feedback: 3,
+        },
+      ],
+      error: null,
+    })
 
     const summary = await getGlobalStatsSummary()
 
-    expect(from).toHaveBeenCalledWith('profiles')
-    expect(from).toHaveBeenCalledWith('point_history')
-    expect(from).toHaveBeenCalledWith('user_feedback')
+    expect(rpc).toHaveBeenCalledWith('admin_get_global_stats_summary')
+    expect(from).not.toHaveBeenCalled()
     expect(summary).toEqual({
       totalUsers: 42,
       totalPointsDistributed: 35,
@@ -212,10 +158,31 @@ describe('getGlobalStatsSummary', () => {
     })
   })
 
-  it('いずれかのクエリエラーで AppError を投げる', async () => {
-    tableState.pointHistoryError = { code: 'DB_ERROR', message: 'boom' }
+  it('data が空配列のときは全項目 0 を返す', async () => {
+    rpc.mockResolvedValue({ data: [], error: null })
+    expect(await getGlobalStatsSummary()).toEqual({
+      totalUsers: 0,
+      totalPointsDistributed: 0,
+      totalFeedback: 0,
+      newFeedback: 0,
+    })
+  })
+
+  it('data が null のときは全項目 0 を返す', async () => {
+    rpc.mockResolvedValue({ data: null, error: null })
+    expect(await getGlobalStatsSummary()).toEqual({
+      totalUsers: 0,
+      totalPointsDistributed: 0,
+      totalFeedback: 0,
+      newFeedback: 0,
+    })
+  })
+
+  it('RPC エラーを AppError に変換する', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: 'DB_ERROR', message: 'boom' } })
     await expect(getGlobalStatsSummary()).rejects.toMatchObject({
-      userMessage: 'ポイント履歴の取得に失敗しました',
+      name: 'AppError',
+      userMessage: 'グローバルサマリーの取得に失敗しました',
     })
   })
 })

@@ -5,6 +5,7 @@ export const tsFunctionsStep: LearningStepContent = {
   order: 22,
   title: '関数の型',
   summary: '引数・戻り値の型注釈、オプショナル引数、関数型・rest引数など、TypeScriptの関数型定義を学ぶ。',
+  relatedBaseNook: ['typescript'],
   readMarkdown: `# TypeScriptの関数型定義
 
 ## 引数と戻り値の型注釈

@@ -83,28 +83,25 @@ export async function getTopMissedQuestions(
   }))
 }
 
-/** グローバルサマリー（ユーザー総数・総配布ポイント・フィードバック集計） */
+/**
+ * グローバルサマリー（ユーザー総数・総配布ポイント・フィードバック集計）
+ *
+ * 031_admin_stats_exclude_test_users.sql の admin_get_global_stats_summary RPC を使う。
+ * 以前はフロントから profiles / point_history / user_feedback を直接集計していたが、
+ * is_test_user = true のユーザーを除外するには profiles との JOIN 相当の処理が必要になり、
+ * PostgREST の埋め込みフィルタは本プロジェクトに前例がなく型生成にも乗らないため、
+ * 既存の admin 統計 RPC と同型の SECURITY DEFINER RPC に置き換えた。
+ */
 export async function getGlobalStatsSummary(): Promise<GlobalStatsSummary> {
-  const [usersRes, pointsRes, feedbackTotalRes, feedbackNewRes] = await Promise.all([
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('point_history').select('amount'),
-    supabase.from('user_feedback').select('*', { count: 'exact', head: true }),
-    supabase.from('user_feedback').select('*', { count: 'exact', head: true }).eq('status', 'new'),
-  ])
-
-  if (usersRes.error) throw fromSupabaseError(usersRes.error, 'ユーザー総数の取得に失敗しました')
-  if (pointsRes.error) throw fromSupabaseError(pointsRes.error, 'ポイント履歴の取得に失敗しました')
-  if (feedbackTotalRes.error)
-    throw fromSupabaseError(feedbackTotalRes.error, 'フィードバック件数の取得に失敗しました')
-  if (feedbackNewRes.error)
-    throw fromSupabaseError(feedbackNewRes.error, '新規フィードバック件数の取得に失敗しました')
-
-  const totalPoints = (pointsRes.data ?? []).reduce((sum, row) => sum + (row.amount ?? 0), 0)
-
+  const { data, error } = await supabase.rpc('admin_get_global_stats_summary')
+  if (error) {
+    throw fromSupabaseError(error, 'グローバルサマリーの取得に失敗しました')
+  }
+  const row = (data ?? [])[0]
   return {
-    totalUsers: usersRes.count ?? 0,
-    totalPointsDistributed: totalPoints,
-    totalFeedback: feedbackTotalRes.count ?? 0,
-    newFeedback: feedbackNewRes.count ?? 0,
+    totalUsers: row?.total_users ?? 0,
+    totalPointsDistributed: row?.total_points_distributed ?? 0,
+    totalFeedback: row?.total_feedback ?? 0,
+    newFeedback: row?.new_feedback ?? 0,
   }
 }

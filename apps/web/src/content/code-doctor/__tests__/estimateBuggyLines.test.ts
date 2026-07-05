@@ -13,6 +13,7 @@ const baseProblem: CodeDoctorProblem = {
   requiredKeywords: [],
   ngKeywords: [],
   explanation: 'Test explanation',
+  solutionCode: '',
 }
 
 describe('estimateBuggyLines', () => {

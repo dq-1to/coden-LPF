@@ -5,6 +5,7 @@ export const apiTasksUpdateStep: LearningStepContent = {
     order: 17,
     title: 'タスク更新 (PATCH)',
     summary: '完了状態の切り替えなど、既存データの部分更新処理を実装します。',
+    relatedBaseNook: ['http-methods', 'json'],
     readMarkdown: `# タスク更新 (PATCH)：部分更新の実装
 
 ## PATCH と PUT の違い

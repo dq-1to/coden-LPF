@@ -5,6 +5,7 @@ export const apiCustomHookStep: LearningStepContent = {
     order: 19,
     title: 'useTasksフック',
     summary: 'API操作をカスタムフックに集約し、コンポーネントをシンプルに保ちます。',
+    relatedBaseNook: ['async', 'api'],
     readMarkdown: `# useTasksフック：API操作のカスタムフック化
 
 ## カスタムフックとは？

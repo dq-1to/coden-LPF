@@ -278,18 +278,21 @@ export type Database = {
           display_name: string | null
           id: string
           is_admin: boolean
+          is_test_user: boolean
         }
         Insert: {
           created_at?: string
           display_name?: string | null
           id: string
           is_admin?: boolean
+          is_test_user?: boolean
         }
         Update: {
           created_at?: string
           display_name?: string | null
           id?: string
           is_admin?: boolean
+          is_test_user?: boolean
         }
         Relationships: []
       }
@@ -547,6 +550,7 @@ export type Database = {
           email: string | null
           display_name: string | null
           is_admin: boolean
+          is_test_user: boolean
           total_points: number
           current_streak: number
           max_streak: number
@@ -564,8 +568,22 @@ export type Database = {
           email: string | null
           display_name: string | null
           is_admin: boolean
+          is_test_user: boolean
           created_at: string
         }[]
+      }
+      admin_get_global_stats_summary: {
+        Args: Record<string, never>
+        Returns: {
+          total_users: number
+          total_points_distributed: number
+          total_feedback: number
+          new_feedback: number
+        }[]
+      }
+      is_test_user: {
+        Args: Record<string, never>
+        Returns: boolean
       }
       admin_grant_points: {
         Args: {

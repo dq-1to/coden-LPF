@@ -5,6 +5,7 @@ export const performanceStep: LearningStepContent = {
     order: 11,
     title: 'パフォーマンス最適化',
     summary: 'useMemo と useCallback を使い、不要な再レンダリングを防いでアプリを高速化する方法を学ぶ。',
+    relatedBaseNook: ['props-vs-state'],
     readMarkdown: `# パフォーマンス最適化：useMemo と useCallback
 
 ## なぜ最適化が必要か

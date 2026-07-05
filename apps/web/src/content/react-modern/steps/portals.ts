@@ -5,6 +5,7 @@ export const portalsStep: LearningStepContent = {
   order: 35,
   title: 'Portals',
   summary: 'createPortalでDOM階層の外にコンポーネントをレンダリングする方法・モーダルやツールチップへの応用・イベントバブリングの挙動を学ぶ。',
+  relatedBaseNook: ['dom'],
   readMarkdown: `# Portals
 
 ## Portals とは

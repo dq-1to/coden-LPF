@@ -5,6 +5,7 @@ export const apiErrorLoadingStep: LearningStepContent = {
     order: 20,
     title: 'エラー/ローディングUI',
     summary: 'APIの通信状態に応じたUI表示を実装し、UXを向上させます。',
+    relatedBaseNook: ['async', 'fetch'],
     readMarkdown: `# エラー/ローディングUI：通信状態に応じた表示
 
 ## 4つの通信状態

@@ -18,6 +18,7 @@ const problem: CodeDoctorProblem = {
   requiredKeywords: ['removeEventListener'],
   ngKeywords: [],
   explanation: 'クリーンアップでリスナーを解除する必要がある',
+  solutionCode: 'useEffect(() => { window.addEventListener("resize", fn); return () => window.removeEventListener("resize", fn) }, [])',
 }
 
 describe('ProblemCard', () => {
