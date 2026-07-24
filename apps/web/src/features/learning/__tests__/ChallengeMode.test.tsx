@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChallengeMode } from '../ChallengeMode'
 import type { ChallengeTask } from '../../../content/fundamentals/steps'
 import { buildChallengeDraftKey } from '../../../lib/challengeDraft'
+import { isExecPreviewEnabled } from '../execPreview/execPreviewConfig'
 
 const recordWrongAnswer = vi.fn()
 const resolveReviewItem = vi.fn()
@@ -36,6 +37,32 @@ vi.mock('@/components/CodeEditor', () => ({
 
 vi.mock('@/hooks/useIsMobile', () => ({
   useIsMobile: vi.fn(() => false),
+}))
+
+vi.mock('../execPreview/execPreviewConfig', () => ({
+  isExecPreviewEnabled: vi.fn(() => false),
+}))
+
+vi.mock('../execPreview/ChallengeExecutionPreview', () => ({
+  default: ({
+    code,
+    isVisible,
+    runId,
+    onReady,
+    onError,
+  }: {
+    code: string
+    isVisible: boolean
+    runId: number
+    onReady: (runId: number) => void
+    onError: (runId: number, message: string) => void
+  }) => (
+    <div data-testid="execution-preview" data-visible={String(isVisible)}>
+      <pre>{code}</pre>
+      <button type="button" onClick={() => onReady(runId)}>mock-ready</button>
+      <button type="button" onClick={() => onError(runId, 'mock preview error')}>mock-error</button>
+    </div>
+  ),
 }))
 
 vi.mock('../ChallengePuzzle/ChallengePuzzleMulti', () => ({
@@ -86,6 +113,7 @@ describe('ChallengeMode', () => {
     trackLearningEvent.mockReset()
     recordWrongAnswer.mockResolvedValue(undefined)
     resolveReviewItem.mockResolvedValue(undefined)
+    vi.mocked(isExecPreviewEnabled).mockReturnValue(false)
   })
 
   it('初回の正解判定で onComplete を呼ぶ', async () => {
@@ -137,6 +165,83 @@ describe('ChallengeMode', () => {
     // Assert
     expect(screen.getByText('最初の課題')).toBeTruthy()
     expect(screen.getByText('要件1')).toBeTruthy()
+  })
+
+  it('実行プレビューが無効な場合はプレビュー操作を表示しない', () => {
+    render(<ChallengeMode stepId="usestate-basic" task={firstTask} onComplete={vi.fn()} />)
+
+    expect(screen.queryByRole('button', { name: /プレビュー/ })).toBeNull()
+    expect(screen.queryByTestId('execution-preview')).toBeNull()
+  })
+
+  it('正解後にプレビューを準備し、完了後の操作で表示する', async () => {
+    const user = userEvent.setup()
+    vi.mocked(isExecPreviewEnabled).mockReturnValue(true)
+
+    render(<ChallengeMode stepId="usestate-basic" task={firstTask} onComplete={vi.fn()} />)
+
+    const editor = screen.getByLabelText('challenge-editor')
+    const correctCode = 'export function First() { const state = useState(0); return <button onClick={() => state[1](1)}>更新</button> }'
+    fireEvent.change(editor, { target: { value: correctCode } })
+
+    expect(screen.queryByTestId('execution-preview')).toBeNull()
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    const preparingButton = screen.getByRole('button', { name: 'プレビューを準備中…' })
+    expect(preparingButton.hasAttribute('disabled')).toBe(true)
+
+    const preview = await screen.findByTestId('execution-preview')
+    expect(preview.textContent).toContain('First')
+    expect(preview.dataset.visible).toBe('false')
+
+    await user.click(screen.getByRole('button', { name: 'mock-ready' }))
+    await user.click(screen.getByRole('button', { name: 'プレビューを見る' }))
+    expect(screen.getByTestId('execution-preview').dataset.visible).toBe('true')
+    expect(screen.getByRole('button', { name: 'プレビューを閉じる' })).toBeTruthy()
+
+    fireEvent.change(editor, { target: { value: `${correctCode}\n// edited` } })
+    expect(screen.queryByTestId('execution-preview')).toBeNull()
+    expect(screen.queryByRole('button', { name: /プレビュー/ })).toBeNull()
+  })
+
+  it('プレビュー準備に失敗した場合は再試行できる', async () => {
+    const user = userEvent.setup()
+    vi.mocked(isExecPreviewEnabled).mockReturnValue(true)
+
+    render(<ChallengeMode stepId="usestate-basic" task={firstTask} onComplete={vi.fn()} />)
+
+    fireEvent.change(screen.getByLabelText('challenge-editor'), {
+      target: {
+        value: 'export function First() { useState(0); return <button onClick={() => {}}>更新</button> }',
+      },
+    })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+    await screen.findByTestId('execution-preview')
+    await user.click(screen.getByRole('button', { name: 'mock-ready' }))
+    expect(screen.getByRole('button', { name: 'プレビューを見る' })).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'mock-error' }))
+
+    expect(screen.getByRole('alert').textContent).toContain('mock preview error')
+    await user.click(screen.getByRole('button', { name: 'プレビューを再試行' }))
+    expect(
+      screen.getByRole('button', { name: 'プレビューを準備中…' }).hasAttribute('disabled'),
+    ).toBe(true)
+    expect(await screen.findByTestId('execution-preview')).toBeTruthy()
+  })
+
+  it('不正解の場合はプレビュー準備を開始しない', async () => {
+    const user = userEvent.setup()
+    vi.mocked(isExecPreviewEnabled).mockReturnValue(true)
+
+    render(<ChallengeMode stepId="usestate-basic" task={firstTask} onComplete={vi.fn()} />)
+
+    fireEvent.change(screen.getByLabelText('challenge-editor'), {
+      target: { value: 'const answer = 1' },
+    })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(screen.queryByTestId('execution-preview')).toBeNull()
+    expect(screen.queryByRole('button', { name: /プレビュー/ })).toBeNull()
   })
 
   it('判定（失敗）: キーワード不足で「要件を満たしていません。」と不足キーワードが表示されること', async () => {
@@ -409,6 +514,47 @@ describe('ChallengeMode モバイルパズル', () => {
     expect(screen.getByText('state定義:')).toBeTruthy()
     // 従来エディタは表示されない
     expect(screen.queryByLabelText('challenge-editor')).toBeNull()
+  })
+
+  it('モバイルパズルでは正解後も実行プレビューを開始しない', async () => {
+    const user = userEvent.setup()
+    const { useIsMobile } = await import('@/hooks/useIsMobile')
+    vi.mocked(useIsMobile).mockReturnValue(true)
+    vi.mocked(isExecPreviewEnabled).mockReturnValue(true)
+
+    const puzzleTask: ChallengeTask = {
+      patterns: [
+        {
+          id: 'mobile-preview-test',
+          prompt: 'モバイルプレビューテスト',
+          requirements: ['状態とイベントを使う'],
+          hints: ['useState'],
+          expectedKeywords: ['useState', 'onClick'],
+          starterCode: '',
+          mobilePuzzle: {
+            type: 'multi',
+            codeContext:
+              'function App() { useState(0); return <button onClick={() => {}}>更新</button> }',
+            blanks: [
+              {
+                id: 'state',
+                label: 'state定義',
+                correctTokens: ['useState'],
+                distractorTokens: [],
+              },
+            ],
+          },
+        },
+      ],
+    }
+
+    render(<ChallengeMode stepId="usestate-basic" task={puzzleTask} onComplete={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: 'mock-assemble' }))
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+
+    expect(screen.queryByTestId('execution-preview')).toBeNull()
+    expect(screen.queryByRole('button', { name: /プレビュー/ })).toBeNull()
   })
 
 })

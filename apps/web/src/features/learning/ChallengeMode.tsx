@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '../../components/Button'
 import { CodeEditor } from '../../components/CodeEditor'
 import { ErrorBanner } from '../../components/ErrorBanner'
+import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { resolvePrimaryPattern, type ChallengePattern, type ChallengeTask } from '../../content/fundamentals/steps'
 import { JudgmentResult } from './components/JudgmentResult'
@@ -10,6 +11,29 @@ import { useJudgmentAction } from './hooks/useJudgmentAction'
 import { useChallengeDraft } from './hooks/useChallengeDraft'
 import { judgeKeywordConditions, judgeKeywords, stripNonAuthoredCode } from '../../lib/judge'
 import { ChallengePuzzleMulti } from './ChallengePuzzle/ChallengePuzzleMulti'
+import { isExecPreviewEnabled } from './execPreview/execPreviewConfig'
+
+const ChallengeExecutionPreview = lazy(() => import('./execPreview/ChallengeExecutionPreview'))
+const EXEC_PREVIEW_TIMEOUT_MS = 15_000
+
+type ExecutionPreviewState =
+  | { status: 'idle' }
+  | { status: 'preparing'; runId: number }
+  | { status: 'ready'; runId: number }
+  | { status: 'error'; runId: number; message: string }
+
+interface PreviewLoadErrorProps {
+  runId: number
+  onError: (runId: number, message: string) => void
+}
+
+function PreviewLoadError({ runId, onError }: PreviewLoadErrorProps) {
+  useEffect(() => {
+    onError(runId, 'プレビュー機能の読み込みに失敗しました。')
+  }, [onError, runId])
+
+  return null
+}
 
 interface ChallengeModeProps {
   stepId: string
@@ -22,11 +46,16 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
   const isMobile = useIsMobile()
   const [pattern, setPattern] = useState<ChallengePattern>(() => resolvePrimaryPattern(task))
   const hasMobilePuzzle = isMobile && pattern.mobilePuzzle != null
+  const showExecPreview = isExecPreviewEnabled(stepId) && !hasMobilePuzzle
   // モバイルパズルは組み立て式のため自由入力 draft の対象外（PC自由入力を主対象とする）
   const { readDraft, scheduleSave, clearDraft } = useChallengeDraft({ enabled: !hasMobilePuzzle })
   const [code, setCode] = useState(() => readDraft(stepId, pattern.id) ?? pattern.starterCode)
   const [checked, setChecked] = useState(false)
   const [submissionError, setSubmissionError] = useState<string | null>(null)
+  const [previewCode, setPreviewCode] = useState<string | null>(null)
+  const [previewState, setPreviewState] = useState<ExecutionPreviewState>({ status: 'idle' })
+  const [isPreviewVisible, setIsPreviewVisible] = useState(false)
+  const nextPreviewRunIdRef = useRef(0)
   const { handleResult } = useJudgmentAction(stepId, 'challenge', onComplete)
 
   // effect 内で最新の readDraft を参照しつつ、依存は [stepId, task] に保つ
@@ -39,7 +68,41 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     setCode(readDraftRef.current(stepId, nextPattern.id) ?? nextPattern.starterCode)
     setChecked(false)
     setSubmissionError(null)
+    setPreviewCode(null)
+    setPreviewState({ status: 'idle' })
+    setIsPreviewVisible(false)
   }, [stepId, task])
+
+  const handlePreviewReady = useCallback((runId: number) => {
+    setPreviewState((current) =>
+      current.status === 'preparing' && current.runId === runId
+        ? { status: 'ready', runId }
+        : current,
+    )
+  }, [])
+
+  const handlePreviewError = useCallback((runId: number, message: string) => {
+    setIsPreviewVisible(false)
+    setPreviewState((current) =>
+      (current.status === 'preparing' || current.status === 'ready') &&
+      current.runId === runId
+        ? { status: 'error', runId, message }
+        : current,
+    )
+  }, [])
+
+  useEffect(() => {
+    if (previewState.status !== 'preparing') return
+
+    const timeoutId = window.setTimeout(() => {
+      handlePreviewError(
+        previewState.runId,
+        'プレビューの準備がタイムアウトしました。もう一度お試しください。',
+      )
+    }, EXEC_PREVIEW_TIMEOUT_MS)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [handlePreviewError, previewState])
 
   // starterCode の TODO コメントや import 由来の誤合格を防ぐため、判定はサニタイズ後コードで行う
   const judgeableCode = useMemo(() => stripNonAuthoredCode(code), [code])
@@ -75,6 +138,14 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     // 正解した場合は途中コードの draft を削除する
     if (hasSatisfiedRequirements) {
       clearDraft(stepId, pattern.id)
+
+      if (showExecPreview) {
+        const runId = nextPreviewRunIdRef.current + 1
+        nextPreviewRunIdRef.current = runId
+        setPreviewCode(code)
+        setPreviewState({ status: 'preparing', runId })
+        setIsPreviewVisible(false)
+      }
     }
 
     if (onSubmitResult) {
@@ -101,6 +172,9 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     (nextValue: string) => {
       setChecked(false)
       setCode(nextValue)
+      setPreviewCode(null)
+      setPreviewState({ status: 'idle' })
+      setIsPreviewVisible(false)
       scheduleSave(stepId, pattern.id, nextValue)
     },
     [scheduleSave, stepId, pattern.id],
@@ -145,6 +219,76 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
           />
         )}
       </div>
+
+      {showExecPreview && previewState.status !== 'idle' ? (
+        <div className="space-y-2">
+          {previewState.status === 'preparing' ? (
+            <Button variant="secondary" disabled>
+              プレビューを準備中…
+            </Button>
+          ) : null}
+
+          {previewState.status === 'ready' ? (
+            <Button
+              variant="secondary"
+              onClick={() => setIsPreviewVisible((current) => !current)}
+            >
+              {isPreviewVisible ? 'プレビューを閉じる' : 'プレビューを見る'}
+            </Button>
+          ) : null}
+
+          {previewState.status === 'error' ? (
+            <>
+              <p className="text-sm text-red-600" role="alert">
+                {previewState.message}
+              </p>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  if (previewCode === null) return
+                  const runId = nextPreviewRunIdRef.current + 1
+                  nextPreviewRunIdRef.current = runId
+                  setPreviewState({ status: 'preparing', runId })
+                }}
+              >
+                プレビューを再試行
+              </Button>
+            </>
+          ) : null}
+
+          <p className="sr-only" role="status" aria-live="polite">
+            {previewState.status === 'preparing'
+              ? 'プレビューを準備しています。'
+              : previewState.status === 'ready'
+                ? 'プレビューの準備が完了しました。'
+                : previewState.status === 'error'
+                  ? previewState.message
+                  : ''}
+          </p>
+
+          {previewCode !== null ? (
+            <ErrorBoundary
+              key={previewState.runId}
+              fallback={
+                <PreviewLoadError
+                  runId={previewState.runId}
+                  onError={handlePreviewError}
+                />
+              }
+            >
+              <Suspense fallback={null}>
+                <ChallengeExecutionPreview
+                  code={previewCode}
+                  isVisible={isPreviewVisible && previewState.status === 'ready'}
+                  runId={previewState.runId}
+                  onReady={handlePreviewReady}
+                  onError={handlePreviewError}
+                />
+              </Suspense>
+            </ErrorBoundary>
+          ) : null}
+        </div>
+      ) : null}
 
       {submissionError ? <ErrorBanner>{submissionError}</ErrorBanner> : null}
 
