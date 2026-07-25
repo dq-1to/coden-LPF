@@ -5,7 +5,7 @@ import { PracticeMode } from '../PracticeMode'
 import type { PracticeQuestion } from '../../../content/fundamentals/steps'
 
 const recordWrongAnswer = vi.fn()
-const resolveReviewItem = vi.fn()
+const recordCorrectAnswer = vi.fn()
 const trackLearningEvent = vi.fn()
 
 vi.mock('@/contexts/AuthContext', () => ({
@@ -16,7 +16,7 @@ vi.mock('@/contexts/AuthContext', () => ({
 
 vi.mock('../../../services/reviewService', () => ({
   recordWrongAnswer: (...args: unknown[]) => recordWrongAnswer(...args),
-  resolveReviewItem: (...args: unknown[]) => resolveReviewItem(...args),
+  recordCorrectAnswer: (...args: unknown[]) => recordCorrectAnswer(...args),
 }))
 
 vi.mock('../../../services/eventService', () => ({
@@ -72,10 +72,10 @@ describe('PracticeMode', () => {
 
   beforeEach(() => {
     recordWrongAnswer.mockReset()
-    resolveReviewItem.mockReset()
+    recordCorrectAnswer.mockReset()
     trackLearningEvent.mockReset()
     recordWrongAnswer.mockResolvedValue(undefined)
-    resolveReviewItem.mockResolvedValue(undefined)
+    recordCorrectAnswer.mockResolvedValue(undefined)
   })
 
   it('choices がある問題は選択ボタンを表示し、input は表示しない', () => {
@@ -171,7 +171,7 @@ describe('PracticeMode', () => {
     await user.click(screen.getByRole('button', { name: '判定する' }))
 
     expect(onComplete).toHaveBeenCalledTimes(1)
-    expect(resolveReviewItem).toHaveBeenCalledWith({
+    expect(recordCorrectAnswer).toHaveBeenCalledWith({
       userId: '00000000-0000-0000-0000-000000000001',
       stepId: 'step-a',
       mode: 'practice',
@@ -197,10 +197,10 @@ describe('PracticeMode フィードバック拡張', () => {
 
   beforeEach(() => {
     recordWrongAnswer.mockReset()
-    resolveReviewItem.mockReset()
+    recordCorrectAnswer.mockReset()
     trackLearningEvent.mockReset()
     recordWrongAnswer.mockResolvedValue(undefined)
-    resolveReviewItem.mockResolvedValue(undefined)
+    recordCorrectAnswer.mockResolvedValue(undefined)
   })
 
   it('level に応じて 基本 / 応用 バッジを表示する', () => {

@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import { findCourseByStepId } from '@/content/courseData'
 import { useAuth } from '@/contexts/AuthContext'
 import { trackLearningEvent, type LearningEventType } from '@/services/eventService'
-import { recordWrongAnswer, resolveReviewItem, type ReviewMode } from '@/services/reviewService'
+import { recordCorrectAnswer, recordWrongAnswer, type ReviewMode } from '@/services/reviewService'
 import { useStepReset } from './useStepReset'
 
 export type ReviewPayload = {
@@ -51,7 +51,7 @@ export function useJudgmentAction(stepId: string, mode: ReviewMode, onComplete: 
             await Promise.all(
               items.map((item) => {
                 const questionId = item.questionId ?? null
-                return resolveReviewItem({
+                return recordCorrectAnswer({
                   userId,
                   stepId,
                   mode,

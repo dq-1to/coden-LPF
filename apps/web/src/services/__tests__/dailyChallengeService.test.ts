@@ -2,7 +2,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { supabase } from '../../lib/supabaseClient'
 import { awardPoints } from '../pointService'
 import { trackLearningEvent } from '../eventService'
-import { pickForDaily, recordWrongAnswer, resolveReviewItem } from '../reviewService'
+import { pickForDaily, recordCorrectAnswer, recordWrongAnswer } from '../reviewService'
 import {
   getTodayJst,
   getCurrentWeekDates,
@@ -30,16 +30,16 @@ vi.mock('../eventService', () => ({
 
 vi.mock('../reviewService', () => ({
   pickForDaily: vi.fn(),
+  recordCorrectAnswer: vi.fn(),
   recordWrongAnswer: vi.fn(),
-  resolveReviewItem: vi.fn(),
 }))
 
 const mockFrom = vi.mocked(supabase.from)
 const mockAwardPoints = vi.mocked(awardPoints)
 const mockTrackLearningEvent = vi.mocked(trackLearningEvent)
 const mockPickForDaily = vi.mocked(pickForDaily)
+const mockRecordCorrectAnswer = vi.mocked(recordCorrectAnswer)
 const mockRecordWrongAnswer = vi.mocked(recordWrongAnswer)
-const mockResolveReviewItem = vi.mocked(resolveReviewItem)
 
 // ─── 純粋関数テスト ──────────────────────────────────────
 
@@ -356,14 +356,14 @@ describe('submitDailyAnswer', () => {
     } as unknown as ReturnType<typeof supabase.from>))
     mockAwardPoints.mockResolvedValue()
     mockRecordWrongAnswer.mockResolvedValue()
-    mockResolveReviewItem.mockResolvedValue()
+    mockRecordCorrectAnswer.mockResolvedValue()
   })
 
   it('正解の場合は isCorrect: true と 20pt を返す', async () => {
     const result = await submitDailyAnswer(userId, question, 'setCount', dateStr)
     expect(result.isCorrect).toBe(true)
     expect(result.pointsEarned).toBe(20)
-    expect(mockResolveReviewItem).toHaveBeenCalledWith({
+    expect(mockRecordCorrectAnswer).toHaveBeenCalledWith({
       userId,
       stepId: 'usestate-basic',
       mode: 'daily',
@@ -392,13 +392,13 @@ describe('submitDailyAnswer', () => {
     })
 
     expect(result.isCorrect).toBe(true)
-    expect(mockResolveReviewItem).toHaveBeenCalledWith({
+    expect(mockRecordCorrectAnswer).toHaveBeenCalledWith({
       userId,
       stepId: 'usestate-basic',
       mode: 'daily',
       questionId: 'usestate-basic-daily-0',
     })
-    expect(mockResolveReviewItem).toHaveBeenCalledWith({
+    expect(mockRecordCorrectAnswer).toHaveBeenCalledWith({
       userId,
       stepId: 'events',
       mode: 'practice',

@@ -7,7 +7,7 @@ import { buildChallengeDraftKey } from '../../../lib/challengeDraft'
 import { isExecPreviewEnabled } from '../execPreview/execPreviewConfig'
 
 const recordWrongAnswer = vi.fn()
-const resolveReviewItem = vi.fn()
+const recordCorrectAnswer = vi.fn()
 const trackLearningEvent = vi.fn()
 
 vi.mock('@/contexts/AuthContext', () => ({
@@ -18,7 +18,7 @@ vi.mock('@/contexts/AuthContext', () => ({
 
 vi.mock('@/services/reviewService', () => ({
   recordWrongAnswer: (...args: unknown[]) => recordWrongAnswer(...args),
-  resolveReviewItem: (...args: unknown[]) => resolveReviewItem(...args),
+  recordCorrectAnswer: (...args: unknown[]) => recordCorrectAnswer(...args),
 }))
 
 vi.mock('@/services/eventService', () => ({
@@ -109,10 +109,10 @@ describe('ChallengeMode', () => {
 
   beforeEach(() => {
     recordWrongAnswer.mockReset()
-    resolveReviewItem.mockReset()
+    recordCorrectAnswer.mockReset()
     trackLearningEvent.mockReset()
     recordWrongAnswer.mockResolvedValue(undefined)
-    resolveReviewItem.mockResolvedValue(undefined)
+    recordCorrectAnswer.mockResolvedValue(undefined)
     vi.mocked(isExecPreviewEnabled).mockReturnValue(false)
   })
 
@@ -148,7 +148,7 @@ describe('ChallengeMode', () => {
       matchedKeywords: ['useState', 'onClick'],
       patternId: 'pattern-1',
     })
-    expect(resolveReviewItem).toHaveBeenCalledWith({
+    expect(recordCorrectAnswer).toHaveBeenCalledWith({
       userId: '00000000-0000-0000-0000-000000000001',
       stepId: 'step-a',
       mode: 'challenge',

@@ -238,9 +238,12 @@ export type Database = {
           created_at: string
           expected: string | null
           id: string
+          last_reviewed_at: string | null
           mode: 'practice' | 'test' | 'challenge' | 'daily'
+          next_review_at: string
           question_id: string | null
           resolved_at: string | null
+          review_stage: number
           status: 'open' | 'resolved'
           step_id: string
           user_id: string
@@ -250,9 +253,12 @@ export type Database = {
           created_at?: string
           expected?: string | null
           id?: string
+          last_reviewed_at?: string | null
           mode: 'practice' | 'test' | 'challenge' | 'daily'
+          next_review_at?: string
           question_id?: string | null
           resolved_at?: string | null
+          review_stage?: number
           status?: 'open' | 'resolved'
           step_id: string
           user_id: string
@@ -262,9 +268,12 @@ export type Database = {
           created_at?: string
           expected?: string | null
           id?: string
+          last_reviewed_at?: string | null
           mode?: 'practice' | 'test' | 'challenge' | 'daily'
+          next_review_at?: string
           question_id?: string | null
           resolved_at?: string | null
+          review_stage?: number
           status?: 'open' | 'resolved'
           step_id?: string
           user_id?: string
