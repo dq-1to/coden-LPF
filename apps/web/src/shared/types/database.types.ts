@@ -507,6 +507,22 @@ export type Database = {
         Args: Record<string, never>
         Returns: undefined
       }
+      advance_review_item_if_due: {
+        Args: {
+          p_step_id: string
+          p_mode: string
+          p_question_id?: string | null
+        }
+        Returns: boolean
+      }
+      reset_review_item_schedule: {
+        Args: {
+          p_step_id: string
+          p_mode: string
+          p_question_id?: string | null
+        }
+        Returns: boolean
+      }
       unlock_achievement_tx: {
         Args: {
           p_badge_id: string

@@ -13,17 +13,6 @@ export type DailyReviewCandidate = Pick<
 
 const REVIEW_MODES = new Set<ReviewMode>(['practice', 'test', 'challenge', 'daily'])
 const MAX_REVIEW_TEXT_LENGTH = 2000
-/** 連続正解回数ごとの次回間隔（日）。index = 到達後の review_stage - 1 */
-const REVIEW_INTERVAL_DAYS = [1, 3, 7] as const
-/** 全段階クリアを表す stage */
-const REVIEW_STAGE_COMPLETED = REVIEW_INTERVAL_DAYS.length + 1
-const DAY_MS = 24 * 60 * 60 * 1000
-
-export type ReviewSchedule = {
-  reviewStage: number
-  nextReviewAt: string | null
-  status: ReviewStatus
-}
 
 export type ReviewTarget = {
   userId: string
@@ -37,41 +26,7 @@ export type RecordWrongAnswerInput = ReviewTarget & {
   userInput?: string | null
 }
 
-type ReviewItemState = Pick<ReviewItem, 'id' | 'status' | 'review_stage'>
-
-/**
- * 判定結果から次回の復習スケジュールを決める。
- * 誤答: stage 0 / 即日 due。正解: stage を 1 つ進め、最終段階を超えたら resolved。
- */
-export function getNextReviewSchedule(
-  currentStage: number,
-  isCorrect: boolean,
-  now: Date = new Date(),
-): ReviewSchedule {
-  if (!isCorrect) {
-    return { reviewStage: 0, nextReviewAt: now.toISOString(), status: 'open' }
-  }
-
-  const nextStage = currentStage + 1
-  if (nextStage >= REVIEW_STAGE_COMPLETED) {
-    return {
-      reviewStage: REVIEW_STAGE_COMPLETED,
-      nextReviewAt: null,
-      status: 'resolved',
-    }
-  }
-
-  const intervalDays = REVIEW_INTERVAL_DAYS[nextStage - 1]
-  if (intervalDays === undefined) {
-    throw new RangeError(`未対応の復習 stage です: ${currentStage}`)
-  }
-
-  return {
-    reviewStage: nextStage,
-    nextReviewAt: new Date(now.getTime() + intervalDays * DAY_MS).toISOString(),
-    status: 'open',
-  }
-}
+type ReviewItemState = Pick<ReviewItem, 'id' | 'status'>
 
 function normalizeQuestionId(questionId?: string | null): string | null {
   const normalized = questionId?.trim()
@@ -109,7 +64,7 @@ async function findReviewItemState(target: ReviewTarget): Promise<ReviewItemStat
   const questionId = normalizeQuestionId(target.questionId)
   const query = supabase
     .from('review_items')
-    .select('id, status, review_stage')
+    .select('id, status')
     .eq('user_id', target.userId)
     .eq('step_id', target.stepId)
     .eq('mode', target.mode)
@@ -155,11 +110,9 @@ export async function recordWrongAnswer(input: RecordWrongAnswerInput): Promise<
   const questionId = normalizeQuestionId(input.questionId)
   const expected = normalizeOptionalText(input.expected)
   const userInput = normalizeOptionalText(input.userInput)
-  const schedule = getNextReviewSchedule(0, false)
-  if (schedule.nextReviewAt === null) {
-    throw new Error('誤答時の次回復習日時を計算できませんでした')
-  }
-  const nextReviewAt = schedule.nextReviewAt
+  // 誤答は stage を問わず stage 0 / 即日 due へ戻す。
+  // 新規行の初期スケジュールなので、クライアント時刻でも SRS の進行判定には影響しない。
+  const nextReviewAt = new Date().toISOString()
   const payload: TablesInsert<'review_items'> = {
     user_id: input.userId,
     step_id: input.stepId,
@@ -169,7 +122,7 @@ export async function recordWrongAnswer(input: RecordWrongAnswerInput): Promise<
     user_input: userInput,
     status: 'open',
     resolved_at: null,
-    review_stage: schedule.reviewStage,
+    review_stage: 0,
     next_review_at: nextReviewAt,
     last_reviewed_at: nextReviewAt,
   }
@@ -181,7 +134,7 @@ export async function recordWrongAnswer(input: RecordWrongAnswerInput): Promise<
       user_input: userInput,
       status: 'open',
       resolved_at: null,
-      review_stage: schedule.reviewStage,
+      review_stage: 0,
       next_review_at: nextReviewAt,
       last_reviewed_at: nextReviewAt,
     })
@@ -191,29 +144,41 @@ export async function recordWrongAnswer(input: RecordWrongAnswerInput): Promise<
   await insertReviewItem(payload)
 }
 
+/**
+ * 正解時の段階進行。期日判定・stage 遷移・行ロックはすべて DB 側の RPC が行う。
+ * SRS の間隔（翌日 / 3日後 / 7日後）は 033 の SQL を正本とし、ここでは複製しない。
+ */
 export async function recordCorrectAnswer(target: ReviewTarget): Promise<void> {
   validateTarget(target)
 
-  const existing = await findReviewItemState(target)
-  if (!existing || existing.status !== 'open') {
-    return
-  }
+  const { error } = await supabase.rpc('advance_review_item_if_due', {
+    p_step_id: target.stepId,
+    p_mode: target.mode,
+    p_question_id: normalizeQuestionId(target.questionId),
+  })
 
-  const now = new Date()
-  const nowIso = now.toISOString()
-  const schedule = getNextReviewSchedule(existing.review_stage, true, now)
-  const patch: TablesUpdate<'review_items'> = {
-    status: schedule.status,
-    review_stage: schedule.reviewStage,
-    last_reviewed_at: nowIso,
-    resolved_at: schedule.status === 'resolved' ? nowIso : null,
+  if (error) {
+    throw fromSupabaseError(error, '復習アイテムの更新に失敗しました')
   }
+}
 
-  if (schedule.nextReviewAt !== null) {
-    patch.next_review_at = schedule.nextReviewAt
+/**
+ * 既存 review item のスケジュールだけを stage 0 / 即日 due へ戻す。
+ * Daily で出題された Practice/Test 由来 item を再誤答時に戻す用途で使う。
+ * expected / user_input は上書きしない。
+ */
+export async function resetReviewItemSchedule(target: ReviewTarget): Promise<void> {
+  validateTarget(target)
+
+  const { error } = await supabase.rpc('reset_review_item_schedule', {
+    p_step_id: target.stepId,
+    p_mode: target.mode,
+    p_question_id: normalizeQuestionId(target.questionId),
+  })
+
+  if (error) {
+    throw fromSupabaseError(error, '復習アイテムの更新に失敗しました')
   }
-
-  await updateReviewItem(existing.id, patch)
 }
 
 export async function getOpenCount(userId: string): Promise<number> {

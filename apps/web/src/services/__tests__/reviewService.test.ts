@@ -2,23 +2,25 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { supabase } from '../../lib/supabaseClient'
 import {
   getDueCount,
-  getNextReviewSchedule,
   getOpenCount,
   listDue,
   listOpen,
   pickForDaily,
   recordCorrectAnswer,
   recordWrongAnswer,
+  resetReviewItemSchedule,
   type ReviewItem,
 } from '../reviewService'
 
 vi.mock('../../lib/supabaseClient', () => ({
   supabase: {
     from: vi.fn(),
+    rpc: vi.fn(),
   },
 }))
 
 const mockFrom = vi.mocked(supabase.from)
+const mockRpc = vi.mocked(supabase.rpc)
 const userId = '00000000-0000-0000-0000-000000000001'
 const now = new Date('2026-06-03T12:00:00.000Z')
 
@@ -102,69 +104,11 @@ describe('reviewService', () => {
     vi.clearAllMocks()
     vi.useFakeTimers()
     vi.setSystemTime(now)
+    mockRpc.mockResolvedValue({ data: true, error: null } as never)
   })
 
   afterEach(() => {
     vi.useRealTimers()
-  })
-
-  it.each([
-    {
-      label: '誤答は任意の stage から stage 0 に戻す',
-      currentStage: 3,
-      isCorrect: false,
-      reviewStage: 0,
-      intervalDays: 0,
-      status: 'open' as const,
-    },
-    {
-      label: 'stage 0 の正解は翌日へ送る',
-      currentStage: 0,
-      isCorrect: true,
-      reviewStage: 1,
-      intervalDays: 1,
-      status: 'open' as const,
-    },
-    {
-      label: 'stage 1 の正解は3日後へ送る',
-      currentStage: 1,
-      isCorrect: true,
-      reviewStage: 2,
-      intervalDays: 3,
-      status: 'open' as const,
-    },
-    {
-      label: 'stage 2 の正解は7日後へ送る',
-      currentStage: 2,
-      isCorrect: true,
-      reviewStage: 3,
-      intervalDays: 7,
-      status: 'open' as const,
-    },
-    {
-      label: 'stage 3 の正解は完了にする',
-      currentStage: 3,
-      isCorrect: true,
-      reviewStage: 4,
-      intervalDays: null,
-      status: 'resolved' as const,
-    },
-  ])('getNextReviewSchedule: $label', ({
-    currentStage,
-    isCorrect,
-    reviewStage,
-    intervalDays,
-    status,
-  }) => {
-    const result = getNextReviewSchedule(currentStage, isCorrect)
-
-    expect(result).toEqual({
-      reviewStage,
-      nextReviewAt: intervalDays === null
-        ? null
-        : new Date(now.getTime() + intervalDays * 24 * 60 * 60 * 1000).toISOString(),
-      status,
-    })
   })
 
   it('recordWrongAnswer は未登録の誤答を open item として保存する', async () => {
@@ -229,17 +173,7 @@ describe('reviewService', () => {
     })
   })
 
-  it('recordCorrectAnswer は stage 0 を翌日へ進める', async () => {
-    const findQuery = makeMaybeSingleQuery({
-      data: { id: 'review-1', status: 'open', review_stage: 0 },
-      error: null,
-    })
-    const updateQuery = makeUpdateQuery({ data: { id: 'review-1' }, error: null })
-
-    mockFrom
-      .mockReturnValueOnce({ select: vi.fn(() => findQuery) } as unknown as ReturnType<typeof supabase.from>)
-      .mockReturnValueOnce({ update: updateQuery.update } as unknown as ReturnType<typeof supabase.from>)
-
+  it('recordCorrectAnswer は期日判定つきRPCへ委譲し、クライアントで stage を計算しない', async () => {
     await recordCorrectAnswer({
       userId,
       stepId: 'usestate-basic',
@@ -247,96 +181,73 @@ describe('reviewService', () => {
       questionId: 'practice-1',
     })
 
-    expect(updateQuery.update).toHaveBeenCalledWith({
-      status: 'open',
-      review_stage: 1,
-      next_review_at: '2026-06-04T12:00:00.000Z',
-      last_reviewed_at: now.toISOString(),
-      resolved_at: null,
+    expect(mockRpc).toHaveBeenCalledWith('advance_review_item_if_due', {
+      p_step_id: 'usestate-basic',
+      p_mode: 'practice',
+      p_question_id: 'practice-1',
     })
+    // stage / next_review_at の決定は DB 側なので、テーブルへ直接触らない
+    expect(mockFrom).not.toHaveBeenCalled()
   })
 
-  it('recordCorrectAnswer は stage 2 を7日後へ進める', async () => {
-    const findQuery = makeMaybeSingleQuery({
-      data: { id: 'review-1', status: 'open', review_stage: 2 },
-      error: null,
-    })
-    const updateQuery = makeUpdateQuery({ data: { id: 'review-1' }, error: null })
-
-    mockFrom
-      .mockReturnValueOnce({ select: vi.fn(() => findQuery) } as unknown as ReturnType<typeof supabase.from>)
-      .mockReturnValueOnce({ update: updateQuery.update } as unknown as ReturnType<typeof supabase.from>)
-
+  it('recordCorrectAnswer は userId を RPC へ渡さない（本人判定は auth.uid()）', async () => {
     await recordCorrectAnswer({
       userId,
       stepId: 'usestate-basic',
       mode: 'test',
     })
 
-    expect(updateQuery.update).toHaveBeenCalledWith({
-      status: 'open',
-      review_stage: 3,
-      next_review_at: '2026-06-10T12:00:00.000Z',
-      last_reviewed_at: now.toISOString(),
-      resolved_at: null,
-    })
+    const [, args] = mockRpc.mock.calls[0] as [string, Record<string, unknown>]
+    expect(Object.keys(args)).toEqual(['p_step_id', 'p_mode', 'p_question_id'])
+    expect(JSON.stringify(args)).not.toContain(userId)
   })
 
-  it('recordCorrectAnswer は stage 3 を resolved にして次回日時を更新しない', async () => {
-    const findQuery = makeMaybeSingleQuery({
-      data: { id: 'review-1', status: 'open', review_stage: 3 },
-      error: null,
-    })
-    const updateQuery = makeUpdateQuery({ data: { id: 'review-1' }, error: null })
-
-    mockFrom
-      .mockReturnValueOnce({ select: vi.fn(() => findQuery) } as unknown as ReturnType<typeof supabase.from>)
-      .mockReturnValueOnce({ update: updateQuery.update } as unknown as ReturnType<typeof supabase.from>)
-
+  it('recordCorrectAnswer は questionId 未指定を null として渡す', async () => {
     await recordCorrectAnswer({
       userId,
       stepId: 'usestate-basic',
       mode: 'challenge',
-      questionId: null,
+      questionId: '  ',
     })
 
-    expect(updateQuery.update).toHaveBeenCalledWith({
-      status: 'resolved',
-      review_stage: 4,
-      last_reviewed_at: now.toISOString(),
-      resolved_at: now.toISOString(),
+    expect(mockRpc).toHaveBeenCalledWith('advance_review_item_if_due', {
+      p_step_id: 'usestate-basic',
+      p_mode: 'challenge',
+      p_question_id: null,
     })
   })
 
-  it('recordCorrectAnswer は resolved item なら何もしない', async () => {
-    const findQuery = makeMaybeSingleQuery({
-      data: { id: 'review-1', status: 'resolved', review_stage: 4 },
-      error: null,
-    })
+  it('recordCorrectAnswer は RPC エラーを既存のエラー形式へ変換する', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: { message: 'boom' } } as never)
 
-    mockFrom.mockReturnValueOnce({ select: vi.fn(() => findQuery) } as unknown as ReturnType<typeof supabase.from>)
-
-    await recordCorrectAnswer({
-      userId,
-      stepId: 'usestate-basic',
-      mode: 'challenge',
-    })
-
-    expect(mockFrom).toHaveBeenCalledTimes(1)
+    await expect(
+      recordCorrectAnswer({ userId, stepId: 'usestate-basic', mode: 'practice' }),
+    ).rejects.toThrow('復習アイテムの更新に失敗しました')
   })
 
-  it('recordCorrectAnswer は対象 item がなければ何もしない', async () => {
-    const findQuery = makeMaybeSingleQuery({ data: null, error: null })
-
-    mockFrom.mockReturnValueOnce({ select: vi.fn(() => findQuery) } as unknown as ReturnType<typeof supabase.from>)
-
-    await recordCorrectAnswer({
+  it('resetReviewItemSchedule はスケジュールリセットRPCを呼ぶ', async () => {
+    await resetReviewItemSchedule({
       userId,
       stepId: 'usestate-basic',
-      mode: 'practice',
+      mode: 'test',
+      questionId: 'test-q1',
     })
 
-    expect(mockFrom).toHaveBeenCalledTimes(1)
+    expect(mockRpc).toHaveBeenCalledWith('reset_review_item_schedule', {
+      p_step_id: 'usestate-basic',
+      p_mode: 'test',
+      p_question_id: 'test-q1',
+    })
+    // expected / user_input を上書きしないため、テーブル更新は行わない
+    expect(mockFrom).not.toHaveBeenCalled()
+  })
+
+  it('resetReviewItemSchedule は RPC エラーを既存のエラー形式へ変換する', async () => {
+    mockRpc.mockResolvedValue({ data: null, error: { message: 'boom' } } as never)
+
+    await expect(
+      resetReviewItemSchedule({ userId, stepId: 'usestate-basic', mode: 'test' }),
+    ).rejects.toThrow('復習アイテムの更新に失敗しました')
   })
 
   it('getOpenCount は open item の件数を返す', async () => {

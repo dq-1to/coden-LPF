@@ -8,6 +8,7 @@ import {
   pickForDaily,
   recordCorrectAnswer,
   recordWrongAnswer,
+  resetReviewItemSchedule,
   type DailyReviewCandidate,
   type ReviewMode,
 } from './reviewService'
@@ -210,6 +211,31 @@ async function getDailyConsecutiveStreak(userId: string, today: string): Promise
   return streak
 }
 
+/**
+ * Daily 出題元の復習 item が、Daily 回答そのものの item と別行かどうか。
+ * 別行なら Daily 側の更新だけでは元 item のスケジュールが動かないため、個別に同期する。
+ */
+function isSeparateReviewTarget(
+  reviewTarget: DailyReviewTarget | null | undefined,
+  question: DailyQuestion,
+): reviewTarget is DailyReviewTarget {
+  if (!reviewTarget) return false
+
+  return (
+    reviewTarget.stepId !== question.stepId ||
+    reviewTarget.mode !== 'daily' ||
+    (reviewTarget.questionId ?? null) !== question.id
+  )
+}
+
+/**
+ * 復習キューの同期。片方が失敗しても残りを実行し、Daily 回答結果の表示も止めない。
+ * 呼び出し側で Promise を生成済みのため、順番待ちによる取りこぼしも起きない。
+ */
+async function syncReviewQueue(operations: Promise<void>[]): Promise<void> {
+  await Promise.allSettled(operations)
+}
+
 /** デイリーチャレンジの回答を送信する */
 export async function submitDailyAnswer(
   userId: string,
@@ -243,29 +269,25 @@ export async function submitDailyAnswer(
   }
 
   if (isCorrect) {
-    try {
-      await recordCorrectAnswer({
+    await syncReviewQueue([
+      recordCorrectAnswer({
         userId,
         stepId: question.stepId,
         mode: 'daily',
         questionId: question.id,
-      })
-      if (
-        reviewTarget &&
-        (reviewTarget.stepId !== question.stepId ||
-          reviewTarget.mode !== 'daily' ||
-          reviewTarget.questionId !== question.id)
-      ) {
-        await recordCorrectAnswer({
-          userId,
-          stepId: reviewTarget.stepId,
-          mode: reviewTarget.mode,
-          questionId: reviewTarget.questionId ?? null,
-        })
-      }
-    } catch {
-      // 復習キュー同期の失敗でDaily回答完了を止めない。
-    }
+      }),
+      // Daily 出題元が Practice/Test 由来なら、その item も同じ正解で進める。
+      ...(isSeparateReviewTarget(reviewTarget, question)
+        ? [
+            recordCorrectAnswer({
+              userId,
+              stepId: reviewTarget.stepId,
+              mode: reviewTarget.mode,
+              questionId: reviewTarget.questionId ?? null,
+            }),
+          ]
+        : []),
+    ])
     await awardPoints(POINTS_DAILY_CORRECT, 'デイリーチャレンジ正解')
 
     // 7日連続ボーナスチェック（7の倍数日ごとに付与）
@@ -287,18 +309,28 @@ export async function submitDailyAnswer(
       },
     })
   } else {
-    try {
-      await recordWrongAnswer({
+    await syncReviewQueue([
+      recordWrongAnswer({
         userId,
         stepId: question.stepId,
         mode: 'daily',
         questionId: question.id,
         expected: question.answer,
         userInput: userAnswer,
-      })
-    } catch {
-      // 復習キュー同期の失敗でDaily回答結果の表示を止めない。
-    }
+      }),
+      // Daily 出題元の item は mode='daily' の行とは別物なので、
+      // 元 target のスケジュールだけを stage 0 / 即日 due へ戻す（内容は上書きしない）。
+      ...(isSeparateReviewTarget(reviewTarget, question)
+        ? [
+            resetReviewItemSchedule({
+              userId,
+              stepId: reviewTarget.stepId,
+              mode: reviewTarget.mode,
+              questionId: reviewTarget.questionId ?? null,
+            }),
+          ]
+        : []),
+    ])
   }
 
   return {
