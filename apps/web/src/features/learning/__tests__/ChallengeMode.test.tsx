@@ -51,6 +51,8 @@ vi.mock('../execPreview/execPreviewConfig', () => ({
 const previewFactory = vi.hoisted(() => ({
   calls: 0,
   failNextInstance: false,
+  /** 遅延して届く通知を再現するため、親から渡された onError を保持する */
+  lastOnError: null as null | ((runId: number, message: string) => void),
 }))
 
 vi.mock('../execPreview/createExecutionPreviewComponent', () => ({
@@ -75,6 +77,8 @@ vi.mock('../execPreview/createExecutionPreviewComponent', () => ({
       if (alwaysFails) {
         throw new Error('chunk load failed')
       }
+
+      previewFactory.lastOnError = onError
 
       return (
         <div data-testid="execution-preview" data-visible={String(isVisible)}>
@@ -144,6 +148,7 @@ describe('ChallengeMode', () => {
     vi.mocked(isExecPreviewEnabled).mockReturnValue(false)
     previewFactory.calls = 0
     previewFactory.failNextInstance = false
+    previewFactory.lastOnError = null
   })
 
   it('初回の正解判定で onComplete を呼ぶ', async () => {
@@ -305,7 +310,7 @@ describe('ChallengeMode', () => {
     }
   })
 
-  it('古い runId のエラーは新しい run を停止させない', async () => {
+  it('古い runId のエラーは表示中の新しい run を閉じない', async () => {
     const user = userEvent.setup()
     vi.mocked(isExecPreviewEnabled).mockReturnValue(true)
 
@@ -314,21 +319,27 @@ describe('ChallengeMode', () => {
     const editor = screen.getByLabelText('challenge-editor')
     fireEvent.change(editor, { target: { value: PASSING_CODE } })
     await user.click(screen.getByRole('button', { name: '判定する' }))
-    const firstPreview = await screen.findByTestId('execution-preview')
-    // 1回目のプレビューへの参照を保持したまま、編集 → 再判定で run を作り直す
-    const staleErrorButton = within(firstPreview).getByRole('button', { name: 'mock-error' })
+    await screen.findByTestId('execution-preview')
 
+    // 編集 → 再判定で run を作り直す（1回目の runId は 1、2回目は 2）
     fireEvent.change(editor, { target: { value: `${PASSING_CODE}\n// v2` } })
     await user.click(screen.getByRole('button', { name: '判定する' }))
     await screen.findByTestId('execution-preview')
     await user.click(screen.getByRole('button', { name: 'mock-ready' }))
-    expect(screen.getByRole('button', { name: 'プレビューを見る' })).toBeTruthy()
 
-    // 古い runId の通知が来ても、新しい run は ready のまま
-    await user.click(staleErrorButton)
+    // 新しい run を実際に開いた状態にしてから古い通知を受ける
+    await user.click(screen.getByRole('button', { name: 'プレビューを見る' }))
+    expect(screen.getByTestId('execution-preview').dataset.visible).toBe('true')
 
-    expect(screen.getByRole('button', { name: 'プレビューを見る' })).toBeTruthy()
-    expect(screen.getByTestId('execution-preview')).toBeTruthy()
+    // アンマウント済み iframe から遅れて届く通知を再現する
+    act(() => {
+      previewFactory.lastOnError?.(1, 'stale preview error')
+    })
+
+    // 状態も表示も維持されること（visibility だけ落ちる不整合を防ぐ）
+    expect(screen.getByTestId('execution-preview').dataset.visible).toBe('true')
+    expect(screen.getByRole('button', { name: 'プレビューを閉じる' })).toBeTruthy()
+    expect(screen.queryByText('stale preview error')).toBeNull()
   })
 
   it('step が変わると実行中のプレビューを破棄する', async () => {
