@@ -6,8 +6,8 @@ import { awardPoints } from './pointService'
 import { trackLearningEvent } from './eventService'
 import {
   pickForDaily,
+  recordCorrectAnswer,
   recordWrongAnswer,
-  resolveReviewItem,
   type DailyReviewCandidate,
   type ReviewMode,
 } from './reviewService'
@@ -244,7 +244,7 @@ export async function submitDailyAnswer(
 
   if (isCorrect) {
     try {
-      await resolveReviewItem({
+      await recordCorrectAnswer({
         userId,
         stepId: question.stepId,
         mode: 'daily',
@@ -256,7 +256,7 @@ export async function submitDailyAnswer(
           reviewTarget.mode !== 'daily' ||
           reviewTarget.questionId !== question.id)
       ) {
-        await resolveReviewItem({
+        await recordCorrectAnswer({
           userId,
           stepId: reviewTarget.stepId,
           mode: reviewTarget.mode,
