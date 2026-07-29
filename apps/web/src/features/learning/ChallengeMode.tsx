@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '../../components/Button'
 import { CodeEditor } from '../../components/CodeEditor'
 import { ErrorBanner } from '../../components/ErrorBanner'
@@ -12,25 +12,42 @@ import { useChallengeDraft } from './hooks/useChallengeDraft'
 import { judgeKeywordConditions, judgeKeywords, stripNonAuthoredCode } from '../../lib/judge'
 import { ChallengePuzzleMulti } from './ChallengePuzzle/ChallengePuzzleMulti'
 import { isExecPreviewEnabled } from './execPreview/execPreviewConfig'
+import { createExecutionPreviewComponent } from './execPreview/createExecutionPreviewComponent'
 
-const ChallengeExecutionPreview = lazy(() => import('./execPreview/ChallengeExecutionPreview'))
 const EXEC_PREVIEW_TIMEOUT_MS = 15_000
 
+/**
+ * chunk: プレビュー本体の読み込み失敗（lazy インスタンスの作り直しが必要）
+ * runtime: ユーザーコードの実行時／コンパイル時エラー
+ * timeout: 準備が既定時間内に終わらなかった
+ */
+type PreviewErrorKind = 'chunk' | 'runtime' | 'timeout'
+
+/**
+ * 実行プレビューの状態。Sandpack（iframe）は preparing / ready の間だけマウントし、
+ * error へ遷移した時点でアンマウントして runtime を破棄する。
+ * error は再試行のためにコードのスナップショットだけを保持する。
+ *
+ * 表示状態（isVisible）を別 state に分けると、古い runId の通知で表示だけが
+ * 落ちる不整合が起きるため、run の状態へ統合している。
+ */
 type ExecutionPreviewState =
   | { status: 'idle' }
-  | { status: 'preparing'; runId: number }
-  | { status: 'ready'; runId: number }
-  | { status: 'error'; runId: number; message: string }
+  | { status: 'preparing'; runId: number; code: string }
+  | { status: 'ready'; runId: number; code: string; isVisible: boolean }
+  | { status: 'error'; runId: number; code: string; message: string; kind: PreviewErrorKind }
+
+type PreviewErrorState = Extract<ExecutionPreviewState, { status: 'error' }>
 
 interface PreviewLoadErrorProps {
   runId: number
-  onError: (runId: number, message: string) => void
+  onChunkError: (runId: number) => void
 }
 
-function PreviewLoadError({ runId, onError }: PreviewLoadErrorProps) {
+function PreviewLoadError({ runId, onChunkError }: PreviewLoadErrorProps) {
   useEffect(() => {
-    onError(runId, 'プレビュー機能の読み込みに失敗しました。')
-  }, [onError, runId])
+    onChunkError(runId)
+  }, [onChunkError, runId])
 
   return null
 }
@@ -52,9 +69,11 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
   const [code, setCode] = useState(() => readDraft(stepId, pattern.id) ?? pattern.starterCode)
   const [checked, setChecked] = useState(false)
   const [submissionError, setSubmissionError] = useState<string | null>(null)
-  const [previewCode, setPreviewCode] = useState<string | null>(null)
   const [previewState, setPreviewState] = useState<ExecutionPreviewState>({ status: 'idle' })
-  const [isPreviewVisible, setIsPreviewVisible] = useState(false)
+  // chunk 読み込み失敗時に lazy インスタンスごと作り直せるよう、生成物を state で持つ
+  const [previewModule, setPreviewModule] = useState(() => ({
+    Component: createExecutionPreviewComponent(),
+  }))
   const nextPreviewRunIdRef = useRef(0)
   const { handleResult } = useJudgmentAction(stepId, 'challenge', onComplete)
 
@@ -68,27 +87,54 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     setCode(readDraftRef.current(stepId, nextPattern.id) ?? nextPattern.starterCode)
     setChecked(false)
     setSubmissionError(null)
-    setPreviewCode(null)
+    // step / task が変わったら実行中の iframe も破棄する
     setPreviewState({ status: 'idle' })
-    setIsPreviewVisible(false)
   }, [stepId, task])
 
   const handlePreviewReady = useCallback((runId: number) => {
     setPreviewState((current) =>
       current.status === 'preparing' && current.runId === runId
-        ? { status: 'ready', runId }
+        ? { status: 'ready', runId, code: current.code, isVisible: false }
         : current,
     )
   }, [])
 
-  const handlePreviewError = useCallback((runId: number, message: string) => {
-    setIsPreviewVisible(false)
+  // 古い runId からの通知は破棄し、新しい run の状態も表示も変えない
+  const handlePreviewError = useCallback(
+    (runId: number, message: string, kind: PreviewErrorKind = 'runtime') => {
+      setPreviewState((current) =>
+        (current.status === 'preparing' || current.status === 'ready') &&
+        current.runId === runId
+          ? { status: 'error', runId, code: current.code, message, kind }
+          : current,
+      )
+    },
+    [],
+  )
+
+  const togglePreviewVisibility = useCallback(() => {
     setPreviewState((current) =>
-      (current.status === 'preparing' || current.status === 'ready') &&
-      current.runId === runId
-        ? { status: 'error', runId, message }
-        : current,
+      current.status === 'ready' ? { ...current, isVisible: !current.isVisible } : current,
     )
+  }, [])
+
+  const handlePreviewChunkError = useCallback(
+    (runId: number) => {
+      handlePreviewError(runId, 'プレビュー機能の読み込みに失敗しました。', 'chunk')
+    },
+    [handlePreviewError],
+  )
+
+  const handlePreviewRetry = useCallback((errorState: PreviewErrorState) => {
+    // React.lazy は失敗した import Promise をキャッシュするため、
+    // chunk 読み込み失敗の再試行では lazy インスタンスごと作り直す。
+    if (errorState.kind === 'chunk') {
+      setPreviewModule({ Component: createExecutionPreviewComponent() })
+    }
+
+    const runId = nextPreviewRunIdRef.current + 1
+    nextPreviewRunIdRef.current = runId
+    setPreviewState({ status: 'preparing', runId, code: errorState.code })
   }, [])
 
   useEffect(() => {
@@ -98,6 +144,7 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
       handlePreviewError(
         previewState.runId,
         'プレビューの準備がタイムアウトしました。もう一度お試しください。',
+        'timeout',
       )
     }, EXEC_PREVIEW_TIMEOUT_MS)
 
@@ -142,9 +189,7 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
       if (showExecPreview) {
         const runId = nextPreviewRunIdRef.current + 1
         nextPreviewRunIdRef.current = runId
-        setPreviewCode(code)
-        setPreviewState({ status: 'preparing', runId })
-        setIsPreviewVisible(false)
+        setPreviewState({ status: 'preparing', runId, code })
       }
     }
 
@@ -172,9 +217,8 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     (nextValue: string) => {
       setChecked(false)
       setCode(nextValue)
-      setPreviewCode(null)
+      // 編集したら実行中の iframe を破棄する（古いコードの runtime を残さない）
       setPreviewState({ status: 'idle' })
-      setIsPreviewVisible(false)
       scheduleSave(stepId, pattern.id, nextValue)
     },
     [scheduleSave, stepId, pattern.id],
@@ -231,9 +275,9 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
           {previewState.status === 'ready' ? (
             <Button
               variant="secondary"
-              onClick={() => setIsPreviewVisible((current) => !current)}
+              onClick={togglePreviewVisibility}
             >
-              {isPreviewVisible ? 'プレビューを閉じる' : 'プレビューを見る'}
+              {previewState.isVisible ? 'プレビューを閉じる' : 'プレビューを見る'}
             </Button>
           ) : null}
 
@@ -242,15 +286,7 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
               <p className="text-sm text-red-600" role="alert">
                 {previewState.message}
               </p>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  if (previewCode === null) return
-                  const runId = nextPreviewRunIdRef.current + 1
-                  nextPreviewRunIdRef.current = runId
-                  setPreviewState({ status: 'preparing', runId })
-                }}
-              >
+              <Button variant="secondary" onClick={() => handlePreviewRetry(previewState)}>
                 プレビューを再試行
               </Button>
             </>
@@ -266,20 +302,22 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
                   : ''}
           </p>
 
-          {previewCode !== null ? (
+          {/* Sandpack は準備中・準備完了の間だけマウントする。
+              error / timeout ではアンマウントして iframe ごと runtime を破棄する。 */}
+          {previewState.status === 'preparing' || previewState.status === 'ready' ? (
             <ErrorBoundary
               key={previewState.runId}
               fallback={
                 <PreviewLoadError
                   runId={previewState.runId}
-                  onError={handlePreviewError}
+                  onChunkError={handlePreviewChunkError}
                 />
               }
             >
               <Suspense fallback={null}>
-                <ChallengeExecutionPreview
-                  code={previewCode}
-                  isVisible={isPreviewVisible && previewState.status === 'ready'}
+                <previewModule.Component
+                  code={previewState.code}
+                  isVisible={previewState.status === 'ready' && previewState.isVisible}
                   runId={previewState.runId}
                   onReady={handlePreviewReady}
                   onError={handlePreviewError}

@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChallengeMode } from '../ChallengeMode'
@@ -43,26 +43,52 @@ vi.mock('../execPreview/execPreviewConfig', () => ({
   isExecPreviewEnabled: vi.fn(() => false),
 }))
 
-vi.mock('../execPreview/ChallengeExecutionPreview', () => ({
-  default: ({
-    code,
-    isVisible,
-    runId,
-    onReady,
-    onError,
-  }: {
-    code: string
-    isVisible: boolean
-    runId: number
-    onReady: (runId: number) => void
-    onError: (runId: number, message: string) => void
-  }) => (
-    <div data-testid="execution-preview" data-visible={String(isVisible)}>
-      <pre>{code}</pre>
-      <button type="button" onClick={() => onReady(runId)}>mock-ready</button>
-      <button type="button" onClick={() => onError(runId, 'mock preview error')}>mock-error</button>
-    </div>
-  ),
+/**
+ * lazy インスタンスの作り直しを検証するため、factory の呼び出しを数える。
+ * chunkFailure を立てた回の生成物だけが render 時に throw する
+ * ＝ 失敗した import Promise をキャッシュする React.lazy と同じ挙動になる。
+ */
+const previewFactory = vi.hoisted(() => ({
+  calls: 0,
+  failNextInstance: false,
+  /** 遅延して届く通知を再現するため、親から渡された onError を保持する */
+  lastOnError: null as null | ((runId: number, message: string) => void),
+}))
+
+vi.mock('../execPreview/createExecutionPreviewComponent', () => ({
+  createExecutionPreviewComponent: () => {
+    previewFactory.calls += 1
+    const alwaysFails = previewFactory.failNextInstance
+    previewFactory.failNextInstance = false
+
+    return function MockExecutionPreview({
+      code,
+      isVisible,
+      runId,
+      onReady,
+      onError,
+    }: {
+      code: string
+      isVisible: boolean
+      runId: number
+      onReady: (runId: number) => void
+      onError: (runId: number, message: string) => void
+    }) {
+      if (alwaysFails) {
+        throw new Error('chunk load failed')
+      }
+
+      previewFactory.lastOnError = onError
+
+      return (
+        <div data-testid="execution-preview" data-visible={String(isVisible)}>
+          <pre>{code}</pre>
+          <button type="button" onClick={() => onReady(runId)}>mock-ready</button>
+          <button type="button" onClick={() => onError(runId, 'mock preview error')}>mock-error</button>
+        </div>
+      )
+    }
+  },
 }))
 
 vi.mock('../ChallengePuzzle/ChallengePuzzleMulti', () => ({
@@ -89,6 +115,10 @@ const firstTask: ChallengeTask = {
   ],
 }
 
+/** firstTask（useState + onClick）を満たすコード */
+const PASSING_CODE =
+  'export function First() { const state = useState(0); return <button onClick={() => state[1](1)}>更新</button> }'
+
 const secondTask: ChallengeTask = {
   patterns: [
     {
@@ -105,6 +135,8 @@ const secondTask: ChallengeTask = {
 describe('ChallengeMode', () => {
   afterEach(() => {
     cleanup()
+    // 1テストの fake timer が残ると後続の userEvent がすべてハングするため必ず戻す
+    vi.useRealTimers()
   })
 
   beforeEach(() => {
@@ -114,6 +146,9 @@ describe('ChallengeMode', () => {
     recordWrongAnswer.mockResolvedValue(undefined)
     recordCorrectAnswer.mockResolvedValue(undefined)
     vi.mocked(isExecPreviewEnabled).mockReturnValue(false)
+    previewFactory.calls = 0
+    previewFactory.failNextInstance = false
+    previewFactory.lastOnError = null
   })
 
   it('初回の正解判定で onComplete を呼ぶ', async () => {
@@ -227,6 +262,160 @@ describe('ChallengeMode', () => {
       screen.getByRole('button', { name: 'プレビューを準備中…' }).hasAttribute('disabled'),
     ).toBe(true)
     expect(await screen.findByTestId('execution-preview')).toBeTruthy()
+  })
+
+  it('ランタイムエラー時は Sandpack をアンマウントして実行を止める', async () => {
+    const user = userEvent.setup()
+    vi.mocked(isExecPreviewEnabled).mockReturnValue(true)
+
+    render(<ChallengeMode stepId="usestate-basic" task={firstTask} onComplete={vi.fn()} />)
+
+    fireEvent.change(screen.getByLabelText('challenge-editor'), {
+      target: { value: PASSING_CODE },
+    })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+    await screen.findByTestId('execution-preview')
+    await user.click(screen.getByRole('button', { name: 'mock-ready' }))
+    await user.click(screen.getByRole('button', { name: 'mock-error' }))
+
+    // 画面外へ退避するのではなく DOM から消えること
+    expect(screen.queryByTestId('execution-preview')).toBeNull()
+    expect(screen.getByRole('alert').textContent).toContain('mock preview error')
+  })
+
+  it('15秒タイムアウト時も Sandpack をアンマウントする', async () => {
+    vi.mocked(isExecPreviewEnabled).mockReturnValue(true)
+    // userEvent は内部で実時間を待つため、ここでは fireEvent + act で操作する
+    vi.useFakeTimers()
+
+    try {
+      render(<ChallengeMode stepId="usestate-basic" task={firstTask} onComplete={vi.fn()} />)
+
+      fireEvent.change(screen.getByLabelText('challenge-editor'), {
+        target: { value: PASSING_CODE },
+      })
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: '判定する' }))
+      })
+      expect(screen.getByTestId('execution-preview')).toBeTruthy()
+
+      await act(async () => {
+        vi.advanceTimersByTime(15_000)
+      })
+
+      expect(screen.queryByTestId('execution-preview')).toBeNull()
+      expect(screen.getByRole('alert').textContent).toContain('タイムアウト')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('古い runId のエラーは表示中の新しい run を閉じない', async () => {
+    const user = userEvent.setup()
+    vi.mocked(isExecPreviewEnabled).mockReturnValue(true)
+
+    render(<ChallengeMode stepId="usestate-basic" task={firstTask} onComplete={vi.fn()} />)
+
+    const editor = screen.getByLabelText('challenge-editor')
+    fireEvent.change(editor, { target: { value: PASSING_CODE } })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+    await screen.findByTestId('execution-preview')
+
+    // 編集 → 再判定で run を作り直す（1回目の runId は 1、2回目は 2）
+    fireEvent.change(editor, { target: { value: `${PASSING_CODE}\n// v2` } })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+    await screen.findByTestId('execution-preview')
+    await user.click(screen.getByRole('button', { name: 'mock-ready' }))
+
+    // 新しい run を実際に開いた状態にしてから古い通知を受ける
+    await user.click(screen.getByRole('button', { name: 'プレビューを見る' }))
+    expect(screen.getByTestId('execution-preview').dataset.visible).toBe('true')
+
+    // アンマウント済み iframe から遅れて届く通知を再現する
+    act(() => {
+      previewFactory.lastOnError?.(1, 'stale preview error')
+    })
+
+    // 状態も表示も維持されること（visibility だけ落ちる不整合を防ぐ）
+    expect(screen.getByTestId('execution-preview').dataset.visible).toBe('true')
+    expect(screen.getByRole('button', { name: 'プレビューを閉じる' })).toBeTruthy()
+    expect(screen.queryByText('stale preview error')).toBeNull()
+  })
+
+  it('step が変わると実行中のプレビューを破棄する', async () => {
+    const user = userEvent.setup()
+    vi.mocked(isExecPreviewEnabled).mockReturnValue(true)
+
+    const { rerender } = render(
+      <ChallengeMode stepId="usestate-basic" task={firstTask} onComplete={vi.fn()} />,
+    )
+
+    fireEvent.change(screen.getByLabelText('challenge-editor'), {
+      target: { value: PASSING_CODE },
+    })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+    await screen.findByTestId('execution-preview')
+
+    rerender(<ChallengeMode stepId="conditional" task={secondTask} onComplete={vi.fn()} />)
+
+    expect(screen.queryByTestId('execution-preview')).toBeNull()
+    expect(screen.queryByRole('button', { name: /プレビュー/ })).toBeNull()
+  })
+
+  it('chunk 読み込み失敗の再試行では lazy インスタンスを作り直す', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const user = userEvent.setup()
+    vi.mocked(isExecPreviewEnabled).mockReturnValue(true)
+    previewFactory.failNextInstance = true
+
+    try {
+      render(<ChallengeMode stepId="usestate-basic" task={firstTask} onComplete={vi.fn()} />)
+      expect(previewFactory.calls).toBe(1)
+
+      fireEvent.change(screen.getByLabelText('challenge-editor'), {
+        target: { value: PASSING_CODE },
+      })
+      await user.click(screen.getByRole('button', { name: '判定する' }))
+
+      // chunk 読み込み失敗 → iframe はマウントされず、エラー表示になる
+      const alert = await screen.findByRole('alert')
+      expect(alert.textContent).toContain('プレビュー機能の読み込みに失敗しました。')
+      expect(screen.queryByTestId('execution-preview')).toBeNull()
+
+      await user.click(screen.getByRole('button', { name: 'プレビューを再試行' }))
+
+      // 新しい lazy インスタンスが生成され、今度はマウントできる
+      expect(previewFactory.calls).toBe(2)
+      expect(await screen.findByTestId('execution-preview')).toBeTruthy()
+
+      await user.click(screen.getByRole('button', { name: 'mock-ready' }))
+      expect(screen.getByRole('button', { name: 'プレビューを見る' })).toBeTruthy()
+    } finally {
+      consoleError.mockRestore()
+    }
+  })
+
+  it('ランタイムエラーの再試行では lazy インスタンスを作り直さない', async () => {
+    const user = userEvent.setup()
+    vi.mocked(isExecPreviewEnabled).mockReturnValue(true)
+
+    render(<ChallengeMode stepId="usestate-basic" task={firstTask} onComplete={vi.fn()} />)
+    expect(previewFactory.calls).toBe(1)
+
+    fireEvent.change(screen.getByLabelText('challenge-editor'), {
+      target: { value: PASSING_CODE },
+    })
+    await user.click(screen.getByRole('button', { name: '判定する' }))
+    const firstPreview = await screen.findByTestId('execution-preview')
+    await user.click(within(firstPreview).getByRole('button', { name: 'mock-error' }))
+    expect(screen.queryByTestId('execution-preview')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'プレビューを再試行' }))
+
+    // chunk 失敗ではないので factory は再実行せず、runId 更新で新しい runtime を作る
+    expect(previewFactory.calls).toBe(1)
+    const retriedPreview = await screen.findByTestId('execution-preview')
+    expect(retriedPreview).not.toBe(firstPreview)
   })
 
   it('不正解の場合はプレビュー準備を開始しない', async () => {

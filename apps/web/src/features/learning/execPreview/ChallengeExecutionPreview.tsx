@@ -5,8 +5,9 @@ import {
   useSandpack,
 } from '@codesandbox/sandpack-react'
 import { buildPreviewFiles } from './buildPreviewFiles'
+import { EXEC_PREVIEW_BUNDLER_URL } from './execPreviewBundler'
 
-interface ChallengeExecutionPreviewProps {
+export interface ChallengeExecutionPreviewProps {
   code: string
   isVisible: boolean
   runId: number
@@ -132,6 +133,8 @@ export default function ChallengeExecutionPreview({
         autorun: false,
         autoReload: false,
         initMode: 'immediate',
+        // CSP frame-src と 1 対 1 で対応させるため、bundler origin を固定する。
+        bundlerURL: EXEC_PREVIEW_BUNDLER_URL,
       }}
     >
       <PreviewRuntime

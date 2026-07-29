@@ -48,7 +48,7 @@ NNN_short_description.sql
 - RLS対象テーブルを作る場合、同じファイル内に RLS 有効化と policy を含める
 - RPCを追加する場合、権限、`security definer`、`search_path`、admin判定の有無を明記する
 
-2026-07-25 時点の管理対象SQLの最新は `032_review_items_srs.sql`。次の新規の管理対象SQLは `033_*.sql` から始める。
+2026-07-25 時点の管理対象SQLの最新は `033_review_items_srs_transitions.sql`。次の新規の管理対象SQLは `034_*.sql` から始める。
 
 ---
 
@@ -86,6 +86,7 @@ NNN_short_description.sql
 | 030 | `030_profiles_is_test_user.sql` | profiles に is_test_user 追加 + 本人書き換え防止RLS |
 | 031 | `031_admin_stats_exclude_test_users.sql` | admin統計RPCのテストユーザー除外 + グローバルサマリーRPC追加 |
 | 032 | `032_review_items_srs.sql` | 復習キューの間隔反復（SRS）カラム |
+| 033 | `033_review_items_srs_transitions.sql` | SRSの原子的な正解進行・再誤答リセットRPC |
 
 `002` / `005` は過去の seed SQL のため Git 管理対象から除外済み。seed が必要な環境では、Git 管理外の `apps/web/supabase/sql/local/*.sql` などで環境ごとに用意する。
 

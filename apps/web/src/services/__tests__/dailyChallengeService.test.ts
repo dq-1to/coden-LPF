@@ -2,7 +2,12 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { supabase } from '../../lib/supabaseClient'
 import { awardPoints } from '../pointService'
 import { trackLearningEvent } from '../eventService'
-import { pickForDaily, recordCorrectAnswer, recordWrongAnswer } from '../reviewService'
+import {
+  pickForDaily,
+  recordCorrectAnswer,
+  recordWrongAnswer,
+  resetReviewItemSchedule,
+} from '../reviewService'
 import {
   getTodayJst,
   getCurrentWeekDates,
@@ -32,6 +37,7 @@ vi.mock('../reviewService', () => ({
   pickForDaily: vi.fn(),
   recordCorrectAnswer: vi.fn(),
   recordWrongAnswer: vi.fn(),
+  resetReviewItemSchedule: vi.fn(),
 }))
 
 const mockFrom = vi.mocked(supabase.from)
@@ -40,6 +46,7 @@ const mockTrackLearningEvent = vi.mocked(trackLearningEvent)
 const mockPickForDaily = vi.mocked(pickForDaily)
 const mockRecordCorrectAnswer = vi.mocked(recordCorrectAnswer)
 const mockRecordWrongAnswer = vi.mocked(recordWrongAnswer)
+const mockResetReviewItemSchedule = vi.mocked(resetReviewItemSchedule)
 
 // ─── 純粋関数テスト ──────────────────────────────────────
 
@@ -357,6 +364,7 @@ describe('submitDailyAnswer', () => {
     mockAwardPoints.mockResolvedValue()
     mockRecordWrongAnswer.mockResolvedValue()
     mockRecordCorrectAnswer.mockResolvedValue()
+    mockResetReviewItemSchedule.mockResolvedValue()
   })
 
   it('正解の場合は isCorrect: true と 20pt を返す', async () => {
@@ -404,6 +412,84 @@ describe('submitDailyAnswer', () => {
       mode: 'practice',
       questionId: 'practice-q1',
     })
+  })
+
+  it('弱点優先のDaily再誤答時は元の復習itemも stage 0 へ戻す', async () => {
+    const result = await submitDailyAnswer(userId, question, 'wrongAnswer', dateStr, {
+      stepId: 'events',
+      mode: 'practice',
+      questionId: 'practice-q1',
+    })
+
+    expect(result.isCorrect).toBe(false)
+    // Daily 回答そのものの誤答
+    expect(mockRecordWrongAnswer).toHaveBeenCalledWith({
+      userId,
+      stepId: 'usestate-basic',
+      mode: 'daily',
+      questionId: 'usestate-basic-daily-0',
+      expected: 'setCount',
+      userInput: 'wrongAnswer',
+    })
+    // 出題元の Practice item は内容を上書きせずスケジュールだけ戻す
+    expect(mockResetReviewItemSchedule).toHaveBeenCalledWith({
+      userId,
+      stepId: 'events',
+      mode: 'practice',
+      questionId: 'practice-q1',
+    })
+  })
+
+  it('reviewTarget が Daily 回答と同一 item の場合はリセットを二重実行しない', async () => {
+    await submitDailyAnswer(userId, question, 'wrongAnswer', dateStr, {
+      stepId: 'usestate-basic',
+      mode: 'daily',
+      questionId: 'usestate-basic-daily-0',
+    })
+
+    expect(mockRecordWrongAnswer).toHaveBeenCalledTimes(1)
+    expect(mockResetReviewItemSchedule).not.toHaveBeenCalled()
+  })
+
+  it('Daily 誤答の同期が失敗しても元 target のリセットは実行され、回答結果は返る', async () => {
+    mockRecordWrongAnswer.mockRejectedValue(new Error('review sync failed'))
+
+    const result = await submitDailyAnswer(userId, question, 'wrongAnswer', dateStr, {
+      stepId: 'events',
+      mode: 'practice',
+      questionId: 'practice-q1',
+    })
+
+    expect(mockResetReviewItemSchedule).toHaveBeenCalledOnce()
+    expect(result.isCorrect).toBe(false)
+    expect(result.correctAnswer).toBe('setCount')
+  })
+
+  it('元 target のリセットが失敗してもDaily回答結果は返る', async () => {
+    mockResetReviewItemSchedule.mockRejectedValue(new Error('reset failed'))
+
+    const result = await submitDailyAnswer(userId, question, 'wrongAnswer', dateStr, {
+      stepId: 'events',
+      mode: 'practice',
+      questionId: 'practice-q1',
+    })
+
+    expect(mockRecordWrongAnswer).toHaveBeenCalledOnce()
+    expect(result.isCorrect).toBe(false)
+  })
+
+  it('Daily 正解の同期が失敗しても元 target の進行は実行され、ポイントも付与される', async () => {
+    mockRecordCorrectAnswer.mockRejectedValueOnce(new Error('review sync failed'))
+
+    const result = await submitDailyAnswer(userId, question, 'setCount', dateStr, {
+      stepId: 'events',
+      mode: 'practice',
+      questionId: 'practice-q1',
+    })
+
+    expect(mockRecordCorrectAnswer).toHaveBeenCalledTimes(2)
+    expect(mockAwardPoints).toHaveBeenCalledWith(20, 'デイリーチャレンジ正解')
+    expect(result.isCorrect).toBe(true)
   })
 
   it('不正解の場合は isCorrect: false と 0pt を返す', async () => {
