@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { listOpen, resolveReviewItem, type ReviewItem } from '@/services/reviewService'
+import { listOpen, recordCorrectAnswer, type ReviewItem } from '@/services/reviewService'
 
 export function useReviewList() {
   const { user } = useAuth()
@@ -47,7 +47,7 @@ export function useReviewList() {
 
     void Promise.all(
       targets.map((item) =>
-        resolveReviewItem({
+        recordCorrectAnswer({
           userId,
           stepId: item.step_id,
           mode: item.mode,

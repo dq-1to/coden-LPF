@@ -5,8 +5,9 @@ import { DashboardPage } from '../DashboardPage'
 
 const testState = vi.hoisted(() => ({
   getProfileMock: vi.fn(),
+  getDueCountMock: vi.fn(),
   getOpenCountMock: vi.fn(),
-  listOpenMock: vi.fn(),
+  listDueMock: vi.fn(),
   learningContext: {
     allStepProgress: [
       {
@@ -66,8 +67,9 @@ vi.mock('@/services/profileService', () => ({
 }))
 
 vi.mock('@/services/reviewService', () => ({
+  getDueCount: (...args: unknown[]) => testState.getDueCountMock(...args),
   getOpenCount: (...args: unknown[]) => testState.getOpenCountMock(...args),
-  listOpen: (...args: unknown[]) => testState.listOpenMock(...args),
+  listDue: (...args: unknown[]) => testState.listDueMock(...args),
 }))
 
 vi.mock('@/lib/supabaseClient', () => ({
@@ -83,8 +85,10 @@ describe('DashboardPage', () => {
     })
     testState.getOpenCountMock.mockReset()
     testState.getOpenCountMock.mockResolvedValue(0)
-    testState.listOpenMock.mockReset()
-    testState.listOpenMock.mockResolvedValue([])
+    testState.getDueCountMock.mockReset()
+    testState.getDueCountMock.mockResolvedValue(0)
+    testState.listDueMock.mockReset()
+    testState.listDueMock.mockResolvedValue([])
     testState.learningContext = {
       allStepProgress: [
         {
@@ -127,7 +131,7 @@ describe('DashboardPage', () => {
     expect(await screen.findByText('学習コース')).toBeTruthy()
     expect(screen.getByText('今日のおすすめ')).toBeTruthy()
     expect(screen.getByText('Step 2 の Practice から再開')).toBeTruthy()
-    expect(screen.queryByText('復習待ち 0 件')).toBeNull()
+    expect(screen.queryByText('今日の復習 0 件')).toBeNull()
     expect(screen.getByText('React')).toBeTruthy()
     expect(screen.getByText('TypeScript')).toBeTruthy()
     expect(screen.getByText('スキルアップ')).toBeTruthy()
@@ -161,8 +165,9 @@ describe('DashboardPage', () => {
   })
 
   it('復習待ちがある場合は復習カードを表示し、今日のおすすめも復習を優先する', async () => {
-    testState.getOpenCountMock.mockResolvedValue(2)
-    testState.listOpenMock.mockResolvedValue([
+    testState.getOpenCountMock.mockResolvedValue(3)
+    testState.getDueCountMock.mockResolvedValue(2)
+    testState.listDueMock.mockResolvedValue([
       {
         id: 'review-1',
         user_id: 'user-1',
@@ -174,6 +179,9 @@ describe('DashboardPage', () => {
         status: 'open',
         created_at: '2026-06-04T00:00:00Z',
         resolved_at: null,
+        review_stage: 0,
+        next_review_at: '2026-06-04T00:00:00Z',
+        last_reviewed_at: '2026-06-04T00:00:00Z',
       },
     ])
 
@@ -183,7 +191,8 @@ describe('DashboardPage', () => {
       </MemoryRouter>,
     )
 
-    expect(await screen.findByText('復習待ち 2 件')).toBeTruthy()
+    expect(await screen.findByText('今日の復習 2 件')).toBeTruthy()
+    expect(screen.getByText('期日前の復習が 1 件あります。予定日になったら表示されます。')).toBeTruthy()
     expect(screen.getByText('昨日間違えた問題を復習')).toBeTruthy()
     expect(screen.getByText('復習待ちが 2 件あります。まずは弱点を軽く戻しましょう。')).toBeTruthy()
     expect(screen.getByText(/最優先: Step 2/)).toBeTruthy()
@@ -192,5 +201,21 @@ describe('DashboardPage', () => {
       '/daily',
       '/step/events?mode=practice',
     ])
+  })
+
+  it('期日前の復習だけがある場合は復習カードを表示しない', async () => {
+    testState.getOpenCountMock.mockResolvedValue(2)
+    testState.getDueCountMock.mockResolvedValue(0)
+
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText('学習コース')).toBeTruthy()
+    expect(screen.queryByText(/今日の復習 \d+ 件/)).toBeNull()
+    expect(screen.queryByText(/期日前の復習が/)).toBeNull()
+    expect(screen.getByText('Step 2 の Practice から再開')).toBeTruthy()
   })
 })

@@ -26,7 +26,7 @@ export type RecordWrongAnswerInput = ReviewTarget & {
   userInput?: string | null
 }
 
-type ReviewItemId = Pick<ReviewItem, 'id'>
+type ReviewItemState = Pick<ReviewItem, 'id' | 'status'>
 
 function normalizeQuestionId(questionId?: string | null): string | null {
   const normalized = questionId?.trim()
@@ -60,11 +60,11 @@ function validateRecordInput(input: RecordWrongAnswerInput) {
   }
 }
 
-async function findReviewItemId(target: ReviewTarget): Promise<ReviewItemId | null> {
+async function findReviewItemState(target: ReviewTarget): Promise<ReviewItemState | null> {
   const questionId = normalizeQuestionId(target.questionId)
   const query = supabase
     .from('review_items')
-    .select('id')
+    .select('id, status')
     .eq('user_id', target.userId)
     .eq('step_id', target.stepId)
     .eq('mode', target.mode)
@@ -110,6 +110,9 @@ export async function recordWrongAnswer(input: RecordWrongAnswerInput): Promise<
   const questionId = normalizeQuestionId(input.questionId)
   const expected = normalizeOptionalText(input.expected)
   const userInput = normalizeOptionalText(input.userInput)
+  // 誤答は stage を問わず stage 0 / 即日 due へ戻す。
+  // 新規行の初期スケジュールなので、クライアント時刻でも SRS の進行判定には影響しない。
+  const nextReviewAt = new Date().toISOString()
   const payload: TablesInsert<'review_items'> = {
     user_id: input.userId,
     step_id: input.stepId,
@@ -119,15 +122,21 @@ export async function recordWrongAnswer(input: RecordWrongAnswerInput): Promise<
     user_input: userInput,
     status: 'open',
     resolved_at: null,
+    review_stage: 0,
+    next_review_at: nextReviewAt,
+    last_reviewed_at: nextReviewAt,
   }
 
-  const existing = await findReviewItemId(input)
+  const existing = await findReviewItemState(input)
   if (existing) {
     await updateReviewItem(existing.id, {
       expected,
       user_input: userInput,
       status: 'open',
       resolved_at: null,
+      review_stage: 0,
+      next_review_at: nextReviewAt,
+      last_reviewed_at: nextReviewAt,
     })
     return
   }
@@ -135,18 +144,41 @@ export async function recordWrongAnswer(input: RecordWrongAnswerInput): Promise<
   await insertReviewItem(payload)
 }
 
-export async function resolveReviewItem(target: ReviewTarget): Promise<void> {
+/**
+ * 正解時の段階進行。期日判定・stage 遷移・行ロックはすべて DB 側の RPC が行う。
+ * SRS の間隔（翌日 / 3日後 / 7日後）は 033 の SQL を正本とし、ここでは複製しない。
+ */
+export async function recordCorrectAnswer(target: ReviewTarget): Promise<void> {
   validateTarget(target)
 
-  const existing = await findReviewItemId(target)
-  if (!existing) {
-    return
-  }
-
-  await updateReviewItem(existing.id, {
-    status: 'resolved',
-    resolved_at: new Date().toISOString(),
+  const { error } = await supabase.rpc('advance_review_item_if_due', {
+    p_step_id: target.stepId,
+    p_mode: target.mode,
+    p_question_id: normalizeQuestionId(target.questionId),
   })
+
+  if (error) {
+    throw fromSupabaseError(error, '復習アイテムの更新に失敗しました')
+  }
+}
+
+/**
+ * 既存 review item のスケジュールだけを stage 0 / 即日 due へ戻す。
+ * Daily で出題された Practice/Test 由来 item を再誤答時に戻す用途で使う。
+ * expected / user_input は上書きしない。
+ */
+export async function resetReviewItemSchedule(target: ReviewTarget): Promise<void> {
+  validateTarget(target)
+
+  const { error } = await supabase.rpc('reset_review_item_schedule', {
+    p_step_id: target.stepId,
+    p_mode: target.mode,
+    p_question_id: normalizeQuestionId(target.questionId),
+  })
+
+  if (error) {
+    throw fromSupabaseError(error, '復習アイテムの更新に失敗しました')
+  }
 }
 
 export async function getOpenCount(userId: string): Promise<number> {
@@ -171,7 +203,7 @@ export async function listOpen(userId: string, limit = 10): Promise<ReviewItem[]
 
   const { data, error } = await supabase
     .from('review_items')
-    .select('id, user_id, step_id, mode, question_id, expected, user_input, status, created_at, resolved_at')
+    .select('id, user_id, step_id, mode, question_id, expected, user_input, status, created_at, resolved_at, review_stage, next_review_at, last_reviewed_at')
     .eq('user_id', userId)
     .eq('status', 'open')
     .order('created_at', { ascending: true })
@@ -182,6 +214,47 @@ export async function listOpen(userId: string, limit = 10): Promise<ReviewItem[]
   }
 
   return data ?? []
+}
+
+export async function listDue(
+  userId: string,
+  limit = 10,
+  now: Date = new Date(),
+): Promise<ReviewItem[]> {
+  assertUuid(userId, 'userId')
+  assertPositiveInteger(limit, 'limit')
+
+  const { data, error } = await supabase
+    .from('review_items')
+    .select('id, user_id, step_id, mode, question_id, expected, user_input, status, created_at, resolved_at, review_stage, next_review_at, last_reviewed_at')
+    .eq('user_id', userId)
+    .eq('status', 'open')
+    .lte('next_review_at', now.toISOString())
+    .order('next_review_at', { ascending: true })
+    .limit(limit)
+
+  if (error) {
+    throw fromSupabaseError(error, '今日の復習の取得に失敗しました')
+  }
+
+  return data ?? []
+}
+
+export async function getDueCount(userId: string, now: Date = new Date()): Promise<number> {
+  assertUuid(userId, 'userId')
+
+  const { count, error } = await supabase
+    .from('review_items')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('status', 'open')
+    .lte('next_review_at', now.toISOString())
+
+  if (error) {
+    throw fromSupabaseError(error, '今日の復習件数の取得に失敗しました')
+  }
+
+  return count ?? 0
 }
 
 export async function pickForDaily(
@@ -196,6 +269,6 @@ export async function pickForDaily(
     return null
   }
 
-  const items = await listOpen(userId, limit)
+  const items = await listDue(userId, limit)
   return items.find((item) => completedStepIds.has(item.step_id)) ?? null
 }

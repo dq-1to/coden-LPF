@@ -18,7 +18,7 @@ import { WelcomeBanner } from '../features/dashboard/components/WelcomeBanner'
 import { isCourseCompleted } from '../lib/courseLock'
 import { supabaseConfigError } from '../lib/supabaseClient'
 import { getRecommendedAction } from '../services/recommendationService'
-import { getOpenCount, listOpen, type ReviewItem } from '../services/reviewService'
+import { getDueCount, getOpenCount, listDue, type ReviewItem } from '../services/reviewService'
 import { CATEGORY_ICONS, PRACTICE_MODE_CARDS } from '../shared/constants'
 
 export function DashboardPage() {
@@ -28,7 +28,8 @@ export function DashboardPage() {
   const { allStepProgress, completedStepIds, completedStepsCount } = useLearningContext()
   const { greetingName } = useGreetingName()
   const [error, setError] = useState<string | null>(null)
-  const [reviewCount, setReviewCount] = useState(0)
+  const [dueCount, setDueCount] = useState(0)
+  const [openCount, setOpenCount] = useState(0)
   const [firstReviewItem, setFirstReviewItem] = useState<ReviewItem | null>(null)
   const [isLoadingReview, setIsLoadingReview] = useState(false)
   const [reviewError, setReviewError] = useState<string | null>(null)
@@ -41,7 +42,8 @@ export function DashboardPage() {
 
     async function loadReviewSummary() {
       if (!userId) {
-        setReviewCount(0)
+        setDueCount(0)
+        setOpenCount(0)
         setFirstReviewItem(null)
         setReviewError(null)
         return
@@ -50,17 +52,20 @@ export function DashboardPage() {
       setIsLoadingReview(true)
       setReviewError(null)
       try {
-        const [count, items] = await Promise.all([
+        const [nextOpenCount, nextDueCount, dueItems] = await Promise.all([
           getOpenCount(userId),
-          listOpen(userId, 1),
+          getDueCount(userId),
+          listDue(userId, 1),
         ])
 
         if (cancelled) return
-        setReviewCount(count)
-        setFirstReviewItem(items[0] ?? null)
+        setOpenCount(nextOpenCount)
+        setDueCount(nextDueCount)
+        setFirstReviewItem(dueItems[0] ?? null)
       } catch (e) {
         if (cancelled) return
-        setReviewCount(0)
+        setOpenCount(0)
+        setDueCount(0)
         setFirstReviewItem(null)
         setReviewError(e instanceof Error ? e.message : '復習キューの取得に失敗しました')
       } finally {
@@ -75,15 +80,16 @@ export function DashboardPage() {
     }
   }, [userId])
 
+  const scheduledCount = Math.max(openCount - dueCount, 0)
   const recommendedAction = useMemo(
     () => getRecommendedAction({
       progress: allStepProgress,
-      reviewCount,
+      reviewCount: dueCount,
       enableReviewQueue: true,
     }),
-    [allStepProgress, reviewCount],
+    [allStepProgress, dueCount],
   )
-  const shouldShowReviewQueue = isLoadingReview || Boolean(reviewError) || reviewCount > 0
+  const shouldShowReviewQueue = isLoadingReview || Boolean(reviewError) || dueCount > 0
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-secondary-bg/40 to-sky-50/50">
@@ -99,7 +105,8 @@ export function DashboardPage() {
             <TodayActionCard action={recommendedAction} />
             {shouldShowReviewQueue ? (
               <ReviewQueueCard
-                count={reviewCount}
+                dueCount={dueCount}
+                scheduledCount={scheduledCount}
                 firstItem={firstReviewItem}
                 isLoading={isLoadingReview}
                 error={reviewError}

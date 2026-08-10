@@ -7,7 +7,7 @@ import type { TestTask } from '../../../content/fundamentals/steps'
 import { previewByStepId } from '../testModePreview'
 
 const recordWrongAnswer = vi.fn()
-const resolveReviewItem = vi.fn()
+const recordCorrectAnswer = vi.fn()
 const trackLearningEvent = vi.fn()
 
 vi.mock('@/contexts/AuthContext', () => ({
@@ -33,7 +33,7 @@ vi.mock('prismjs/components/prism-tsx', () => ({}))
 
 vi.mock('../../../services/reviewService', () => ({
   recordWrongAnswer: (...args: unknown[]) => recordWrongAnswer(...args),
-  resolveReviewItem: (...args: unknown[]) => resolveReviewItem(...args),
+  recordCorrectAnswer: (...args: unknown[]) => recordCorrectAnswer(...args),
 }))
 
 vi.mock('../../../services/eventService', () => ({
@@ -61,10 +61,10 @@ describe('TestMode', () => {
 
   beforeEach(() => {
     recordWrongAnswer.mockReset()
-    resolveReviewItem.mockReset()
+    recordCorrectAnswer.mockReset()
     trackLearningEvent.mockReset()
     recordWrongAnswer.mockResolvedValue(undefined)
-    resolveReviewItem.mockResolvedValue(undefined)
+    recordCorrectAnswer.mockResolvedValue(undefined)
   })
 
   it('stepId が変わると入力内容と判定状態をリセットする', async () => {
@@ -89,7 +89,7 @@ describe('TestMode', () => {
         questionIds: ['test'],
       },
     })
-    expect(resolveReviewItem).toHaveBeenCalledWith({
+    expect(recordCorrectAnswer).toHaveBeenCalledWith({
       userId: '00000000-0000-0000-0000-000000000001',
       stepId: 'step-a',
       mode: 'test',
@@ -143,10 +143,10 @@ describe('TestMode 不正解フィードバック', () => {
 
   beforeEach(() => {
     recordWrongAnswer.mockReset()
-    resolveReviewItem.mockReset()
+    recordCorrectAnswer.mockReset()
     trackLearningEvent.mockReset()
     recordWrongAnswer.mockResolvedValue(undefined)
-    resolveReviewItem.mockResolvedValue(undefined)
+    recordCorrectAnswer.mockResolvedValue(undefined)
   })
 
   it('conditions がある場合、不正解時に不足条件を日本語ラベル・説明で表示する', async () => {

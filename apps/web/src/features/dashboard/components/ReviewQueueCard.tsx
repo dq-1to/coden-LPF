@@ -4,7 +4,8 @@ import { findStepById } from '@/content/courseData'
 import type { ReviewItem } from '@/services/reviewService'
 
 interface ReviewQueueCardProps {
-  count: number
+  dueCount: number
+  scheduledCount: number
   firstItem: ReviewItem | null
   isLoading?: boolean
   error?: string | null
@@ -21,9 +22,15 @@ function getReviewPath(item: ReviewItem | null) {
   return `/step/${item.step_id}?mode=${mode}`
 }
 
-export function ReviewQueueCard({ count, firstItem, isLoading = false, error = null }: ReviewQueueCardProps) {
+export function ReviewQueueCard({
+  dueCount,
+  scheduledCount,
+  firstItem,
+  isLoading = false,
+  error = null,
+}: ReviewQueueCardProps) {
   const firstStep = firstItem ? findStepById(firstItem.step_id) : undefined
-  const hasOpenItems = count > 0
+  const hasDueItems = dueCount > 0
   const reviewPath = getReviewPath(firstItem)
 
   return (
@@ -36,27 +43,30 @@ export function ReviewQueueCard({ count, firstItem, isLoading = false, error = n
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">復習キュー</p>
             <h2 className="mt-1 text-lg font-bold text-slate-900">
-              {isLoading ? '復習待ちを確認中' : `復習待ち ${formatCount(count)} 件`}
+              {isLoading ? '今日の復習を確認中' : `今日の復習 ${formatCount(dueCount)} 件`}
             </h2>
             {error ? (
               <p className="mt-1 text-sm text-rose-600">{error}</p>
-            ) : hasOpenItems ? (
+            ) : hasDueItems ? (
               <p className="mt-1 text-sm text-slate-600">
                 最優先: {firstStep ? `Step ${firstStep.order}「${firstStep.title}」` : firstItem?.step_id}
               </p>
             ) : (
-              <p className="mt-1 text-sm text-slate-600">
-                今のところ復習待ちはありません。通常の学習かDailyでリズムを保ちましょう。
-              </p>
+              <p className="mt-1 text-sm text-slate-600">今日の復習はありません。</p>
             )}
+            {scheduledCount > 0 ? (
+              <p className="mt-1 text-xs text-slate-500">
+                期日前の復習が {scheduledCount} 件あります。予定日になったら表示されます。
+              </p>
+            ) : null}
           </div>
         </div>
 
         <Link
-          to={hasOpenItems ? reviewPath : '/curriculum'}
+          to={hasDueItems ? reviewPath : '/curriculum'}
           className="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-600"
         >
-          {hasOpenItems ? '復習へ進む' : '学習を進める'}
+          {hasDueItems ? '復習へ進む' : '学習を進める'}
         </Link>
       </div>
     </section>

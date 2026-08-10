@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '../../components/Button'
 import { CodeEditor } from '../../components/CodeEditor'
 import { ErrorBanner } from '../../components/ErrorBanner'
+import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import { resolvePrimaryPattern, type ChallengePattern, type ChallengeTask } from '../../content/fundamentals/steps'
 import { JudgmentResult } from './components/JudgmentResult'
@@ -10,6 +11,46 @@ import { useJudgmentAction } from './hooks/useJudgmentAction'
 import { useChallengeDraft } from './hooks/useChallengeDraft'
 import { judgeKeywordConditions, judgeKeywords, stripNonAuthoredCode } from '../../lib/judge'
 import { ChallengePuzzleMulti } from './ChallengePuzzle/ChallengePuzzleMulti'
+import { isExecPreviewEnabled } from './execPreview/execPreviewConfig'
+import { createExecutionPreviewComponent } from './execPreview/createExecutionPreviewComponent'
+
+const EXEC_PREVIEW_TIMEOUT_MS = 15_000
+
+/**
+ * chunk: プレビュー本体の読み込み失敗（lazy インスタンスの作り直しが必要）
+ * runtime: ユーザーコードの実行時／コンパイル時エラー
+ * timeout: 準備が既定時間内に終わらなかった
+ */
+type PreviewErrorKind = 'chunk' | 'runtime' | 'timeout'
+
+/**
+ * 実行プレビューの状態。Sandpack（iframe）は preparing / ready の間だけマウントし、
+ * error へ遷移した時点でアンマウントして runtime を破棄する。
+ * error は再試行のためにコードのスナップショットだけを保持する。
+ *
+ * 表示状態（isVisible）を別 state に分けると、古い runId の通知で表示だけが
+ * 落ちる不整合が起きるため、run の状態へ統合している。
+ */
+type ExecutionPreviewState =
+  | { status: 'idle' }
+  | { status: 'preparing'; runId: number; code: string }
+  | { status: 'ready'; runId: number; code: string; isVisible: boolean }
+  | { status: 'error'; runId: number; code: string; message: string; kind: PreviewErrorKind }
+
+type PreviewErrorState = Extract<ExecutionPreviewState, { status: 'error' }>
+
+interface PreviewLoadErrorProps {
+  runId: number
+  onChunkError: (runId: number) => void
+}
+
+function PreviewLoadError({ runId, onChunkError }: PreviewLoadErrorProps) {
+  useEffect(() => {
+    onChunkError(runId)
+  }, [onChunkError, runId])
+
+  return null
+}
 
 interface ChallengeModeProps {
   stepId: string
@@ -22,11 +63,18 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
   const isMobile = useIsMobile()
   const [pattern, setPattern] = useState<ChallengePattern>(() => resolvePrimaryPattern(task))
   const hasMobilePuzzle = isMobile && pattern.mobilePuzzle != null
+  const showExecPreview = isExecPreviewEnabled(stepId) && !hasMobilePuzzle
   // モバイルパズルは組み立て式のため自由入力 draft の対象外（PC自由入力を主対象とする）
   const { readDraft, scheduleSave, clearDraft } = useChallengeDraft({ enabled: !hasMobilePuzzle })
   const [code, setCode] = useState(() => readDraft(stepId, pattern.id) ?? pattern.starterCode)
   const [checked, setChecked] = useState(false)
   const [submissionError, setSubmissionError] = useState<string | null>(null)
+  const [previewState, setPreviewState] = useState<ExecutionPreviewState>({ status: 'idle' })
+  // chunk 読み込み失敗時に lazy インスタンスごと作り直せるよう、生成物を state で持つ
+  const [previewModule, setPreviewModule] = useState(() => ({
+    Component: createExecutionPreviewComponent(),
+  }))
+  const nextPreviewRunIdRef = useRef(0)
   const { handleResult } = useJudgmentAction(stepId, 'challenge', onComplete)
 
   // effect 内で最新の readDraft を参照しつつ、依存は [stepId, task] に保つ
@@ -39,7 +87,69 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     setCode(readDraftRef.current(stepId, nextPattern.id) ?? nextPattern.starterCode)
     setChecked(false)
     setSubmissionError(null)
+    // step / task が変わったら実行中の iframe も破棄する
+    setPreviewState({ status: 'idle' })
   }, [stepId, task])
+
+  const handlePreviewReady = useCallback((runId: number) => {
+    setPreviewState((current) =>
+      current.status === 'preparing' && current.runId === runId
+        ? { status: 'ready', runId, code: current.code, isVisible: false }
+        : current,
+    )
+  }, [])
+
+  // 古い runId からの通知は破棄し、新しい run の状態も表示も変えない
+  const handlePreviewError = useCallback(
+    (runId: number, message: string, kind: PreviewErrorKind = 'runtime') => {
+      setPreviewState((current) =>
+        (current.status === 'preparing' || current.status === 'ready') &&
+        current.runId === runId
+          ? { status: 'error', runId, code: current.code, message, kind }
+          : current,
+      )
+    },
+    [],
+  )
+
+  const togglePreviewVisibility = useCallback(() => {
+    setPreviewState((current) =>
+      current.status === 'ready' ? { ...current, isVisible: !current.isVisible } : current,
+    )
+  }, [])
+
+  const handlePreviewChunkError = useCallback(
+    (runId: number) => {
+      handlePreviewError(runId, 'プレビュー機能の読み込みに失敗しました。', 'chunk')
+    },
+    [handlePreviewError],
+  )
+
+  const handlePreviewRetry = useCallback((errorState: PreviewErrorState) => {
+    // React.lazy は失敗した import Promise をキャッシュするため、
+    // chunk 読み込み失敗の再試行では lazy インスタンスごと作り直す。
+    if (errorState.kind === 'chunk') {
+      setPreviewModule({ Component: createExecutionPreviewComponent() })
+    }
+
+    const runId = nextPreviewRunIdRef.current + 1
+    nextPreviewRunIdRef.current = runId
+    setPreviewState({ status: 'preparing', runId, code: errorState.code })
+  }, [])
+
+  useEffect(() => {
+    if (previewState.status !== 'preparing') return
+
+    const timeoutId = window.setTimeout(() => {
+      handlePreviewError(
+        previewState.runId,
+        'プレビューの準備がタイムアウトしました。もう一度お試しください。',
+        'timeout',
+      )
+    }, EXEC_PREVIEW_TIMEOUT_MS)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [handlePreviewError, previewState])
 
   // starterCode の TODO コメントや import 由来の誤合格を防ぐため、判定はサニタイズ後コードで行う
   const judgeableCode = useMemo(() => stripNonAuthoredCode(code), [code])
@@ -75,6 +185,12 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     // 正解した場合は途中コードの draft を削除する
     if (hasSatisfiedRequirements) {
       clearDraft(stepId, pattern.id)
+
+      if (showExecPreview) {
+        const runId = nextPreviewRunIdRef.current + 1
+        nextPreviewRunIdRef.current = runId
+        setPreviewState({ status: 'preparing', runId, code })
+      }
     }
 
     if (onSubmitResult) {
@@ -101,6 +217,8 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
     (nextValue: string) => {
       setChecked(false)
       setCode(nextValue)
+      // 編集したら実行中の iframe を破棄する（古いコードの runtime を残さない）
+      setPreviewState({ status: 'idle' })
       scheduleSave(stepId, pattern.id, nextValue)
     },
     [scheduleSave, stepId, pattern.id],
@@ -145,6 +263,70 @@ export function ChallengeMode({ stepId, task, onComplete, onSubmitResult }: Chal
           />
         )}
       </div>
+
+      {showExecPreview && previewState.status !== 'idle' ? (
+        <div className="space-y-2">
+          {previewState.status === 'preparing' ? (
+            <Button variant="secondary" disabled>
+              プレビューを準備中…
+            </Button>
+          ) : null}
+
+          {previewState.status === 'ready' ? (
+            <Button
+              variant="secondary"
+              onClick={togglePreviewVisibility}
+            >
+              {previewState.isVisible ? 'プレビューを閉じる' : 'プレビューを見る'}
+            </Button>
+          ) : null}
+
+          {previewState.status === 'error' ? (
+            <>
+              <p className="text-sm text-red-600" role="alert">
+                {previewState.message}
+              </p>
+              <Button variant="secondary" onClick={() => handlePreviewRetry(previewState)}>
+                プレビューを再試行
+              </Button>
+            </>
+          ) : null}
+
+          <p className="sr-only" role="status" aria-live="polite">
+            {previewState.status === 'preparing'
+              ? 'プレビューを準備しています。'
+              : previewState.status === 'ready'
+                ? 'プレビューの準備が完了しました。'
+                : previewState.status === 'error'
+                  ? previewState.message
+                  : ''}
+          </p>
+
+          {/* Sandpack は準備中・準備完了の間だけマウントする。
+              error / timeout ではアンマウントして iframe ごと runtime を破棄する。 */}
+          {previewState.status === 'preparing' || previewState.status === 'ready' ? (
+            <ErrorBoundary
+              key={previewState.runId}
+              fallback={
+                <PreviewLoadError
+                  runId={previewState.runId}
+                  onChunkError={handlePreviewChunkError}
+                />
+              }
+            >
+              <Suspense fallback={null}>
+                <previewModule.Component
+                  code={previewState.code}
+                  isVisible={previewState.status === 'ready' && previewState.isVisible}
+                  runId={previewState.runId}
+                  onReady={handlePreviewReady}
+                  onError={handlePreviewError}
+                />
+              </Suspense>
+            </ErrorBoundary>
+          ) : null}
+        </div>
+      ) : null}
 
       {submissionError ? <ErrorBanner>{submissionError}</ErrorBanner> : null}
 
