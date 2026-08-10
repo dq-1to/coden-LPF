@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
@@ -34,7 +35,23 @@ function getDirective(csp: string, name: string): string | undefined {
     .find((directive) => directive.startsWith(`${name} `))
 }
 
+function getInstalledSandpackClientVersion(): string {
+  const require = createRequire(import.meta.url)
+  const entrypoint = require.resolve('@codesandbox/sandpack-client')
+  const packageJsonPath = resolve(dirname(dirname(entrypoint)), 'package.json')
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8')) as { version: string }
+
+  return packageJson.version
+}
+
 describe('vercel.json の CSP', () => {
+  it('bundler origin はインストール済み sandpack-client のバージョンと一致する', () => {
+    const version = getInstalledSandpackClientVersion()
+    const expectedOrigin = `https://${version.replace(/\./g, '-')}-sandpack.codesandbox.io`
+
+    expect(EXEC_PREVIEW_BUNDLER_ORIGIN).toBe(expectedOrigin)
+  })
+
   it('frame-src が Sandpack の bundler origin を許可している', () => {
     const frameSrc = getDirective(readCsp(), 'frame-src')
 
