@@ -157,7 +157,7 @@ describe('ChallengeExecutionPreview', () => {
     expect(onReady).not.toHaveBeenCalled()
   })
 
-  it('準備完了後のランタイムエラーを優先し、重複通知しない', () => {
+  it('show-error は一般エラーとして通知し、重複通知しない', () => {
     const onReady = vi.fn()
     const onError = vi.fn()
 
@@ -190,7 +190,34 @@ describe('ChallengeExecutionPreview', () => {
     expect(onError).toHaveBeenCalledOnce()
     expect(onError).toHaveBeenCalledWith(
       13,
-      'プレビューを準備できませんでした。コードの構文を確認してください。',
+      'プレビューでエラーが発生しました。コードを確認してください。',
     )
+  })
+
+  it('notification error は実行時エラーとして親へ通知する', () => {
+    const onReady = vi.fn()
+    const onError = vi.fn()
+
+    render(
+      <ChallengeExecutionPreview
+        code="export function App() { return null }"
+        isVisible={false}
+        runId={17}
+        onReady={onReady}
+        onError={onError}
+      />,
+    )
+
+    act(() => {
+      sandpackMock.listener?.({
+        type: 'action',
+        action: 'notification',
+        notificationType: 'error',
+      })
+    })
+
+    expect(onError).toHaveBeenCalledOnce()
+    expect(onError).toHaveBeenCalledWith(17, 'プレビューの実行中にエラーが発生しました。')
+    expect(onReady).not.toHaveBeenCalled()
   })
 })

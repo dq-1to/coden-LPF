@@ -55,7 +55,8 @@ function PreviewRuntime({
   useEffect(() => {
     const unsubscribe = listenRef.current((message) => {
       if (message.type === 'action' && message.action === 'show-error') {
-        reportError('プレビューを準備できませんでした。コードの構文を確認してください。')
+        // Sandpack の show-error は構文・実行時エラーの両方で届くため、原因を断定しない。
+        reportError('プレビューでエラーが発生しました。コードを確認してください。')
       }
 
       if (
